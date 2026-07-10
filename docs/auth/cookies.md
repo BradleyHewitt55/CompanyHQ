@@ -1,5 +1,7 @@
 # Cookie strategy
 
+> **Document status:** Target V1 security contract.
+
 Browser authentication uses a stateful session referenced by an HTTP-only cookie. Client-side code cannot read or construct the session credential.
 
 ## Production cookie contract

@@ -1,5 +1,7 @@
 # Agent profiles, roles, skills, and tools
 
+> **Document status:** Target V1 product contract.
+
 Every enabled agent instance uses a profile. Profiles are company- or project-scoped and represent a job function, not a provider-wide superuser.
 
 ## Profile contract

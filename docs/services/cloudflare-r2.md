@@ -1,5 +1,7 @@
 # Cloudflare R2 media service
 
+> **Document status:** Target V1 optional adapter contract.
+
 Cloudflare R2 is an optional object-storage service for company media, generated assets, exports, and approved build artifacts. It complements the database; it is not the database and it is not a raw file share for agents.
 
 ## Storage boundary

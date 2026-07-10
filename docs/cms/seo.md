@@ -1,5 +1,7 @@
 # SEO
 
+> **Document status:** Target V1 product contract.
+
 SEO is a core CMS capability that produces policy-safe metadata for each project route and locale. It does not allow content editors to inject arbitrary document markup or executable code.
 
 ## SEO record

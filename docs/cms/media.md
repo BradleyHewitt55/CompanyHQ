@@ -1,5 +1,7 @@
 # Media
 
+> **Document status:** Target V1 product contract.
+
 Media is a core CMS contract backed by an enabled storage provider. The CMS owns asset identity, policy, metadata, usage, and lifecycle; a storage adapter owns byte storage and delivery primitives.
 
 ## Asset lifecycle

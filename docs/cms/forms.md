@@ -1,5 +1,7 @@
 # Forms
 
+> **Document status:** Target V1 product contract.
+
 Forms are a core CMS capability for defining project forms and collecting company-isolated submissions. A form definition, its rendered client DTO, and its submission DTO are separate contracts.
 
 ## Form definition

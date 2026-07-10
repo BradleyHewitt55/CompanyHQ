@@ -1,5 +1,7 @@
 # Token data
 
+> **Document status:** Target V1 security contract.
+
 Authentication credentials carry the minimum stable identifiers needed to validate a principal. Authorization data is loaded from current CompanyHQ policy instead of being trusted from stale client-held claims.
 
 ## Allowed claims

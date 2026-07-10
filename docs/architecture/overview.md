@@ -1,65 +1,40 @@
 # Architecture overview
 
-CompanyHQ is a control plane for a company, not merely a content editor. It coordinates people, services, projects, source changes, agents, and deployments while keeping each company isolated.
+> **Document status:** Target V1 architecture contract. No runtime is implemented.
 
-~~~text
-Human staff / owner             Enabled provider agents
-        |                                  |
-        +---- Admin UI / CLI / Explorer ---+
-                         |
-                 CompanyHQ control plane
-   policy | company registry | Change records | audit | MCP gateway
-                         |
-      +------------------+--------------------+
-      |                  |                    |
-Company service     project/app repo      agent runtime
-and content data    worktrees + GitHub    isolated Docker workers
-      |                  |                    |
-database/media     preview/deploy           scoped MCP capabilities
-      \____________________|___________________/
-                           |
-                  company Docker composition
-~~~
+CompanyHQ is one independently deployed CMS per company. An installation has one Next.js application serving the public site and `/admin`, separate workers and scheduler, its own PostgreSQL database, Redis namespace, queues, storage, secrets, projects, worktrees, MCP server, logs, backups, and audit chain. There is no central CompanyHQ service and no UI for switching companies.
 
-## Core concepts
+```mermaid
+flowchart LR
+  U["Owner, admin, developer, client"] --> W["Next.js web: public site + /admin"]
+  A["Provider agent"] --> M["Installation-local MCP server"]
+  C["Provisioning CLI"] --> I["Installation manager"]
+  W --> S["Application services"]
+  M --> S
+  Q["BullMQ workers and scheduler"] --> S
+  S --> P[("PostgreSQL")]
+  S --> R[("Redis / BullMQ")]
+  S --> O["Scoped object storage"]
+  S --> X["Outbox, audit, telemetry"]
+  Q --> G["Task worktrees / provider adapters"]
+```
 
-| Concept | Meaning |
-| --- | --- |
-| Company | The tenant boundary and operational unit. |
-| Core service | A supplied capability that is always present, such as users, auth, forms, or SEO. It is configured and permissioned, not toggled off. |
-| Optional service | An installable capability, such as Resend, ecommerce, Cloudflare R2, or Google Merchant. It has an explicit enabled state. |
-| Project | A deployable website, mobile app, or desktop app added when needed. Projects are not created by default. |
-| Change | The universal record for a manual or agent source, configuration, or deployment change. |
-| Agent provider/run | An optional enabled runtime and a scoped execution attached to a task, policy identity, and, where source changes, a Change/worktree. |
-| Explorer item | A view of a source-backed admin or project item, including its effective source and history. |
+## Non-negotiable boundaries
 
-## Company boundary
+- Web, MCP, CLI, worker, scheduler, and webhook ingress all construct the same validated company and actor context.
+- Mutations enter typed application commands. Authorization, validation, workflow, version, audit, idempotency, and concurrency are not caller responsibilities.
+- Agents never import repositories, connect to PostgreSQL/Redis, merge changes, approve their own actions, or deploy.
+- Configuration is compiled into an immutable runtime registry; plugins transform configuration before final validation, not after startup.
+- PostgreSQL is authoritative for business state. Redis is disposable coordination/queue infrastructure, never the only record of an approval, task, revision, or audit event.
+- External effects are emitted from a transactional outbox and processed idempotently.
 
-Each company receives an isolated composition. It must have its own:
+## Runtime applications
 
-- server directory and environment file;
-- Docker network and containers;
-- database identity and credentials;
-- media storage boundary;
-- GitHub repositories and installation scope;
-- agent worktrees, scoped capabilities, and secret references;
-- audit, backup, and deployment records.
+| Application | Owns | Must not own |
+| --- | --- | --- |
+| `apps/web` | Public routes, admin route groups, route handlers, sessions, rendering | Queue polling, provider processes, direct SQL |
+| `apps/worker` | BullMQ consumers, agent runs, media/index/webhook jobs | Public HTTP, policy bypass |
+| `apps/scheduler` | Reconcile schedules into repeatable jobs | Business mutation implementation |
+| `apps/cli` | SSH connection profiles, install/upgrade/backup operations | Company runtime credentials beyond bootstrap |
 
-No agent, staff member, query, tool call, secret, or Explorer view may cross a company boundary without an explicit owner-level assignment and policy decision.
-
-## Source of truth
-
-The product root, each company root, and each deployable project use Git version control. Company root source contains only tenant-owned admin overrides/custom services; supplied base-admin source stays private in the product root. Content, tasks, audit events, service state, model/DTO registry, notifications, and deployment state live in operational storage. Secrets stay in a secret store or protected environment file and are represented in records only by references.
-
-The Explorer shows only tenant-owned source on protected main by default, plus visual/DTO contracts for supplied pages. It must never claim that a runtime-only change is backed up in Git.
-
-## Change lifecycle
-
-All source-affecting work follows one lifecycle:
-
-~~~text
-draft -> plan -> isolated worktree -> preview and diff -> approval
-      -> commit and push -> deploy -> audit and rollback point
-~~~
-
-An agent may prepare a draft and a worktree within its granted capability. The policy decides whether it may continue at each later transition. Long-running work is queued; it must not execute inside a request hook or an interactive UI action.
+See [runtime boundaries](runtime-boundaries.md), [company isolation](company-isolation.md), and [data flow](data-flow.md).

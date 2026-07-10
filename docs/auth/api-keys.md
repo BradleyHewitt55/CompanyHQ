@@ -1,5 +1,7 @@
 # API-key strategy
 
+> **Document status:** Target V1 security contract.
+
 API keys authenticate named service identities for integrations and automation. They are not human passwords, browser credentials, or a shortcut around CompanyHQ policy.
 
 ## Key record

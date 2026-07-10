@@ -1,5 +1,7 @@
 # Content lifecycle
 
+> **Document status:** Target V1 product contract.
+
 ## Definitions
 
 | Item | Meaning |

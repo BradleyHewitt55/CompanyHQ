@@ -1,5 +1,7 @@
 # Source control and version control
 
+> **Document status:** Target V1 supporting contract; `projects/` and `security/source-control-boundaries.md` are authoritative.
+
 CompanyHQ uses Git version control for every source-affecting change. GitHub is the first connected provider; the source-control layer is adapter-based so later providers can implement the same repository, branch, commit, pull-request, status, and permission contract.
 
 ## Repository topology
@@ -41,7 +43,7 @@ Change -> UsersName_{Task} worktree -> diff/preview/tests
 -> commit -> GitHub pull request -> required approval -> merge to main -> deploy
 ~~~
 
-Agents may change only their assigned worktree. They cannot write main, another worktree, the supplied base repository, or a repository outside their delegated scope. Commits, pushes, pull requests, merges, previews, and production promotion each remain policy/approval decisions.
+Agents may change only their assigned worktree. They cannot write main, another worktree, the supplied base repository, or a repository outside their delegated scope. Commits, pushes, and pull-request creation are separate policy/approval decisions. Agents cannot merge, approve, or deploy.
 
 ## Explorer integration
 

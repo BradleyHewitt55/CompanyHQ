@@ -1,5 +1,7 @@
 # Agents
 
+> **Document status:** Target V1 product contract.
+
 CompanyHQ is agent-driven, not agent-owned. Agents are optional provider runtimes that execute a delegated task through CompanyHQ policy, DTO, source-control, test, approval, and audit boundaries.
 
 ## Default state

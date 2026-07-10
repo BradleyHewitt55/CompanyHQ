@@ -1,5 +1,7 @@
 # Testing and completion evidence
 
+> **Document status:** Target V1 release-gate contract.
+
 Tests are selected by the task's impact, not by a blanket ritual. A Change is complete only when it has the required API, policy, DTO, MCP, UI, security, and documentation evidence.
 
 ## Task matrix

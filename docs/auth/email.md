@@ -1,5 +1,7 @@
 # Authentication email
 
+> **Document status:** Target V1 security contract.
+
 The authentication service uses the configured [email service](../services/email.md) for address verification, password recovery, security alerts, invitations, and account-change notices. Delivery failure never weakens the underlying authentication decision.
 
 ## Verification

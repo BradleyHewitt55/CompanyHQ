@@ -1,5 +1,7 @@
 # Models and DTOs
 
+> **Document status:** Target V1 architecture contract; see `cms/dto-contracts.md` for the authoritative boundary.
+
 CompanyHQ keeps internal models separate from the data returned to a client, admin page, agent, API, MCP tool, export, log, or error. A model stores company data. A Data Transfer Object, or DTO, is the policy-projected view that a specific actor may receive.
 
 No UI or agent reconstructs a model from scratch. It renders the DTO supplied by the registered page or operation.

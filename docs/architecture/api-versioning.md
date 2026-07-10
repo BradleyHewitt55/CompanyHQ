@@ -1,5 +1,7 @@
 # API, DTO, and MCP versioning
 
+> **Document status:** Target V1 compatibility contract.
+
 CompanyHQ version-controls public and internal API contracts. A route, DTO, MCP mapping, and service declaration must identify the same supported contract version.
 
 ## Route convention

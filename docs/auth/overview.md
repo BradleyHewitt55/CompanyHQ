@@ -1,5 +1,7 @@
 # Authentication and identity
 
+> **Document status:** Target V1 product contract.
+
 Authentication establishes who is acting. Authorization evaluates what that identity may do for the current company, operation, record, field, service, project, and approval state. Both checks run on every entry point, including internal calls, jobs, hooks, agents, and MCP.
 
 ## Identity types

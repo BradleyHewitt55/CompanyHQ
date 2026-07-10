@@ -1,5 +1,7 @@
 # Agent task orchestration
 
+> **Document status:** Target V1 product contract.
+
 The orchestration service turns an approved goal into bounded tasks and routes each task to an enabled profile whose role, skills, tools, scope, and limits satisfy the work.
 
 ## Task graph

@@ -1,5 +1,7 @@
 # Explorer, page references, and overrides
 
+> **Document status:** Target V1 product contract.
+
 The Explorer is a governed view of tenant-owned source. It opens the company root repository on protected main by default and shows only source that the company has actually added. It does not reveal supplied base-admin code.
 
 ## Page Catalog versus Source Explorer

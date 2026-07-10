@@ -1,5 +1,7 @@
 # Security baseline
 
+> **Document status:** Target V1 summary; `security/threat-model.md` and related documents are authoritative.
+
 CompanyHQ uses a secure-by-default authentication, field-policy, request-abuse, and agent-capability boundary. Security rules are product invariants and cannot be disabled by framework, internal-call, local-worker, or provider shortcuts.
 
 ## Authentication and sessions

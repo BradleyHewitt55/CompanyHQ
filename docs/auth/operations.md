@@ -1,5 +1,7 @@
 # Authentication operations
 
+> **Document status:** Target V1 security contract.
+
 The authentication service exposes a consistent operation set to the admin workspace and approved projects. Routes below use `v1`; every published major remains supported under the [API-version contract](../architecture/api-versioning.md).
 
 ## Operation registry

@@ -1,5 +1,7 @@
 # Services and plugins
 
+> **Document status:** Target V1 product contract.
+
 CompanyHQ calls an installed business capability a service. Its source module may be called a plugin internally, but the product surface uses Service consistently. Services extend CompanyHQ through a versioned, policy-aware contract; they do not become arbitrary runtime patches.
 
 ## Core versus optional

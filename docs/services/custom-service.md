@@ -1,5 +1,7 @@
 # Custom service creation
 
+> **Document status:** Target V1 extension guide.
+
 A custom service is a source-backed, versioned CompanyHQ extension. A human developer and an agent use the same service contract, Change, worktree, GitHub pull request, test gate, approval, deployment, and audit trail.
 
 ## Creation paths
@@ -47,7 +49,7 @@ Secrets are references only. Their values never appear in source, Explorer metad
 2. Validate key, model/DTO, page, detail variant, route/API version, MCP, dependencies, role/agent scope, and source-control collisions.
 3. Prepare source, migration, service contract, tests, docs, and safe worktree preview.
 4. Review field exposure, agent access, enable/disable behavior, backup, security, and rollback.
-5. Commit to the worktree branch, open a GitHub pull request, obtain approval, merge to protected main, deploy, health-check, and record the rollback point.
+5. Prepare the worktree diff and evidence; a human may separately approve commit/push/pull-request creation, merge, and deployment, then record the health check and rollback point.
 
 ## Documentation is mandatory
 

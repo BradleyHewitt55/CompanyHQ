@@ -1,5 +1,7 @@
 # Pipeline
 
+> **Document status:** Target V1 product contract; see `tasks/` for durable execution details.
+
 The Pipeline is the company work board for staff and delegated-agent tasks. It shows the information needed to understand ownership, progress, review, and outcome without exposing provider execution internals.
 
 ## Board flow

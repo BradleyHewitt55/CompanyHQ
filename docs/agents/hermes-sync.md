@@ -1,5 +1,7 @@
 # Hermes provider adapter
 
+> **Document status:** Target V1 supporting detail; `agents/hermes.md` is the concise authoritative boundary.
+
 Hermes is an optional agent provider. It is not installed, configured, started, or enabled in a new CompanyHQ instance. A company owner may add a self-hosted company-level instance and then enable one or more project/company profiles.
 
 ## Installation and enablement

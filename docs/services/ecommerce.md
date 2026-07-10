@@ -1,5 +1,7 @@
 # Ecommerce service
 
+> **Document status:** Target V1 optional service contract.
+
 Ecommerce is an optional business service. It owns commerce-domain records and contributes pages, APIs, MCP tools, pipeline events, and project integrations only after enablement.
 
 ## Intended scope

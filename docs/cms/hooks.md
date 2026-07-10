@@ -1,5 +1,7 @@
 # Hooks, events, and integrations
 
+> **Document status:** Target V1 architecture contract.
+
 Hooks keep synchronous work small and predictable. Durable events and jobs handle slow, retried, or externally visible work. This prevents a content save, API request, or Explorer edit from accidentally becoming an agent deployment runner.
 
 ## Hook categories

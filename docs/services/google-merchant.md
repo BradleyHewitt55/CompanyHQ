@@ -1,5 +1,7 @@
 # Google Merchant service
 
+> **Document status:** Target V1 optional service contract.
+
 Google Merchant is an optional distribution service for an enabled ecommerce catalogue and a public customer-facing project. It produces governed product feed and account synchronization work; it does not own products or payment state.
 
 ## Dependencies

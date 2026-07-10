@@ -1,8 +1,10 @@
 # Admin workspace
 
+> **Document status:** Target V1 product contract.
+
 The admin workspace is the company operating surface. It starts from a supplied base UI but gives each company a sparse, version-controlled override layer, governed services, projects, staff access, tasks, agents, and source control.
 
-The initial shell contains Dashboard, Pipeline, Users, Gallery, Keys, Skills, Agents, Services, Settings, an owner-only company switcher, and a website link.
+The initial shell contains Dashboard, Pipeline, Users, Gallery, Keys, Skills, Agents, Services, Settings, and a website link. There is no company switcher because one admin belongs to one independent installation.
 
 ## Admin principles
 

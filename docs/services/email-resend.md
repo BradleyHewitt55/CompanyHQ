@@ -1,5 +1,7 @@
 # Resend provider adapter
 
+> **Document status:** Target V1 optional adapter contract.
+
 Resend is the initial provider adapter for the optional, provider-neutral [email service](email.md). It provides tenant-scoped transactional email and, when deliberately enabled, marketing delivery. It runs only from trusted server-side service operations; a browser, Explorer editor, or agent prompt never receives its API key.
 
 ## Service configuration

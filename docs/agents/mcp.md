@@ -1,6 +1,8 @@
 # CompanyHQ MCP gateway
 
-CompanyHQ exposes one logical, policy-aware MCP gateway. Provider adapters translate Codex, Hermes, Cursor, OpenCode, and future runtimes to this stable control-plane contract.
+> **Document status:** Target V1 summary; the authoritative detailed suite is `docs/mcp/`.
+
+Each CompanyHQ installation exposes one logical, policy-aware MCP gateway. Provider adapters translate supported runtimes to this stable installation-local contract.
 
 ## API parity without unsafe exposure
 

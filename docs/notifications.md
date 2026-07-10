@@ -1,5 +1,7 @@
 # Notifications
 
+> **Document status:** Target V1 product contract.
+
 CompanyHQ can notify a user in the admin workspace, desktop operating system, or mobile device. Delivery is tied to the receiving user's company, role, DTO visibility, and notification preferences.
 
 ## User controls

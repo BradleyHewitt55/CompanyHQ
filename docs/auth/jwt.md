@@ -1,5 +1,7 @@
 # JWT strategy
 
+> **Document status:** Target V1 security contract.
+
 JWT bearer access is an explicit strategy for approved non-browser clients and internal service boundaries that require signed, time-limited claims. Browser sessions use the [cookie strategy](cookies.md) by default.
 
 ## Issuance

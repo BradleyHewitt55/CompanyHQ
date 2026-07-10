@@ -1,5 +1,7 @@
 # Email service
 
+> **Document status:** Target V1 optional service contract.
+
 Email is an optional CompanyHQ service, not a permanent dependency on one provider. Resend is the initial provider adapter; a later provider replacement must preserve the service contract, tenant boundaries, policy, templates, audit history, and tests.
 
 ## Provider-neutral contract

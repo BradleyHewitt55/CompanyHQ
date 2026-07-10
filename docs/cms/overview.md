@@ -1,5 +1,7 @@
 # CMS overview
 
+> **Document status:** Target V1 product contract.
+
 The CompanyHQ CMS is the core content service used by the admin workspace and customer-facing projects. It owns content types, global settings, entries, drafts, revisions, publishing, localization, relationships, forms, SEO metadata, media references, access policy, hooks, and policy-projected DTOs.
 
 ## Core modules
@@ -60,4 +62,4 @@ The Settings UI can prepare such a Change but cannot mutate production schema di
 
 CMS changes test schema validation, record and field policy, tenant isolation, DTO omission, query limits, drafts and publication, revision restore, optimistic conflicts, localization, relationships, hook/job idempotency, cache invalidation, API-major compatibility, MCP mapping where exposed, backup/restore, and affected UI flows.
 
-See [content lifecycle](content-lifecycle.md), [forms](forms.md), [SEO](seo.md), [media](media.md), [models and DTOs](../models-and-dtos.md), [hooks](../hooks.md), and [testing](../testing.md).
+See [content lifecycle](content-lifecycle.md), [forms](forms.md), [SEO](seo.md), [media](media.md), [models and DTOs](../models-and-dtos.md), [hooks](hooks.md), and [testing](../testing.md).

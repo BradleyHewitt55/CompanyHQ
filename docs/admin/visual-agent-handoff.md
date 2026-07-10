@@ -1,5 +1,7 @@
 # Visual agent handoff
 
+> **Document status:** Target V1 product contract.
+
 Owners and developers can turn an admin, website, mobile-app, or desktop-app visual issue into a precisely scoped coding task without exposing supplied base-admin source.
 
 ## Inspect mode

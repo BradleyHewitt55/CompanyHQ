@@ -1,5 +1,7 @@
 # Database and persistent data
 
+> **Document status:** Target V1 architecture contract; superseded where more specific by `cms/database-adapters.md`.
+
 CompanyHQ needs durable, policy-aware operational data. A relational system is the recommended initial source of truth because staff access, services, projects, tasks, approvals, commerce, audit, model attributes, and DTO versions are relational. Each company gets a separate database identity and credentials; separate databases are the preferred initial isolation boundary.
 
 This is a data contract, not a requirement for a specific database product or ORM.
@@ -8,7 +10,7 @@ This is a data contract, not a requirement for a specific database product or OR
 
 | Data class | Owner |
 | --- | --- |
-| Company profile, staff, roles, sessions, service installation, projects, agent profiles, tasks, Changes, approvals, audits, notifications, and deployments | CompanyHQ control plane. |
+| Company profile, staff, roles, sessions, service installation, projects, agent profiles, tasks, Changes, approvals, audits, notifications, and deployments | Installation-local application services. |
 | Content, forms, SEO metadata, and domain records | Their owning core or optional service. |
 | Model attribute/DTO registry and field policy | Owning service with CompanyHQ policy registry. |
 | Asset metadata | CompanyHQ/media service; object bytes remain in object storage. |
@@ -21,7 +23,7 @@ No service reads/writes another service's internal tables directly without an ex
 
 The design supports at least:
 
-- company, profile, environment, server composition, provider connection, and company root repository;
+- installation/company profile, environment, server composition, provider connection, and installation source repositories;
 - staff identity, role, invitation, session/device, API/service key, MFA/recovery state, and delegated-agent capability;
 - service installation, version, configuration reference, health, dependency, model, attribute, DTO, and API/MCP registration;
 - project, repository, branch, worktree, preview, release, deployment, and rollback;

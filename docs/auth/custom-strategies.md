@@ -1,5 +1,7 @@
 # Custom authentication strategies
 
+> **Document status:** Target V1 extension contract.
+
 A custom strategy connects an external identity system or specialized credential to CompanyHQ. It authenticates identity only. Roles, permissions, company membership, DTO fields, service access, and agent authority always come from CompanyHQ policy.
 
 ## Strategy contract
