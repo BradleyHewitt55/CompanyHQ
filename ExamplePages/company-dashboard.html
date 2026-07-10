@@ -1,0 +1,417 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Company Dashboard</title>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet"/>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:'Segoe UI',system-ui,-apple-system,sans-serif;background:#1a1025;color:#e0d6f0;display:flex;height:100vh;overflow:hidden}
+
+.file-explorer{width:220px;background:#16101f;border-right:1px solid #2d1f45;display:flex;flex-direction:column;padding:16px 0;position:fixed;height:100vh;z-index:100;left:-220px;transition:left 0.3s ease;overflow-y:auto;scrollbar-width:thin;scrollbar-color:#3d2d55 #16101f}
+.file-explorer.visible{left:0}
+.file-explorer::-webkit-scrollbar{width:8px}
+.file-explorer::-webkit-scrollbar-track{background:#16101f;border-radius:8px}
+.file-explorer::-webkit-scrollbar-thumb{background:linear-gradient(180deg,#3d2d55,#2d1f45);border-radius:8px;border:2px solid #16101f}
+.file-explorer::-webkit-scrollbar-thumb:hover{background:linear-gradient(180deg,#a855f7,#7c3aed)}
+.file-explorer-header{padding:0 16px 12px;font-size:11px;font-weight:600;color:#7a6a9a;text-transform:uppercase;letter-spacing:1px;display:flex;align-items:center;justify-content:space-between}
+.file-explorer-header svg{width:14px;height:14px;cursor:pointer;color:#7a6a9a}
+.file-explorer-header svg:hover{color:#b0a0c8}
+.file-tree{flex:1;font-size:13px}
+.tree-item{display:flex;align-items:center;gap:8px;padding:6px 16px;color:#9a8ab5;cursor:pointer;transition:all .15s;user-select:none}
+.tree-item:hover{background:rgba(168,85,247,0.08);color:#e0d6f0}
+.tree-item.active{color:#e0d6f0;background:rgba(168,85,247,0.12)}
+.tree-item svg{width:14px;height:14px;flex-shrink:0}
+.tree-item .chevron-icon{width:10px;height:10px;transition:transform .2s}
+.tree-item.open>.chevron-icon{transform:rotate(90deg)}
+.tree-children{display:none}
+.tree-item.open+.tree-children{display:block}
+.tree-children .tree-item{padding-left:32px}
+.folder-icon{color:#a855f7}
+.ext-badge{display:inline-flex;align-items:center;justify-content:center;width:14px;height:14px;font-size:7.5px;font-weight:900;font-family:'Segoe UI',system-ui,sans-serif;letter-spacing:-.3px;flex-shrink:0;line-height:1;background:none}
+.ext-badge.md{color:#22c55e}
+.ext-badge.sln{color:#06b6d4}
+
+.sidebar{width:220px;background:#1e1230;border-right:1px solid #2d1f45;display:flex;flex-direction:column;padding:16px 0;position:fixed;height:100vh;z-index:10;left:0}
+.sidebar-search{padding:0 16px 16px}
+.sidebar-search input{width:100%;background:#2d1f45;border:1px solid #3d2d55;border-radius:8px;padding:8px 12px 8px 36px;color:#e0d6f0;font-size:13px;outline:none}
+.sidebar-search input::placeholder{color:#7a6a9a}
+.sidebar-search input:focus{border-color:#a855f7}
+.sidebar-search{position:relative}
+.sidebar-search svg{position:absolute;left:28px;top:50%;transform:translateY(-50%);width:16px;height:16px;color:#7a6a9a}
+.sidebar-label{padding:0 16px;font-size:11px;font-weight:600;color:#7a6a9a;text-transform:uppercase;letter-spacing:1px;margin-bottom:8px}
+.sidebar nav{flex:1;overflow-y:auto;padding:0 8px}
+.sidebar nav::-webkit-scrollbar{width:4px}
+.sidebar nav::-webkit-scrollbar-track{background:transparent}
+.sidebar nav::-webkit-scrollbar-thumb{background:#3d2d55;border-radius:4px}
+.sidebar nav a,.sidebar nav .nav-item{display:flex;align-items:center;gap:12px;padding:10px 16px;color:#b0a0c8;text-decoration:none;font-size:13px;transition:all .15s;border-radius:8px;cursor:pointer}
+.sidebar nav a:hover,.sidebar nav .nav-item:hover{color:#e0d6f0;background:rgba(168,85,247,0.08)}
+.sidebar nav a.active{color:#e0d6f0;background:rgba(168,85,247,0.15)}
+.sidebar nav a .material-symbols-outlined,.sidebar nav .nav-item .material-symbols-outlined{font-size:18px}
+.sidebar-divider{height:1px;background:#2d1f45;margin:8px 16px}
+.nav-dropdown-item{position:relative}
+.nav-dropdown-children{display:none;padding-left:20px}
+.nav-dropdown-item.open .nav-dropdown-children{display:block}
+.nav-dropdown-children a{padding:8px 16px;font-size:12px}
+.nav-dropdown-arrow{margin-left:auto;transition:transform .2s}
+.nav-dropdown-item.open .nav-dropdown-arrow{transform:rotate(90deg)}
+.sidebar-bottom{border-top:1px solid #2d1f45;padding:12px 8px 0;margin-top:auto}
+.sidebar-bottom a{display:flex;align-items:center;gap:12px;padding:10px 16px;color:#b0a0c8;text-decoration:none;font-size:13px;transition:all .15s;border-radius:8px}
+.sidebar-bottom a:hover{color:#e0d6f0;background:rgba(168,85,247,0.08)}
+.sidebar-bottom a .material-symbols-outlined{font-size:18px}
+
+.main{margin-left:220px;flex:1;display:flex;flex-direction:column;height:100vh;overflow:hidden}
+
+.header{display:flex;justify-content:space-between;align-items:center;padding:0 24px;height:56px;background:#1e1230;border-bottom:1px solid #2d1f45;flex-shrink:0}
+.header-left{display:flex;align-items:center;gap:12px}
+.header-badge{font-size:12px;background:#2d1f45;padding:4px 10px;border-radius:6px;color:#b0a0c8;border:1px solid #3d2d55}
+.header-right{display:flex;align-items:center;gap:12px}
+.btn{padding:8px 16px;border-radius:8px;border:none;cursor:pointer;font-size:13px;font-weight:500;transition:all .15s;display:flex;align-items:center;gap:6px}
+.btn-primary{background:#a855f7;color:#fff}
+.btn-primary:hover{background:#9333ea}
+.btn-outline{background:transparent;border:1px solid #3d2d55;color:#b0a0c8}
+.btn-outline:hover{border-color:#a855f7;color:#e0d6f0}
+.icon-btn{width:36px;height:36px;border-radius:8px;background:transparent;border:none;color:#b0a0c8;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:all .15s}
+.icon-btn:hover{background:rgba(168,85,247,0.12);color:#e0d6f0}
+.user-dropdown{position:relative}
+.user-trigger{display:flex;align-items:center;gap:8px;padding:6px 10px;border-radius:8px;cursor:pointer;transition:background .15s;background:transparent;border:none;color:#e0d6f0;font-family:inherit}
+.user-trigger:hover{background:rgba(168,85,247,0.12)}
+.user-avatar{width:32px;height:32px;border-radius:50%;background:linear-gradient(135deg,#a855f7,#6d28d9);display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:600}
+.user-name{font-size:13px;font-weight:500}
+.user-trigger .chevron{width:14px;height:14px;transition:transform .2s;color:#7a6a9a}
+.user-dropdown.open .chevron{transform:rotate(180deg)}
+.user-menu{display:none;position:absolute;top:calc(100% + 8px);right:0;width:200px;background:#231540;border:1px solid #2d1f45;border-radius:10px;padding:6px 0;z-index:100;box-shadow:0 8px 24px rgba(0,0,0,0.4)}
+.user-dropdown.open .user-menu{display:block}
+.user-menu a{display:flex;align-items:center;gap:10px;padding:10px 16px;color:#b0a0c8;text-decoration:none;font-size:13px;transition:all .15s}
+.user-menu a:hover{color:#e0d6f0;background:rgba(168,85,247,0.1)}
+.user-menu a .material-symbols-outlined{font-size:18px}
+.user-menu-divider{height:1px;background:#2d1f45;margin:4px 0}
+
+.content{flex:1;overflow-y:auto;padding:24px}
+.content::-webkit-scrollbar{width:6px}
+.content::-webkit-scrollbar-track{background:#1a1025}
+.content::-webkit-scrollbar-thumb{background:#3d2d55;border-radius:3px}
+.content::-webkit-scrollbar-thumb:hover{background:#a855f7}
+
+.page-header{margin-bottom:24px}
+.page-header h2{font-size:18px;font-weight:600;margin-bottom:4px}
+.page-header p{font-size:13px;color:#7a6a9a}
+
+.stats-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:16px;margin-bottom:24px}
+.stat-card{background:#1e1230;border:1px solid #2d1f45;border-radius:10px;padding:16px;transition:border-color .15s}
+.stat-card:hover{border-color:#a855f7}
+.stat-card-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:12px}
+.stat-card-label{font-size:11px;font-weight:600;color:#7a6a9a;text-transform:uppercase;letter-spacing:.5px}
+.stat-card-icon{width:40px;height:40px;border-radius:10px;display:flex;align-items:center;justify-content:center}
+.stat-card-icon .material-symbols-outlined{font-size:20px}
+.stat-card-icon.purple{background:rgba(168,85,247,0.15);color:#a855f7}
+.stat-card-icon.blue{background:rgba(59,130,246,0.15);color:#3b82f6}
+.stat-card-icon.green{background:rgba(34,197,94,0.15);color:#22c55e}
+.stat-card-icon.orange{background:rgba(245,158,11,0.15);color:#f59e0b}
+.stat-card-value{font-size:24px;font-weight:700;margin-bottom:4px}
+.stat-card-change{font-size:12px;display:flex;align-items:center;gap:4px}
+.stat-card-change.positive{color:#22c55e}
+.stat-card-change.negative{color:#ef4444}
+
+.content-grid{display:grid;grid-template-columns:2fr 1fr;gap:16px}
+.content-card{background:#1e1230;border:1px solid #2d1f45;border-radius:10px;overflow:hidden}
+.content-card-header{display:flex;align-items:center;justify-content:space-between;padding:14px 16px;border-bottom:1px solid #2d1f45}
+.content-card-title{font-size:14px;font-weight:600}
+.content-card-body{padding:12px 16px}
+
+.activity-list{display:flex;flex-direction:column;gap:8px}
+.activity-item{display:flex;align-items:center;gap:12px;padding:12px;border-radius:8px;background:#231540;transition:background .15s}
+.activity-item:hover{background:#2d1f45}
+.activity-avatar{width:36px;height:36px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:600;flex-shrink:0}
+.activity-avatar.purple{background:linear-gradient(135deg,#a855f7,#6d28d9);color:#fff}
+.activity-avatar.blue{background:linear-gradient(135deg,#3b82f6,#2563eb);color:#fff}
+.activity-avatar.green{background:linear-gradient(135deg,#22c55e,#16a34a);color:#fff}
+.activity-content{flex:1}
+.activity-text{font-size:13px;line-height:1.4}
+.activity-text strong{color:#e0d6f0}
+.activity-time{font-size:11px;color:#7a6a9a;margin-top:2px}
+
+.quick-links{display:flex;flex-direction:column;gap:4px}
+.quick-link{display:flex;align-items:center;gap:10px;padding:10px 12px;border-radius:8px;text-decoration:none;color:#b0a0c8;font-size:13px;transition:all .15s}
+.quick-link:hover{background:rgba(168,85,247,0.08);color:#e0d6f0}
+.quick-link .material-symbols-outlined{font-size:18px;color:#a855f7}
+</style>
+</head>
+<body>
+
+<aside class="file-explorer">
+  <div class="file-explorer-header">
+    Explorer
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14M5 12h14"/></svg>
+  </div>
+  <div class="file-tree">
+    <div class="tree-item" onclick="this.classList.toggle('open')">
+      <svg class="chevron-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 18 15 12 9 6"/></svg>
+      <svg class="folder-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 19a2 2 0 01-2 2H4a2 2 0 01-2-2V5a2 2 0 012-2h5l2 3h9a2 2 0 012 2z"/></svg>
+      BusinessHQ
+    </div>
+    <div class="tree-children">
+      <div class="tree-item"><span class="ext-badge md">MD</span>AGENTS.md</div>
+      <div class="tree-item"><span class="ext-badge sln">SLN</span>BusinessHQ.sln</div>
+    </div>
+  </div>
+</aside>
+
+<aside class="sidebar">
+  <div style="padding:0 16px 20px;display:flex;justify-content:center">
+    <svg viewBox="0 0 24 24" fill="none" stroke="#a855f7" stroke-width="2" style="width:32px;height:32px"><path d="M12 2L2 7l10 5 10-5-10-5z"/><path d="M2 17l10 5 10-5"/><path d="M2 12l10 5 10-5"/></svg>
+  </div>
+  <nav>
+    <a href="company-dashboard.html" class="active">
+      <span class="material-symbols-outlined">dashboard</span>
+      Dashboard
+    </a>
+    <a href="#">
+      <span class="material-symbols-outlined">timeline</span>
+      Pipeline
+    </a>
+    <a href="users.html">
+      <span class="material-symbols-outlined">group</span>
+      Users
+    </a>
+    <a href="#">
+      <span class="material-symbols-outlined">image</span>
+      Gallery
+    </a>
+    <a href="#">
+      <span class="material-symbols-outlined">vpn_key</span>
+      Keys
+    </a>
+    <a href="#">
+      <span class="material-symbols-outlined">menu_book</span>
+      Skills
+    </a>
+    <a href="#">
+      <span class="material-symbols-outlined">smart_toy</span>
+      Agents
+    </a>
+    <div class="sidebar-divider"></div>
+    <div class="sidebar-label" style="padding:8px 16px 4px">Services</div>
+    <div class="nav-dropdown-item" onclick="this.classList.toggle('open')">
+      <div class="nav-item">
+        <span class="material-symbols-outlined">payments</span>
+        Sales
+        <svg class="nav-dropdown-arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:16px;height:16px"><polyline points="9 6 15 12 9 18"/></svg>
+      </div>
+      <div class="nav-dropdown-children">
+        <a href="#">Quotes</a>
+        <a href="#">Orders</a>
+        <a href="#">Coupons</a>
+        <a href="products.html">Products</a>
+      </div>
+    </div>
+  </nav>
+  <div class="sidebar-bottom">
+    <a href="#">
+      <span class="material-symbols-outlined">help_outline</span>
+      Help
+    </a>
+    <a href="#">
+      <span class="material-symbols-outlined">settings</span>
+      Settings
+    </a>
+  </div>
+</aside>
+
+<main class="main">
+  <header class="header">
+    <div class="header-left">
+      
+    </div>
+    <div class="header-right">
+      <button class="btn btn-outline">
+        <span class="material-symbols-outlined" style="font-size:16px">language</span>
+        View website
+      </button>
+      <button class="icon-btn">
+        <span class="material-symbols-outlined">notifications</span>
+      </button>
+      <div class="user-dropdown" id="userDropdown">
+        <button class="user-trigger" onclick="toggleUserDropdown()">
+          <div class="user-avatar">OM</div>
+          <span class="user-name">Olivia Martin</span>
+          <svg class="chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg>
+        </button>
+        <div class="user-menu">
+          <a href="#profile">
+            <span class="material-symbols-outlined">person</span>
+            My Profile
+          </a>
+          <a href="#settings">
+            <span class="material-symbols-outlined">settings</span>
+            Account Settings
+          </a>
+          <div class="user-menu-divider"></div>
+          <a href="#switch-company">
+            <span class="material-symbols-outlined">swap_horiz</span>
+            Switch Company
+            <!-- Owner level only -->
+          </a>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <div class="content">
+    <div class="page-header">
+      <h2>Overview</h2>
+      <p>Welcome back, Olivia. Here's what's happening today.</p>
+    </div>
+
+    <div class="stats-grid">
+      <div class="stat-card">
+        <div class="stat-card-header">
+          <span class="stat-card-label">Total Revenue</span>
+          <div class="stat-card-icon purple">
+            <span class="material-symbols-outlined">payments</span>
+          </div>
+        </div>
+        <div class="stat-card-value">$45,231</div>
+        <div class="stat-card-change positive">
+          <span class="material-symbols-outlined" style="font-size:14px">trending_up</span>
+          +20.1% from last month
+        </div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-card-header">
+          <span class="stat-card-label">Active Users</span>
+          <div class="stat-card-icon blue">
+            <span class="material-symbols-outlined">group</span>
+          </div>
+        </div>
+        <div class="stat-card-value">2,350</div>
+        <div class="stat-card-change positive">
+          <span class="material-symbols-outlined" style="font-size:14px">trending_up</span>
+          +180 this week
+        </div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-card-header">
+          <span class="stat-card-label">Open Orders</span>
+          <div class="stat-card-icon green">
+            <span class="material-symbols-outlined">shopping_cart</span>
+          </div>
+        </div>
+        <div class="stat-card-value">64</div>
+        <div class="stat-card-change negative">
+          <span class="material-symbols-outlined" style="font-size:14px">trending_down</span>
+          -5 from yesterday
+        </div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-card-header">
+          <span class="stat-card-label">Conversion Rate</span>
+          <div class="stat-card-icon orange">
+            <span class="material-symbols-outlined">analytics</span>
+          </div>
+        </div>
+        <div class="stat-card-value">3.24%</div>
+        <div class="stat-card-change positive">
+          <span class="material-symbols-outlined" style="font-size:14px">trending_up</span>
+          +0.5% from last week
+        </div>
+      </div>
+    </div>
+
+    <div class="content-grid">
+      <div class="content-card">
+        <div class="content-card-header">
+          <span class="content-card-title">Recent Activity</span>
+          <button class="btn btn-outline" style="font-size:11px;padding:5px 10px">View All</button>
+        </div>
+        <div class="content-card-body">
+          <div class="activity-list">
+            <div class="activity-item">
+              <div class="activity-avatar purple">OM</div>
+              <div class="activity-content">
+                <div class="activity-text"><strong>Olivia Martin</strong> created a new quote <strong>#Q-2847</strong></div>
+                <div class="activity-time">2 minutes ago</div>
+              </div>
+            </div>
+            <div class="activity-item">
+              <div class="activity-avatar blue">JD</div>
+              <div class="activity-content">
+                <div class="activity-text"><strong>John Doe</strong> completed order <strong>#ORD-1892</strong></div>
+                <div class="activity-time">15 minutes ago</div>
+              </div>
+            </div>
+            <div class="activity-item">
+              <div class="activity-avatar green">SK</div>
+              <div class="activity-content">
+                <div class="activity-text"><strong>Sarah Kim</strong> added new product <strong>Premium Widget</strong></div>
+                <div class="activity-time">1 hour ago</div>
+              </div>
+            </div>
+            <div class="activity-item">
+              <div class="activity-avatar purple">OM</div>
+              <div class="activity-content">
+                <div class="activity-text"><strong>Olivia Martin</strong> updated coupon <strong>SUMMER25</strong></div>
+                <div class="activity-time">3 hours ago</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="content-card">
+        <div class="content-card-header">
+          <span class="content-card-title">Quick Links</span>
+        </div>
+        <div class="content-card-body">
+          <div class="quick-links">
+            <a href="#" class="quick-link">
+              <span class="material-symbols-outlined">description</span>
+              Create New Quote
+            </a>
+            <a href="#" class="quick-link">
+              <span class="material-symbols-outlined">inventory_2</span>
+              Add Product
+            </a>
+            <a href="#" class="quick-link">
+              <span class="material-symbols-outlined">person_add</span>
+              Invite User
+            </a>
+            <a href="#" class="quick-link">
+              <span class="material-symbols-outlined">local_offer</span>
+              Create Coupon
+            </a>
+            <a href="#" class="quick-link">
+              <span class="material-symbols-outlined">timeline</span>
+              View Pipeline
+            </a>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</main>
+
+<script>
+document.addEventListener('mousemove', function(e) {
+  var explorer = document.querySelector('.file-explorer');
+  if (explorer.classList.contains('visible')) {
+    if (e.clientX > 220) explorer.classList.remove('visible');
+  } else {
+    if (e.clientX < 20) explorer.classList.add('visible');
+  }
+});
+
+function toggleUserDropdown() {
+  document.getElementById('userDropdown').classList.toggle('open');
+}
+
+document.addEventListener('click', function(e) {
+  if (!e.target.closest('.user-dropdown')) {
+    document.querySelectorAll('.user-dropdown').forEach(function(d) {
+      d.classList.remove('open');
+    });
+  }
+});
+</script>
+</body>
+</html>
