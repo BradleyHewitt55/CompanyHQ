@@ -1,0 +1,34 @@
+@using Services.Companies.Models
+@using Services.Companies.Data
+@inject ICompanyRegistry Registry
+@inject AuthenticationStateProvider AuthenticationState
+
+<PageTitle>CompanyHQ Companies</PageTitle>
+<main class="registry">
+    <h1>Companies</h1><p>Choose a company to open its admin.</p>
+    <div class="companies">
+        @foreach (var company in companies)
+        {
+            <article>
+                <a class="company-card" href="@company.AdminUrl"><strong>@company.Name</strong><span>@company.Host</span></a>
+                @if (canDelete)
+                {
+                    <form method="post" action="@($"/api/companies/{company.Id}/delete")" onsubmit="return confirm('This permanently deletes the company deployment. Continue?');">
+                        <label>Type <strong>@company.Name</strong> to delete it <input name="confirmation" required /></label>
+                        <button type="submit">Delete company</button>
+                    </form>
+                }
+            </article>
+        }
+    </div>
+</main>
+
+@code {
+    private IReadOnlyList<RegisteredCompany> companies = [];
+    private bool canDelete;
+    protected override async Task OnInitializedAsync()
+    {
+        companies = await Registry.GetCompanies();
+        canDelete = (await AuthenticationState.GetAuthenticationStateAsync()).User.IsInRole("Owner");
+    }
+}

@@ -1,0 +1,25 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <AssemblyName>Postgres</AssemblyName>
+    <RootNamespace>Services.Postgres</RootNamespace>
+    <CopyLocalLockFileAssemblies>true</CopyLocalLockFileAssemblies>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.EntityFrameworkCore" />
+    <PackageReference Include="Microsoft.AspNetCore.Identity.EntityFrameworkCore" />
+    <PackageReference Include="Npgsql.EntityFrameworkCore.PostgreSQL" />
+  </ItemGroup>
+  <ItemGroup><Compile Remove="Tests\**\*.cs" /><Content Remove="Tests\**\*" /><None Remove="Tests\**\*" /></ItemGroup>
+  <ItemGroup><Content Include="postgres.json" CopyToOutputDirectory="PreserveNewest" /><EmbeddedResource Include="postgres.json" LogicalName="service-manifest.json" /></ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\Companies\Companies.csproj" />
+    <ProjectReference Include="..\Auth\Auth.csproj" />
+  </ItemGroup>
+
+</Project>

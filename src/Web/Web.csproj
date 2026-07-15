@@ -1,0 +1,30 @@
+<Project Sdk="Microsoft.NET.Sdk.Web">
+
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <BlazorDisableThrowNavigationException>true</BlazorDisableThrowNavigationException>
+    <AssemblyName>Web</AssemblyName>
+    <RootNamespace>Web</RootNamespace>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\Services\Companies\Companies.csproj" />
+  </ItemGroup>
+
+  <ItemGroup><ServiceProject Include="..\Services\**\*.csproj" Exclude="..\Services\**\Tests\*.csproj" /></ItemGroup>
+
+  <Target Name="CompileIndependentServices" AfterTargets="Build" Condition="'$(SkipServiceBuild)' != 'true'">
+    <Exec Command="dotnet build &quot;%(ServiceProject.FullPath)&quot; -c $(Configuration) --nologo" IgnoreExitCode="true" />
+    <ItemGroup>
+      <ServiceOutput Include="..\Services\**\bin\$(Configuration)\net10.0\*.dll" Exclude="..\Services\**\Tests\**" />
+      <ServiceContent Include="..\Services\**\bin\$(Configuration)\net10.0\*.json" Exclude="..\Services\**\Tests\**" />
+      <ServiceNative Include="..\Services\**\bin\$(Configuration)\net10.0\runtimes\win-x64\native\e_sqlite3.dll" Exclude="..\Services\**\Tests\**" />
+    </ItemGroup>
+    <MakeDir Directories="$(TargetDir)modules" />
+    <Copy SourceFiles="@(ServiceOutput);@(ServiceContent)" DestinationFolder="$(TargetDir)modules" SkipUnchangedFiles="true" />
+    <Copy SourceFiles="@(ServiceNative)" DestinationFolder="$(TargetDir)" SkipUnchangedFiles="true" />
+  </Target>
+
+</Project>

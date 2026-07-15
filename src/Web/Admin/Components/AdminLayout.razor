@@ -1,0 +1,38 @@
+@inherits LayoutComponentBase
+@implements IDisposable
+@inject IAdminNavigationCatalog Navigation
+
+<div class="admin-shell">
+    <FileExplorer />
+    <aside class="sidebar" aria-label="Admin navigation">
+        <div class="brand">CompanyHQ</div>
+        <div class="sidebar-search"><input aria-label="Search navigation" placeholder="Search" /></div>
+        <div class="sidebar-label">Workspace</div>
+        <nav>
+            <a href="/admin/dashboard"><span>▦</span> Dashboard</a>
+            <a href="/admin/users"><span>♙</span> Users</a>
+            <a href="/admin/services"><span>◇</span> Services</a>
+            <a href="/admin/model"><span>◫</span> Model</a>
+            @foreach (var item in Navigation.GetItems())
+            {
+                <NavigationNode Item="item" />
+            }
+        </nav>
+        <div class="sidebar-bottom"><a href="/admin/settings">⚙ Settings</a></div>
+    </aside>
+    <section class="workspace">
+        <header class="header">
+            <div class="header-left"><strong>CompanyHQ</strong><span class="header-badge">Admin</span></div>
+            <div class="header-right"><a class="icon-button" href="/admin/settings" aria-label="Settings">⚙</a><a class="user-trigger" href="@RootPortalUrl">Switch Company</a></div>
+        </header>
+        <main class="content">@Body</main>
+    </section>
+</div>
+
+@code {
+    [Inject] private Microsoft.Extensions.Configuration.IConfiguration Configuration { get; set; } = null!;
+    private string RootPortalUrl => Configuration["RootPortalUrl"] ?? "/admin/companies";
+    protected override void OnInitialized() => Navigation.Changed += NavigationChanged;
+    private void NavigationChanged(object? sender, EventArgs args) => _ = InvokeAsync(StateHasChanged);
+    public void Dispose() => Navigation.Changed -= NavigationChanged;
+}

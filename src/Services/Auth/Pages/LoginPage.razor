@@ -1,0 +1,10 @@
+@attribute [Microsoft.AspNetCore.Authorization.AllowAnonymous]
+@inject Microsoft.AspNetCore.Http.IHttpContextAccessor ContextAccessor
+@inject Microsoft.AspNetCore.Antiforgery.IAntiforgery Antiforgery
+
+<main class="login-page"><h1>Sign in</h1><form method="post" action="/auth/login"><input type="hidden" name="__RequestVerificationToken" value="@Token" /><input type="hidden" name="ReturnUrl" value="@ReturnUrl" /><label>Username <input name="Username" autocomplete="username" /></label><label>Password <input name="Password" type="password" autocomplete="current-password" /></label><button type="submit">Sign in</button></form></main>
+
+@code {
+    [Microsoft.AspNetCore.Components.Parameter] public string? ReturnUrl { get; set; }
+    private string Token => ContextAccessor.HttpContext is { } context ? Antiforgery.GetAndStoreTokens(context).RequestToken ?? string.Empty : string.Empty;
+}

@@ -1,0 +1,40 @@
+@using Services.Auth
+@using Services.Companies.Contracts.Services
+@using Services.Orders.Models
+@using Microsoft.AspNetCore.Components.Authorization
+@inject IEntityService<Order> Orders
+@inject AuthenticationStateProvider Authentication
+@inject Microsoft.AspNetCore.Http.IHttpContextAccessor ContextAccessor
+@inject Microsoft.AspNetCore.Antiforgery.IAntiforgery Antiforgery
+
+<section data-page="orders">
+    <h1>Orders</h1>
+    @if (canCreate)
+    {
+        <form class="order-create" method="post" action="/api/services/orders/form">
+            <input type="hidden" name="__RequestVerificationToken" value="@Token" />
+            <label>Reference <input aria-label="Order reference" name="Slug" /></label>
+            <label>Total <input aria-label="Order total" name="Total" type="number" step="0.01" /></label>
+            <button type="submit">Create order</button>
+        </form>
+    }
+    <ul data-orders>
+        @foreach (var order in orders)
+        {
+            <li data-order-id="@order.Id"><strong>@order.Slug</strong> @order.Total.ToString("0.00")</li>
+        }
+    </ul>
+</section>
+
+@code {
+    private IReadOnlyList<Order> orders = [];
+    private bool canCreate;
+    private string Token => ContextAccessor.HttpContext is { } context ? Antiforgery.GetAndStoreTokens(context).RequestToken ?? string.Empty : string.Empty;
+
+    protected override async Task OnInitializedAsync()
+    {
+        orders = await Orders.Get();
+        var user = (await Authentication.GetAuthenticationStateAsync()).User;
+        canCreate = user.IsInRole(AuthRoles.Member) || user.IsInRole(AuthRoles.Admin) || user.IsInRole(AuthRoles.Owner);
+    }
+}

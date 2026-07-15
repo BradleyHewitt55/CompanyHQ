@@ -1,0 +1,505 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Services — BusinessHQ</title>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet"/>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+html{overflow-x:hidden}
+body{font-family:'Segoe UI',system-ui,-apple-system,sans-serif;background:#1a1025;color:#e0d6f0;display:flex;height:100vh;overflow:hidden}
+
+.file-explorer{width:220px;background:#16101f;border-right:1px solid #2d1f45;display:flex;flex-direction:column;padding:16px 0;position:fixed;height:100vh;z-index:200;left:-220px;transition:left 0.3s ease;overflow-y:auto;scrollbar-width:thin;scrollbar-color:#3d2d55 #16101f}
+.file-explorer.visible{left:0}
+.file-explorer::-webkit-scrollbar{width:8px}
+.file-explorer::-webkit-scrollbar-track{background:#16101f;border-radius:8px}
+.file-explorer::-webkit-scrollbar-thumb{background:linear-gradient(180deg,#3d2d55,#2d1f45);border-radius:8px;border:2px solid #16101f}
+.file-explorer::-webkit-scrollbar-thumb:hover{background:linear-gradient(180deg,#a855f7,#7c3aed)}
+.file-explorer-header{padding:0 16px 12px;font-size:11px;font-weight:600;color:#7a6a9a;text-transform:uppercase;letter-spacing:1px;display:flex;align-items:center;justify-content:space-between}
+.file-explorer-header svg{width:14px;height:14px;cursor:pointer;color:#7a6a9a}
+.file-explorer-header svg:hover{color:#b0a0c8}
+.file-tree{flex:1;font-size:13px}
+.tree-item{display:flex;align-items:center;gap:8px;padding:6px 16px;color:#9a8ab5;cursor:pointer;transition:all .15s;user-select:none}
+.tree-item:hover{background:rgba(168,85,247,0.08);color:#e0d6f0}
+.tree-item.active{color:#e0d6f0;background:rgba(168,85,247,0.12)}
+.tree-item svg{width:14px;height:14px;flex-shrink:0}
+.tree-item .chevron-icon{width:10px;height:10px;transition:transform .2s}
+.tree-item.open>.chevron-icon{transform:rotate(90deg)}
+.tree-children{display:none}
+.tree-item.open+.tree-children{display:block}
+.tree-children .tree-item{padding-left:32px}
+.folder-icon{color:#a855f7}
+.ext-badge{display:inline-flex;align-items:center;justify-content:center;width:14px;height:14px;font-size:7.5px;font-weight:900;font-family:'Segoe UI',system-ui,sans-serif;letter-spacing:-.3px;flex-shrink:0;line-height:1;background:none}
+.ext-badge.md{color:#22c55e}
+.ext-badge.sln{color:#06b6d4}
+
+.sidebar{width:220px;background:#1e1230;border-right:1px solid #2d1f45;display:flex;flex-direction:column;padding:16px 0;position:fixed;height:100vh;z-index:10;left:0;transition:left .3s ease}
+.sidebar nav{flex:1;overflow-y:auto;padding:0 8px}
+.sidebar nav::-webkit-scrollbar{width:4px}
+.sidebar nav::-webkit-scrollbar-track{background:transparent}
+.sidebar nav::-webkit-scrollbar-thumb{background:#3d2d55;border-radius:4px}
+.sidebar nav a,.sidebar nav .nav-item{display:flex;align-items:center;gap:12px;padding:10px 16px;color:#b0a0c8;text-decoration:none;font-size:13px;transition:all .15s;border-radius:8px;cursor:pointer}
+.sidebar nav a:hover,.sidebar nav .nav-item:hover{color:#e0d6f0;background:rgba(168,85,247,0.08)}
+.sidebar nav a.active{color:#e0d6f0;background:rgba(168,85,247,0.15)}
+.sidebar nav a .material-symbols-outlined,.sidebar nav .nav-item .material-symbols-outlined{font-size:18px}
+.sidebar-divider{height:1px;background:#2d1f45;margin:8px 16px}
+.sidebar-label{padding:0 16px;font-size:11px;font-weight:600;color:#7a6a9a;text-transform:uppercase;letter-spacing:1px;margin-bottom:8px}
+.sidebar-bottom{border-top:1px solid #2d1f45;padding:12px 8px 0;margin-top:auto}
+.sidebar-bottom a{display:flex;align-items:center;gap:12px;padding:10px 16px;color:#b0a0c8;text-decoration:none;font-size:13px;transition:all .15s;border-radius:8px}
+.sidebar-bottom a:hover{color:#e0d6f0;background:rgba(168,85,247,0.08)}
+.sidebar-bottom a .material-symbols-outlined{font-size:18px}
+.sidebar-bottom .sidebar-settings-wrap{position:relative}
+.sidebar-settings-wrap .settings-dropdown{display:none;position:absolute;bottom:calc(100% + 8px);left:8px;right:8px;width:calc(100% - 16px);background:#231540;border:1px solid #2d1f45;border-radius:10px;padding:6px 0;z-index:100;box-shadow:0 -4px 16px rgba(0,0,0,0.3)}
+.sidebar-settings-wrap.open .settings-dropdown{display:block}
+.settings-dropdown-item{display:flex;align-items:center;gap:10px;padding:10px 16px;color:#b0a0c8;text-decoration:none;font-size:13px;transition:all .15s;cursor:pointer}
+.settings-dropdown-item:hover{color:#e0d6f0;background:rgba(168,85,247,0.1)}
+.settings-dropdown-item .material-symbols-outlined{font-size:18px;color:#a855f7}
+.settings-dropdown-info{flex:1}
+.settings-dropdown-name{font-size:13px;font-weight:500;color:#e0d6f0}
+.settings-dropdown-desc{font-size:11px;color:#7a6a9a;margin-top:1px}
+
+.main{margin-left:440px;flex:1;display:flex;flex-direction:column;height:100vh;overflow:hidden}
+.header{display:flex;justify-content:space-between;align-items:center;padding:0 24px;height:56px;background:#1e1230;border-bottom:1px solid #2d1f45;flex-shrink:0}
+.header-left{display:flex;align-items:center;gap:12px}
+.header-badge{font-size:12px;background:#2d1f45;padding:4px 10px;border-radius:6px;color:#b0a0c8;border:1px solid #3d2d55}
+.header-right{display:flex;align-items:center;gap:12px}
+.btn{padding:8px 16px;border-radius:8px;border:none;cursor:pointer;font-size:13px;font-weight:500;transition:all .15s;display:flex;align-items:center;gap:6px}
+.btn-primary{background:#a855f7;color:#fff}
+.btn-primary:hover{background:#9333ea}
+.btn-outline{background:transparent;border:1px solid #3d2d55;color:#b0a0c8}
+.btn-outline:hover{border-color:#a855f7;color:#e0d6f0}
+.icon-btn{width:36px;height:36px;border-radius:8px;background:transparent;border:none;color:#b0a0c8;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:all .15s}
+.icon-btn:hover{background:rgba(168,85,247,0.12);color:#e0d6f0}
+.user-dropdown{position:relative}
+.user-trigger{display:flex;align-items:center;gap:8px;padding:6px 10px;border-radius:8px;cursor:pointer;transition:background .15s;background:transparent;border:none;color:#e0d6f0;font-family:inherit}
+.user-trigger:hover{background:rgba(168,85,247,0.12)}
+.user-avatar{width:32px;height:32px;border-radius:50%;background:linear-gradient(135deg,#a855f7,#6d28d9);display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:600}
+.user-name{font-size:13px;font-weight:500}
+.user-trigger .chevron{width:14px;height:14px;transition:transform .2s;color:#7a6a9a}
+.user-dropdown.open .chevron{transform:rotate(180deg)}
+.user-menu{display:none;position:absolute;top:calc(100% + 8px);right:0;width:200px;background:#231540;border:1px solid #2d1f45;border-radius:10px;padding:6px 0;z-index:100;box-shadow:0 8px 24px rgba(0,0,0,0.4)}
+.user-dropdown.open .user-menu{display:block}
+.user-menu a{display:flex;align-items:center;gap:10px;padding:10px 16px;color:#b0a0c8;text-decoration:none;font-size:13px;transition:all .15s}
+.user-menu a:hover{color:#e0d6f0;background:rgba(168,85,247,0.1)}
+.user-menu a .material-symbols-outlined{font-size:18px}
+.user-menu-divider{height:1px;background:#2d1f45;margin:4px 0}
+
+.content{flex:1;overflow-y:auto;padding:24px}
+.content::-webkit-scrollbar{width:6px}
+.content::-webkit-scrollbar-track{background:#1a1025}
+.content::-webkit-scrollbar-thumb{background:#3d2d55;border-radius:3px}
+.content::-webkit-scrollbar-thumb:hover{background:#a855f7}
+
+.page-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:24px}
+.page-header-left h2{font-size:18px;font-weight:600;margin-bottom:4px}
+.page-header-left p{font-size:13px;color:#7a6a9a}
+
+.services-toolbar{display:flex;align-items:center;gap:12px;margin-bottom:20px;flex-wrap:wrap}
+.services-search{flex:1;min-width:200px;position:relative}
+.services-search input{width:100%;background:#1e1230;border:1px solid #2d1f45;border-radius:8px;padding:9px 12px 9px 36px;color:#e0d6f0;font-size:13px;outline:none;transition:border-color .15s}
+.services-search input::placeholder{color:#7a6a9a}
+.services-search input:focus{border-color:#a855f7}
+.services-search .material-symbols-outlined{position:absolute;left:10px;top:50%;transform:translateY(-50%);font-size:18px;color:#7a6a9a}
+.filter-tabs{display:flex;gap:4px;background:#1e1230;border:1px solid #2d1f45;border-radius:8px;padding:3px}
+.filter-tab{padding:6px 14px;border-radius:6px;border:none;background:transparent;color:#7a6a9a;font-size:12px;font-weight:500;cursor:pointer;transition:all .15s;font-family:inherit}
+.filter-tab:hover{color:#e0d6f0}
+.filter-tab.active{background:rgba(168,85,247,0.15);color:#e0d6f0}
+
+.services-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:16px}
+.service-card{background:#1e1230;border:1px solid #2d1f45;border-radius:10px;padding:20px;transition:border-color .15s;cursor:pointer;position:relative}
+.service-card:hover{border-color:#a855f7}
+.service-card-header{display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:12px}
+.service-card-icon{width:44px;height:44px;border-radius:10px;display:flex;align-items:center;justify-content:center}
+.service-card-icon .material-symbols-outlined{font-size:22px}
+.service-toggle{position:relative;width:38px;height:20px;background:#3d2d55;border-radius:10px;cursor:pointer;transition:background .2s;border:none;padding:0;flex-shrink:0}
+.service-toggle.active{background:#a855f7}
+.service-toggle::after{content:'';position:absolute;top:2px;left:2px;width:16px;height:16px;background:#e0d6f0;border-radius:50%;transition:transform .2s}
+.service-toggle.active::after{transform:translateX(18px)}
+.service-card-name{font-size:15px;font-weight:600;margin-bottom:4px}
+.service-card-desc{font-size:13px;color:#7a6a9a;line-height:1.5;margin-bottom:16px}
+.service-card-footer{display:flex;align-items:center;justify-content:space-between}
+.service-card-meta{display:flex;align-items:center;gap:8px}
+.service-version{font-size:11px;color:#5c5c5e;background:#231540;padding:2px 8px;border-radius:4px;font-family:'JetBrains Mono',monospace}
+.service-status{display:flex;align-items:center;gap:5px;font-size:11px;font-weight:500}
+.service-status .dot{width:6px;height:6px;border-radius:50%}
+.service-status.active .dot{background:#22c55e}
+.service-status.active{color:#22c55e}
+.service-status.inactive .dot{background:#5c5c5e}
+.service-status.inactive{color:#5c5c5e}
+.service-card-actions{display:flex;gap:6px}
+
+.service-detail-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,0.5);z-index:200;align-items:center;justify-content:center}
+.service-detail-overlay.open{display:flex}
+.service-detail-modal{width:440px;max-height:80vh;background:#1e1230;border:1px solid #2d1f45;border-radius:12px;overflow:hidden;display:flex;flex-direction:column}
+.service-detail-header{padding:16px 20px;border-bottom:1px solid #2d1f45;display:flex;align-items:center;justify-content:space-between}
+.service-detail-header h3{font-size:15px;font-weight:600}
+.service-detail-close{width:28px;height:28px;border-radius:6px;background:transparent;border:none;color:#7a6a9a;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:all .15s}
+.service-detail-close:hover{background:rgba(168,85,247,0.12);color:#e0d6f0}
+.service-detail-body{padding:20px;overflow-y:auto;flex:1}
+.service-detail-field{margin-bottom:16px}
+.service-detail-field label{display:block;font-size:11px;font-weight:600;color:#7a6a9a;text-transform:uppercase;letter-spacing:.5px;margin-bottom:6px}
+.service-detail-field .value{font-size:13px;color:#e0d6f0;line-height:1.5}
+.service-detail-tag{display:inline-flex;align-items:center;gap:4px;background:#231540;border:1px solid #3d2d55;border-radius:6px;padding:3px 8px;font-size:11px;color:#b0a0c8;margin-right:4px;margin-bottom:4px}
+.service-detail-status{display:inline-flex;align-items:center;gap:6px;font-size:12px}
+.service-detail-status .dot{width:8px;height:8px;border-radius:50%}
+.service-detail-status .dot.active{background:#22c55e}
+.service-detail-status .dot.inactive{background:#5c5c5e}
+.service-detail-footer{padding:12px 20px;border-top:1px solid #2d1f45;display:flex;justify-content:flex-end;gap:8px}
+
+.mobile-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,0.5);z-index:9;opacity:0;transition:opacity .3s ease}
+.mobile-overlay.visible{display:block;opacity:1}
+
+@media (max-width:480px){
+  .file-explorer{display:none}
+  .sidebar{left:-220px}
+  .sidebar.open{left:0}
+  .mobile-overlay.visible{display:block}
+  .main{margin-left:0}
+  .header{padding:0 12px;height:52px}
+  .header-badge{display:none}
+  .user-name{display:none}
+  .content{padding:16px}
+  .page-header{flex-direction:column;align-items:flex-start;gap:12px}
+  .services-grid{grid-template-columns:1fr}
+  .services-toolbar{flex-direction:column;align-items:stretch}
+}
+@media (min-width:481px) and (max-width:768px){
+  .file-explorer{display:none}
+  .sidebar{left:-220px}
+  .sidebar.open{left:0}
+  .mobile-overlay.visible{display:block}
+  .main{margin-left:0}
+  .header{padding:0 16px}
+  .header-badge{display:none}
+  .services-grid{grid-template-columns:1fr 1fr}
+}
+@media (min-width:769px) and (max-width:1024px){
+  .file-explorer{display:none}
+  .sidebar{width:200px}
+  .main{margin-left:200px}
+  .services-grid{grid-template-columns:1fr 1fr}
+}
+@media (min-width:1025px) and (max-width:1280px){
+  .file-explorer{display:none}
+  .sidebar{width:200px}
+  .main{margin-left:200px}
+}
+@media (min-width:1281px){
+  .main{margin-left:440px}
+}
+</style>
+</head>
+<body>
+
+<aside class="file-explorer">
+  <div class="file-explorer-header">
+    Explorer
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14M5 12h14"/></svg>
+  </div>
+  <div class="file-tree">
+    <div class="tree-item" onclick="this.classList.toggle('open')">
+      <svg class="chevron-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 18 15 12 9 6"/></svg>
+      <svg class="folder-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 19a2 2 0 01-2 2H4a2 2 0 01-2-2V5a2 2 0 012-2h5l2 3h9a2 2 0 012 2z"/></svg>
+      BusinessHQ
+    </div>
+    <div class="tree-children">
+      <div class="tree-item"><span class="ext-badge md">MD</span>AGENTS.md</div>
+      <div class="tree-item"><span class="ext-badge sln">SLN</span>BusinessHQ.sln</div>
+    </div>
+  </div>
+</aside>
+
+<aside class="sidebar" id="sidebar">
+  <div style="padding:0 16px 20px;display:flex;justify-content:center">
+    <svg viewBox="0 0 24 24" fill="none" stroke="#a855f7" stroke-width="2" style="width:32px;height:32px"><path d="M12 2L2 7l10 5 10-5-10-5z"/><path d="M2 17l10 5 10-5"/><path d="M2 12l10 5 10-5"/></svg>
+  </div>
+  <nav>
+    <a href="company-dashboard.html">
+      <span class="material-symbols-outlined">dashboard</span>
+      Dashboard
+    </a>
+    <a href="#">
+      <span class="material-symbols-outlined">timeline</span>
+      Pipeline
+    </a>
+    <a href="users.html">
+      <span class="material-symbols-outlined">group</span>
+      Users
+    </a>
+    <a href="#">
+      <span class="material-symbols-outlined">image</span>
+      Gallery
+    </a>
+    <a href="#">
+      <span class="material-symbols-outlined">vpn_key</span>
+      Keys
+    </a>
+    <a href="#">
+      <span class="material-symbols-outlined">menu_book</span>
+      Skills
+    </a>
+    <a href="#">
+      <span class="material-symbols-outlined">smart_toy</span>
+      Agents
+    </a>
+    <div class="sidebar-divider"></div>
+    <a href="services.html" style="padding:8px 16px 4px;font-size:11px;font-weight:600;color:#7a6a9a;text-transform:uppercase;letter-spacing:1px;display:flex;align-items:center;justify-content:space-between;text-decoration:none;cursor:pointer;transition:all .15s;border-radius:0" onmouseover="this.style.color='#e0d6f0'" onmouseout="this.style.color='#7a6a9a'">
+      Services
+      <span class="material-symbols-outlined" style="font-size:14px">add</span>
+    </a>
+  </nav>
+  <div class="sidebar-bottom">
+    <a href="#">
+      <span class="material-symbols-outlined">help_outline</span>
+      Help
+    </a>
+    <div class="sidebar-settings-wrap" id="settingsWrap">
+      <a href="#" id="settingsBtn" onclick="event.preventDefault();toggleSettingsDropdown(event)">
+        <span class="material-symbols-outlined">settings</span>
+        Settings
+      </a>
+      <div class="settings-dropdown">
+        <a href="#" class="settings-dropdown-item" onclick="event.preventDefault()">
+          <span class="material-symbols-outlined">business</span>
+          <div class="settings-dropdown-info">
+            <div class="settings-dropdown-name">Company Details</div>
+            <div class="settings-dropdown-desc">Name, address, branding, and billing</div>
+          </div>
+        </a>
+        <a href="#" class="settings-dropdown-item" onclick="event.preventDefault()">
+          <span class="material-symbols-outlined">person</span>
+          <div class="settings-dropdown-info">
+            <div class="settings-dropdown-name">User Profile</div>
+            <div class="settings-dropdown-desc">Account, security, and preferences</div>
+          </div>
+        </a>
+      </div>
+    </div>
+  </div>
+</aside>
+
+<div class="mobile-overlay" id="mobileOverlay" onclick="closeSidebar()"></div>
+
+<main class="main">
+  <header class="header">
+    <div class="header-left">
+      <button class="icon-btn" onclick="toggleSidebar()" style="display:none" id="sidebarToggle">
+        <span class="material-symbols-outlined">menu</span>
+      </button>
+      <span class="header-badge">BusinessHQ Admin</span>
+    </div>
+    <div class="header-right">
+      <button class="btn btn-outline">
+        <span class="material-symbols-outlined" style="font-size:16px">language</span>
+        View website
+      </button>
+      <button class="icon-btn">
+        <span class="material-symbols-outlined">notifications</span>
+      </button>
+      <div class="user-dropdown" id="userDropdown">
+        <button class="user-trigger" onclick="toggleUserDropdown()">
+          <div class="user-avatar">OM</div>
+          <span class="user-name">Olivia Martin</span>
+          <svg class="chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg>
+        </button>
+        <div class="user-menu">
+          <a href="#profile">
+            <span class="material-symbols-outlined">person</span>
+            My Profile
+          </a>
+          <a href="#settings">
+            <span class="material-symbols-outlined">settings</span>
+            Account Settings
+          </a>
+          <div class="user-menu-divider"></div>
+          <a href="#switch-company">
+            <span class="material-symbols-outlined">swap_horiz</span>
+            Switch Company
+          </a>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <div class="content">
+    <div class="page-header">
+      <div class="page-header-left">
+        <h2>Services & Plugins</h2>
+        <p>Manage, enable, or configure the services available across your projects.</p>
+      </div>
+    </div>
+
+    <div class="services-toolbar">
+      <div class="services-search">
+        <span class="material-symbols-outlined">search</span>
+        <input type="text" placeholder="Search services..." id="searchInput" oninput="filterServices()">
+      </div>
+      <div class="filter-tabs">
+        <button class="filter-tab active" onclick="setFilter('all',this)">All</button>
+        <button class="filter-tab" onclick="setFilter('active',this)">Enabled</button>
+        <button class="filter-tab" onclick="setFilter('inactive',this)">Disabled</button>
+      </div>
+    </div>
+
+    <div class="services-grid" id="servicesGrid"></div>
+  </div>
+</main>
+
+<div class="service-detail-overlay" id="detailOverlay" onclick="closeDetail(event)">
+  <div class="service-detail-modal" onclick="event.stopPropagation()">
+    <div class="service-detail-header">
+      <h3 id="detailTitle">Service</h3>
+      <button class="service-detail-close" onclick="closeDetail()">
+        <span class="material-symbols-outlined" style="font-size:18px">close</span>
+      </button>
+    </div>
+    <div class="service-detail-body" id="detailBody"></div>
+    <div class="service-detail-footer">
+      <button class="btn btn-outline" onclick="closeDetail()" style="font-size:12px;padding:6px 14px">Close</button>
+      <button class="btn btn-primary" style="font-size:12px;padding:6px 14px">Open Settings</button>
+    </div>
+  </div>
+</div>
+
+<script>
+var services=[
+  {id:'sales',name:'Sales',icon:'payments',color:'#a855f7',desc:'Full sales management suite covering quotes, orders, coupons, and product catalog.',version:'2.4.1',author:'BusinessHQ',status:'active',tags:['commerce','quotes','orders','coupons']},
+  {id:'users',name:'Users',icon:'group',color:'#3b82f6',desc:'User management with role-based access control, invitation flows, and session tracking.',version:'1.8.0',author:'BusinessHQ',status:'active',tags:['rbac','auth','sessions']},
+  {id:'content',name:'Content',icon:'article',color:'#22c55e',desc:'Page builder, blog posts, media library, and SEO metadata management.',version:'3.1.2',author:'BusinessHQ',status:'active',tags:['cms','pages','seo']},
+  {id:'gallery',name:'Gallery',icon:'image',color:'#f59e0b',desc:'Image and video uploads with album organization, lightbox, and CDN delivery.',version:'1.2.0',author:'BusinessHQ',status:'inactive',tags:['media','images','albums']},
+  {id:'backlinks',name:'Backlinks',icon:'link',color:'#ec4899',desc:'Referral tracking, link health monitoring, and SEO backlink analysis.',version:'1.0.3',author:'BusinessHQ',status:'active',tags:['seo','referrals','links']},
+  {id:'audit',name:'Audit',icon:'fact_check',color:'#14b8a6',desc:'Activity logging, compliance reports, and change history across all services.',version:'2.0.1',author:'BusinessHQ',status:'active',tags:['logs','compliance','reports']},
+  {id:'pipeline',name:'Pipeline',icon:'timeline',color:'#6366f1',desc:'Workflow automation with triggers, conditions, and multi-step orchestration.',version:'1.5.0',author:'BusinessHQ',status:'inactive',tags:['automation','workflows','triggers']},
+  {id:'keys',name:'Keys',icon:'vpn_key',color:'#a855f7',desc:'API key management, access token rotation, and secret vault.',version:'1.3.4',author:'BusinessHQ',status:'active',tags:['api','tokens','secrets']},
+  {id:'skills',name:'Skills',icon:'menu_book',color:'#f43f5e',desc:'Agent skill registry, template management, and workflow templates.',version:'2.2.0',author:'BusinessHQ',status:'active',tags:['templates','skills','workflows']},
+  {id:'agents',name:'Agents',icon:'smart_toy',color:'#8b5cf6',desc:'AI agent orchestration, prompt management, and model routing.',version:'1.7.1',author:'BusinessHQ',status:'active',tags:['ai','prompts','llm']}
+];
+
+var currentFilter='all';
+
+function renderServices(){
+  var grid=document.getElementById('servicesGrid');
+  var query=document.getElementById('searchInput').value.toLowerCase();
+  grid.innerHTML='';
+  services.forEach(function(s){
+    if(currentFilter!=='all'&&s.status!==currentFilter)return;
+    if(query&&s.name.toLowerCase().indexOf(query)===-1&&s.desc.toLowerCase().indexOf(query)===-1)return;
+    var statusClass=s.status==='active'?'active':'inactive';
+    var statusLabel=s.status==='active'?'Enabled':'Disabled';
+    grid.innerHTML+=
+      '<div class="service-card" data-id="'+s.id+'">'+
+        '<div class="service-card-header">'+
+          '<div class="service-card-icon" style="background:'+s.color+'22;color:'+s.color+'">'+
+            '<span class="material-symbols-outlined">'+s.icon+'</span>'+
+          '</div>'+
+          '<button class="service-toggle '+statusClass+'" onclick="event.stopPropagation();toggleService(\''+s.id+'\',this)" title="Enable / Disable"></button>'+
+        '</div>'+
+        '<div class="service-card-name">'+s.name+'</div>'+
+        '<div class="service-card-desc">'+s.desc+'</div>'+
+        '<div class="service-card-footer">'+
+          '<div class="service-card-meta">'+
+            '<span class="service-version">v'+s.version+'</span>'+
+            '<span class="service-status '+statusClass+'"><span class="dot"></span>'+statusLabel+'</span>'+
+          '</div>'+
+          '<div class="service-card-actions">'+
+            '<button class="icon-btn" onclick="event.stopPropagation();openDetail(\''+s.id+'\')" title="View details" style="width:28px;height:28px">'+
+              '<span class="material-symbols-outlined" style="font-size:16px">info</span>'+
+            '</button>'+
+          '</div>'+
+        '</div>'+
+      '</div>';
+  });
+  document.querySelectorAll('.service-card').forEach(function(card){
+    card.addEventListener('click',function(){openDetail(this.dataset.id)});
+  });
+}
+
+function filterServices(){renderServices()}
+
+function setFilter(f,btn){
+  currentFilter=f;
+  document.querySelectorAll('.filter-tab').forEach(function(t){t.classList.remove('active')});
+  btn.classList.add('active');
+  renderServices();
+}
+
+function toggleService(id,btn){
+  var s=services.find(function(x){return x.id===id});
+  if(!s)return;
+  s.status=s.status==='active'?'inactive':'active';
+  renderServices();
+}
+
+function openDetail(id){
+  var s=services.find(function(x){return x.id===id});
+  if(!s)return;
+  document.getElementById('detailTitle').textContent=s.name;
+  var statusClass=s.status==='active'?'active':'inactive';
+  var statusLabel=s.status==='active'?'Enabled':'Disabled';
+  var tagsHtml=s.tags.map(function(t){return '<span class="service-detail-tag">'+t+'</span>'}).join('');
+  document.getElementById('detailBody').innerHTML=
+    '<div class="service-detail-field"><label>Status</label><div class="service-detail-status"><span class="dot '+statusClass+'"></span><span class="value">'+statusLabel+'</span></div></div>'+
+    '<div class="service-detail-field"><label>Description</label><div class="value">'+s.desc+'</div></div>'+
+    '<div class="service-detail-field"><label>Version</label><div class="value">'+s.version+'</div></div>'+
+    '<div class="service-detail-field"><label>Author</label><div class="value">'+s.author+'</div></div>'+
+    '<div class="service-detail-field"><label>Tags</label><div>'+tagsHtml+'</div></div>';
+  document.getElementById('detailOverlay').classList.add('open');
+}
+
+function closeDetail(e){
+  if(e&&e.target!==document.getElementById('detailOverlay'))return;
+  document.getElementById('detailOverlay').classList.remove('open');
+}
+
+function toggleSidebar(){
+  document.getElementById('sidebar').classList.toggle('open');
+  document.getElementById('mobileOverlay').classList.toggle('visible');
+}
+function closeSidebar(){
+  document.getElementById('sidebar').classList.remove('open');
+  document.getElementById('mobileOverlay').classList.remove('visible');
+}
+
+function toggleUserDropdown(){
+  document.getElementById('userDropdown').classList.toggle('open');
+}
+function toggleSettingsDropdown(e){
+  if(e)e.preventDefault();
+  document.getElementById('settingsWrap').classList.toggle('open');
+}
+
+document.addEventListener('click',function(e){
+  if(!e.target.closest('.user-dropdown')){
+    document.querySelectorAll('.user-dropdown').forEach(function(d){d.classList.remove('open')});
+  }
+  if(!e.target.closest('.sidebar-settings-wrap')){
+    document.querySelectorAll('.sidebar-settings-wrap').forEach(function(d){d.classList.remove('open')});
+  }
+});
+
+function checkMobile(){
+  var toggle=document.getElementById('sidebarToggle');
+  if(window.innerWidth<=768){toggle.style.display='flex'}else{toggle.style.display='none'}
+}
+window.addEventListener('resize',checkMobile);
+checkMobile();
+
+renderServices();
+
+document.addEventListener('mousemove',function(e){
+  var explorer=document.querySelector('.file-explorer');
+  if(explorer.classList.contains('visible')){
+    if(e.clientX>220){explorer.classList.remove('visible')}
+  }else{
+    if(e.clientX<20){explorer.classList.add('visible')}
+  }
+});
+
+document.querySelectorAll('.tree-item').forEach(function(item){
+  if(!item.querySelector('.chevron-icon')){return}
+  item.addEventListener('click',function(){this.classList.toggle('open')});
+});
+</script>
+</body>
+</html>

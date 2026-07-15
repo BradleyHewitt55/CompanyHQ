@@ -1,1 +1,9 @@
 .env
+Ideas.md
+scripts/review_agent/results/
+bin
+obj
+.playwright-cli
+eng
+eng
+.zap-scaffold

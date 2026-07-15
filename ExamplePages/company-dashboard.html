@@ -7,9 +7,26 @@
 <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet"/>
 <style>
 *{margin:0;padding:0;box-sizing:border-box}
+html{overflow-x:hidden}
 body{font-family:'Segoe UI',system-ui,-apple-system,sans-serif;background:#1a1025;color:#e0d6f0;display:flex;height:100vh;overflow:hidden}
 
-.file-explorer{width:220px;background:#16101f;border-right:1px solid #2d1f45;display:flex;flex-direction:column;padding:16px 0;position:fixed;height:100vh;z-index:100;left:-220px;transition:left 0.3s ease;overflow-y:auto;scrollbar-width:thin;scrollbar-color:#3d2d55 #16101f}
+/*
+  FILE EXPLORER — CSS RULES
+  ==========================
+  Layout: Fixed position, 220px wide, full viewport height, z-index 200 (above sidebar at z-index 10).
+  Default state: left:-220px (hidden off-screen). Transition on left property for slide animation.
+  When .visible is added: left:0 (slides into view).
+  Mobile (≤768px and ≤1280px): display:none — explorer is completely hidden, sidebar icon shown instead.
+
+  Tree items: flex row with gap for alignment. Children are hidden by default (display:none).
+  When a tree-item has class "open", the immediately following sibling .tree-children becomes visible
+  (display:block via .tree-item.open + .tree-children). Nested children get 32px left padding.
+
+  Plus (+) button: .tree-toggle is pushed to the far right via margin-left:auto. It is a static
+  "+" character that never changes state — no rotation, no animation, no class toggling.
+  Clicking it calls event.stopPropagation() so it does NOT trigger the parent's onclick toggle.
+*/
+.file-explorer{width:220px;background:#16101f;border-right:1px solid #2d1f45;display:flex;flex-direction:column;padding:16px 0;position:fixed;height:100vh;z-index:200;left:-220px;transition:left 0.3s ease;overflow-y:auto;scrollbar-width:thin;scrollbar-color:#3d2d55 #16101f}
 .file-explorer.visible{left:0}
 .file-explorer::-webkit-scrollbar{width:8px}
 .file-explorer::-webkit-scrollbar-track{background:#16101f;border-radius:8px}
@@ -25,6 +42,15 @@ body{font-family:'Segoe UI',system-ui,-apple-system,sans-serif;background:#1a102
 .tree-item svg{width:14px;height:14px;flex-shrink:0}
 .tree-item .chevron-icon{width:10px;height:10px;transition:transform .2s}
 .tree-item.open>.chevron-icon{transform:rotate(90deg)}
+/*
+  TREE TOGGLE — CSS RULES
+  ========================
+  .tree-children: hidden by default (display:none).
+  .tree-item.open + .tree-children: when a tree-item has class "open", the immediately
+  following sibling .tree-children becomes visible (display:block). This uses the adjacent
+  sibling selector (+) so only the DIRECT children of the toggled item are affected.
+  Nested children get 32px left padding for visual hierarchy.
+*/
 .tree-children{display:none}
 .tree-item.open+.tree-children{display:block}
 .tree-children .tree-item{padding-left:32px}
@@ -32,8 +58,20 @@ body{font-family:'Segoe UI',system-ui,-apple-system,sans-serif;background:#1a102
 .ext-badge{display:inline-flex;align-items:center;justify-content:center;width:14px;height:14px;font-size:7.5px;font-weight:900;font-family:'Segoe UI',system-ui,sans-serif;letter-spacing:-.3px;flex-shrink:0;line-height:1;background:none}
 .ext-badge.md{color:#22c55e}
 .ext-badge.sln{color:#06b6d4}
+/*
+  PLUS (+) BUTTON — RULES
+  ========================
+  - Always displays "+" character — never rotates, never changes to ×, never animates.
+  - Pushed to the far right of the tree-item via margin-left:auto (parent is display:flex).
+  - Clicking it calls event.stopPropagation() so it does NOT toggle the parent dropdown.
+  - Purpose: "add" affordance — add page, add service, add project, add model, etc.
+  - Hover: color changes from muted (#7a6a9a) to accent (#a855f7).
+*/
+.tree-toggle{display:inline-flex;align-items:center;justify-content:center;width:16px;height:16px;font-size:14px;font-weight:700;color:#7a6a9a;border-radius:3px;margin-left:auto;cursor:pointer}
+.tree-toggle:hover{color:#a855f7}
+.tree-toggle:active{transform:none}
 
-.sidebar{width:220px;background:#1e1230;border-right:1px solid #2d1f45;display:flex;flex-direction:column;padding:16px 0;position:fixed;height:100vh;z-index:10;left:0}
+.sidebar{width:220px;background:#1e1230;border-right:1px solid #2d1f45;display:flex;flex-direction:column;padding:16px 0;position:fixed;height:100vh;z-index:10;left:0;transition:left 0.3s ease}
 .sidebar-search{padding:0 16px 16px}
 .sidebar-search input{width:100%;background:#2d1f45;border:1px solid #3d2d55;border-radius:8px;padding:8px 12px 8px 36px;color:#e0d6f0;font-size:13px;outline:none}
 .sidebar-search input::placeholder{color:#7a6a9a}
@@ -127,8 +165,8 @@ body{font-family:'Segoe UI',system-ui,-apple-system,sans-serif;background:#1a102
 .activity-avatar.purple{background:linear-gradient(135deg,#a855f7,#6d28d9);color:#fff}
 .activity-avatar.blue{background:linear-gradient(135deg,#3b82f6,#2563eb);color:#fff}
 .activity-avatar.green{background:linear-gradient(135deg,#22c55e,#16a34a);color:#fff}
-.activity-content{flex:1}
-.activity-text{font-size:13px;line-height:1.4}
+.activity-content{flex:1;min-width:0}
+.activity-text{font-size:13px;line-height:1.4;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .activity-text strong{color:#e0d6f0}
 .activity-time{font-size:11px;color:#7a6a9a;margin-top:2px}
 
@@ -136,29 +174,238 @@ body{font-family:'Segoe UI',system-ui,-apple-system,sans-serif;background:#1a102
 .quick-link{display:flex;align-items:center;gap:10px;padding:10px 12px;border-radius:8px;text-decoration:none;color:#b0a0c8;font-size:13px;transition:all .15s}
 .quick-link:hover{background:rgba(168,85,247,0.08);color:#e0d6f0}
 .quick-link .material-symbols-outlined{font-size:18px;color:#a855f7}
+
+.mobile-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,0.5);z-index:9;opacity:0;transition:opacity 0.3s ease}
+.mobile-overlay.visible{display:block;opacity:1}
+
+/* ─── Mobile compact (360px–430px) ─────────────────────────── */
+/* File explorer: hidden on mobile — sidebar icon shown instead */
+@media (max-width:480px){
+  .sidebar{left:-220px;transition:left 0.3s ease}
+  .sidebar.open{left:0}
+  .mobile-overlay.visible{display:block}
+  .file-explorer{display:none}
+  .main{margin-left:0}
+  .header{padding:0 12px;height:52px}
+  .header-left{gap:8px}
+  .header-badge{display:none}
+  .btn-outline span:not(.material-symbols-outlined){display:none}
+  .btn-outline{padding:8px}
+  .user-name{display:none}
+  .content{padding:16px}
+  .page-header h2{font-size:16px}
+  .stats-grid{grid-template-columns:1fr 1fr;gap:12px}
+  .stat-card{padding:12px}
+  .stat-card-value{font-size:20px}
+  .content-grid{grid-template-columns:1fr;gap:12px}
+  .content-card-body{padding:8px 12px}
+  .activity-text{font-size:12px}
+  .quick-link{padding:8px 10px;font-size:12px}
+  .plugin-detail-modal{width:calc(100% - 32px);margin:16px}
+  .settings-modal{width:calc(100% - 32px)}
+}
+
+/* ─── Mobile standard (390px–430px) ────────────────────────── */
+/* File explorer: hidden on mobile — sidebar icon shown instead */
+@media (min-width:481px) and (max-width:768px){
+  .sidebar{left:-220px;transition:left 0.3s ease}
+  .sidebar.open{left:0}
+  .mobile-overlay.visible{display:block}
+  .file-explorer{display:none}
+  .main{margin-left:0}
+  .header{padding:0 16px}
+  .header-badge{display:none}
+  .btn-outline span:not(.material-symbols-outlined){display:none}
+  .btn-outline{padding:8px}
+  .content{padding:16px}
+  .stats-grid{grid-template-columns:1fr 1fr;gap:12px}
+  .stat-card{padding:14px}
+  .stat-card-value{font-size:22px}
+  .content-grid{grid-template-columns:1fr;gap:12px}
+}
+
+/* ─── Tablet portrait (768px–834px) ────────────────────────── */
+@media (min-width:769px) and (max-width:1024px){
+  .sidebar{width:200px}
+  .main{margin-left:200px}
+  .stats-grid{grid-template-columns:1fr 1fr}
+  .content-grid{grid-template-columns:1fr 1fr}
+}
+
+/* ─── Tablet landscape / large tablet (1024px–1180px) ───────── */
+@media (min-width:1025px) and (max-width:1280px){
+  .sidebar{width:200px}
+  .main{margin-left:200px}
+  .stats-grid{grid-template-columns:repeat(4,1fr)}
+}
+
+/* ─── Laptop (1280px–1366px) ────────────────────────────────── */
+@media (min-width:1281px) and (max-width:1440px){
+}
+
+/* ─── Desktop (1440px–1920px) ────────────────────────────────── */
+@media (min-width:1441px){
+}
+
+/* ─── Wide (1920px+) ────────────────────────────────────────── */
+@media (min-width:1921px){
+  .content{max-width:1600px}
+}
+
+/* ─── Sidebar open toggle (mobile/tablet) ───────────────────── */
+.sidebar-toggle{display:none;width:36px;height:36px;border-radius:8px;background:transparent;border:none;color:#b0a0c8;cursor:pointer;align-items:center;justify-content:center;transition:all .15s}
+.sidebar-toggle:hover{background:rgba(168,85,247,0.12);color:#e0d6f0}
+@media (max-width:768px){
+  .sidebar-toggle{display:flex}
+}
+
+/* ─── Stat card pulse animation on hover ────────────────────── */
+@keyframes subtlePulse{
+  0%,100%{transform:scale(1)}
+  50%{transform:scale(1.02)}
+}
+.stat-card:hover{animation:subtlePulse 0.3s ease}
+.stat-card.refreshing{animation:subtlePulse 0.3s ease}
+
+/* ─── Notification badge ────────────────────────────────────── */
+.notification-badge{position:relative}
+.notification-badge::after{content:'3';position:absolute;top:4px;right:4px;width:16px;height:16px;background:#ef4444;border-radius:50%;font-size:9px;font-weight:700;display:flex;align-items:center;justify-content:center;color:#fff;border:2px solid #1e1230}
+
+.sidebar-label-clickable:hover{color:#e0d6f0}
+.sidebar-label-clickable svg{transition:transform .2s}
+.sidebar-label-clickable.open svg{transform:rotate(90deg)}
+
+.settings-dropdown{display:none;position:fixed;width:292px;background:#231540;border:1px solid #2d1f45;border-radius:10px;padding:6px 0;z-index:9999;box-shadow:0 -4px 16px rgba(0,0,0,0.3)}
+.settings-dropdown.visible{display:block}
+.settings-dropdown-item{display:flex;align-items:center;gap:10px;padding:10px 16px;color:#b0a0c8;text-decoration:none;font-size:13px;transition:all .15s;cursor:pointer}
+.settings-dropdown-item:hover{color:#e0d6f0;background:rgba(168,85,247,0.1)}
+.settings-dropdown-item .material-symbols-outlined{font-size:18px;color:#a855f7}
+.settings-dropdown-info{flex:1}
+.settings-dropdown-name{font-size:13px;font-weight:500;color:#e0d6f0}
+.settings-dropdown-desc{font-size:11px;color:#7a6a9a;margin-top:1px}
 </style>
 </head>
 <body>
 
+<!--
+  FILE EXPLORER — RULES & LOGIC
+  ==============================
+  1. HOVER REVEAL: Explorer slides in from the left edge when the mouse enters a 20px hit zone
+     on the left side of the viewport. It slides back out when the cursor moves beyond 220px (the
+     full width of the panel). This works at all desktop widths — no breakpoint guard.
+  2. MOBILE: On viewports ≤ 768px the explorer is hidden entirely (display:none) and the
+     sidebar hamburger toggle is shown instead. On viewports ≤ 1280px the explorer is also hidden
+     and replaced by a sidebar icon.
+  3. TREE TOGGLE: Clicking a tree-item with children toggles the "open" class on that element.
+     The adjacent .tree-children div is shown/hidden via CSS (display:none → display:block) when
+     the preceding sibling has class "open". Only items with children have the onclick handler.
+  4. DEFAULT STATE: Admin and Projects are open by default (class="open" in the HTML). All other
+     items (Services, {ServiceName}, Website, MobileApp, DesktopApp) start closed. The user can
+     open/close any toggleable item at any time.
+  5. PLUS (+) BUTTON: Every item EXCEPT Admin has a + sign aligned to the far right. The + is
+     purely an "add" affordance (add page, add service, add project, etc.) — it does NOT change
+     state or indicate open/closed. The + never rotates, never becomes an ×, and never changes
+     regardless of whether the parent item is open or closed. Clicking the + does NOT toggle the
+     parent dropdown (event.stopPropagation prevents bubbling).
+  6. HIERARCHY: Admin is a top-level section (no +). Projects is a top-level section with +.
+     Each project (Website, MobileApp, DesktopApp) contains Pages and Services as children.
+     Admin > Services > {ServiceName} contains Models, Api, Pages, Settings as children.
+  7. NO ICONS OR CHEVRONS: Tree items use plain text only — no folder icons, no chevron arrows,
+     no file-type badges. The visual hierarchy is communicated through indentation (padding-left)
+     and the open/closed state of parent items.
+-->
 <aside class="file-explorer">
   <div class="file-explorer-header">
     Explorer
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14M5 12h14"/></svg>
   </div>
-  <div class="file-tree">
-    <div class="tree-item" onclick="this.classList.toggle('open')">
-      <svg class="chevron-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 18 15 12 9 6"/></svg>
-      <svg class="folder-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 19a2 2 0 01-2 2H4a2 2 0 01-2-2V5a2 2 0 012-2h5l2 3h9a2 2 0 012 2z"/></svg>
-      BusinessHQ
-    </div>
+  <div class="file-tree" data-od-id="path-1-1">
+    <!--
+      ADMIN SECTION
+      - Default state: open (class="open" on the tree-item)
+      - No + button (Admin is a primary section header, not something you add to)
+      - Click text to toggle open/closed
+    -->
+    <div class="tree-item open" onclick="this.classList.toggle('open')">Admin</div>
     <div class="tree-children">
-      <div class="tree-item"><span class="ext-badge md">MD</span>AGENTS.md</div>
-      <div class="tree-item"><span class="ext-badge sln">SLN</span>BusinessHQ.sln</div>
+      <!-- Pages: leaf item, no children, has + to add a page -->
+      <div class="tree-item">Pages <span class="tree-toggle" onclick="event.stopPropagation()">+</span></div>
+      <!--
+        Services: has children ({ServiceName}), default closed, has + to add a service
+        Click text to toggle open/closed
+      -->
+      <div class="tree-item" onclick="this.classList.toggle('open')">Services <span class="tree-toggle" onclick="event.stopPropagation()">+</span></div>
+      <div class="tree-children">
+        <!--
+          {ServiceName}: dynamic service placeholder, has children, default closed, has +
+          Click text to toggle open/closed
+        -->
+        <div class="tree-item" onclick="this.classList.toggle('open')">{ServiceName} <span class="tree-toggle" onclick="event.stopPropagation()">+</span></div>
+        <div class="tree-children">
+          <!-- Leaf items under {ServiceName}: each has + to add new items -->
+          <div class="tree-item">Models <span class="tree-toggle" onclick="event.stopPropagation()">+</span></div>
+          <div class="tree-item">Api <span class="tree-toggle" onclick="event.stopPropagation()">+</span></div>
+          <div class="tree-item">Pages <span class="tree-toggle" onclick="event.stopPropagation()">+</span></div>
+          <div class="tree-item">Settings <span class="tree-toggle" onclick="event.stopPropagation()">+</span></div>
+        </div>
+      </div>
+    </div>
+
+    <!--
+      PROJECTS SECTION
+      - Default state: open (class="open" on the tree-item)
+      - Has + button (user can add new projects)
+      - Click text to toggle open/closed
+      - Contains Website, MobileApp, DesktopApp as child projects
+    -->
+    <div class="tree-item open" onclick="this.classList.toggle('open')">Projects <span class="tree-toggle" onclick="event.stopPropagation()">+</span></div>
+    <div class="tree-children">
+      <!--
+        Website: has children (Pages, Services), default closed, has + to add a project
+        Click text to toggle open/closed
+      -->
+      <div class="tree-item" onclick="this.classList.toggle('open')">Website <span class="tree-toggle" onclick="event.stopPropagation()">+</span></div>
+      <div class="tree-children">
+        <!-- Leaf items under Website: each has + to add new items -->
+        <div class="tree-item">Pages <span class="tree-toggle" onclick="event.stopPropagation()">+</span></div>
+        <div class="tree-item">Services <span class="tree-toggle" onclick="event.stopPropagation()">+</span></div>
+      </div>
+      <!-- MobileApp: same structure as Website -->
+      <div class="tree-item" onclick="this.classList.toggle('open')">MobileApp <span class="tree-toggle" onclick="event.stopPropagation()">+</span></div>
+      <div class="tree-children">
+        <div class="tree-item">Pages <span class="tree-toggle" onclick="event.stopPropagation()">+</span></div>
+        <div class="tree-item">Services <span class="tree-toggle" onclick="event.stopPropagation()">+</span></div>
+      </div>
+      <!-- DesktopApp: same structure as Website -->
+      <div class="tree-item" onclick="this.classList.toggle('open')">DesktopApp <span class="tree-toggle" onclick="event.stopPropagation()">+</span></div>
+      <div class="tree-children">
+        <div class="tree-item">Pages <span class="tree-toggle" onclick="event.stopPropagation()">+</span></div>
+        <div class="tree-item">Services <span class="tree-toggle" onclick="event.stopPropagation()">+</span></div>
+      </div>
     </div>
   </div>
 </aside>
 
-<aside class="sidebar">
+<div class="mobile-overlay" id="mobileOverlay" onclick="closeSidebar()"></div>
+
+<div class="settings-dropdown" id="settingsDropdown">
+  <a href="#" class="settings-dropdown-item" onclick="event.preventDefault()">
+    <span class="material-symbols-outlined">business</span>
+    <div class="settings-dropdown-info">
+      <div class="settings-dropdown-name">Company Details</div>
+      <div class="settings-dropdown-desc">Name, address, branding, and billing</div>
+    </div>
+  </a>
+  <a href="#" class="settings-dropdown-item" onclick="event.preventDefault()">
+    <span class="material-symbols-outlined">person</span>
+    <div class="settings-dropdown-info">
+      <div class="settings-dropdown-name">User Profile</div>
+      <div class="settings-dropdown-desc">Account, security, and preferences</div>
+    </div>
+  </a>
+</div>
+
+<aside class="sidebar" id="sidebar">
   <div style="padding:0 16px 20px;display:flex;justify-content:center">
     <svg viewBox="0 0 24 24" fill="none" stroke="#a855f7" stroke-width="2" style="width:32px;height:32px"><path d="M12 2L2 7l10 5 10-5-10-5z"/><path d="M2 17l10 5 10-5"/><path d="M2 12l10 5 10-5"/></svg>
   </div>
@@ -192,44 +439,39 @@ body{font-family:'Segoe UI',system-ui,-apple-system,sans-serif;background:#1a102
       Agents
     </a>
     <div class="sidebar-divider"></div>
-    <div class="sidebar-label" style="padding:8px 16px 4px">Services</div>
-    <div class="nav-dropdown-item" onclick="this.classList.toggle('open')">
-      <div class="nav-item">
-        <span class="material-symbols-outlined">payments</span>
-        Sales
-        <svg class="nav-dropdown-arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:16px;height:16px"><polyline points="9 6 15 12 9 18"/></svg>
-      </div>
-      <div class="nav-dropdown-children">
-        <a href="#">Quotes</a>
-        <a href="#">Orders</a>
-        <a href="#">Coupons</a>
-        <a href="products.html">Products</a>
-      </div>
-    </div>
+    <a href="services.html" style="padding:8px 16px 4px;font-size:11px;font-weight:600;color:#7a6a9a;text-transform:uppercase;letter-spacing:1px;display:flex;align-items:center;justify-content:space-between;text-decoration:none;cursor:pointer;transition:all .15s;border-radius:0" onmouseover="this.style.color='#e0d6f0'" onmouseout="this.style.color='#7a6a9a'">
+      Services
+      <span class="material-symbols-outlined" style="font-size:14px">add</span>
+    </a>
   </nav>
   <div class="sidebar-bottom">
     <a href="#">
       <span class="material-symbols-outlined">help_outline</span>
       Help
     </a>
-    <a href="#">
-      <span class="material-symbols-outlined">settings</span>
-      Settings
-    </a>
+    <div class="sidebar-settings-wrap" id="settingsWrap">
+      <a href="#" id="settingsBtn" onclick="event.preventDefault();toggleSettingsDropdown(event)">
+        <span class="material-symbols-outlined">settings</span>
+        Settings
+      </a>
+    </div>
   </div>
 </aside>
 
 <main class="main">
   <header class="header">
     <div class="header-left">
-      
+      <button class="sidebar-toggle" onclick="toggleSidebar()">
+        <span class="material-symbols-outlined">menu</span>
+      </button>
+      <span class="header-badge">BusinessHQ Admin</span>
     </div>
     <div class="header-right">
       <button class="btn btn-outline">
         <span class="material-symbols-outlined" style="font-size:16px">language</span>
-        View website
+        <span>View website</span>
       </button>
-      <button class="icon-btn">
+      <button class="icon-btn notification-badge">
         <span class="material-symbols-outlined">notifications</span>
       </button>
       <div class="user-dropdown" id="userDropdown">
@@ -243,15 +485,10 @@ body{font-family:'Segoe UI',system-ui,-apple-system,sans-serif;background:#1a102
             <span class="material-symbols-outlined">person</span>
             My Profile
           </a>
-          <a href="#settings">
-            <span class="material-symbols-outlined">settings</span>
-            Account Settings
-          </a>
           <div class="user-menu-divider"></div>
           <a href="#switch-company">
             <span class="material-symbols-outlined">swap_horiz</span>
             Switch Company
-            <!-- Owner level only -->
           </a>
         </div>
       </div>
@@ -392,26 +629,105 @@ body{font-family:'Segoe UI',system-ui,-apple-system,sans-serif;background:#1a102
 </main>
 
 <script>
-document.addEventListener('mousemove', function(e) {
-  var explorer = document.querySelector('.file-explorer');
-  if (explorer.classList.contains('visible')) {
-    if (e.clientX > 220) explorer.classList.remove('visible');
-  } else {
-    if (e.clientX < 20) explorer.classList.add('visible');
-  }
-});
-
-function toggleUserDropdown() {
-  document.getElementById('userDropdown').classList.toggle('open');
+function toggleSidebar(){
+  var sidebar=document.getElementById('sidebar');
+  var overlay=document.getElementById('mobileOverlay');
+  sidebar.classList.toggle('open');
+  overlay.classList.toggle('visible');
+}
+function closeSidebar(){
+  document.getElementById('sidebar').classList.remove('open');
+  document.getElementById('mobileOverlay').classList.remove('visible');
 }
 
-document.addEventListener('click', function(e) {
-  if (!e.target.closest('.user-dropdown')) {
-    document.querySelectorAll('.user-dropdown').forEach(function(d) {
-      d.classList.remove('open');
-    });
+function toggleUserDropdown(){
+  document.getElementById('userDropdown').classList.toggle('open');
+}
+document.addEventListener('click',function(e){
+  if(!e.target.closest('.user-dropdown')){
+    document.querySelectorAll('.user-dropdown').forEach(function(d){d.classList.remove('open')});
+  }
+  if(!e.target.closest('#settingsWrap')&&!e.target.closest('#settingsDropdown')){
+    document.getElementById('settingsDropdown').classList.remove('visible');
   }
 });
+
+function toggleSalesDropdown(el){
+  el.classList.toggle('open');
+}
+
+function toggleSettingsDropdown(e){
+  if(e)e.preventDefault();
+  var dd=document.getElementById('settingsDropdown');
+  var btn=document.getElementById('settingsBtn');
+  if(dd.classList.contains('visible')){
+    dd.classList.remove('visible');
+    return;
+  }
+  var r=btn.getBoundingClientRect();
+  dd.style.visibility='hidden';
+  dd.style.top='0';
+  dd.style.left='0';
+  dd.classList.add('visible');
+  var h=dd.offsetHeight;
+  dd.style.top=Math.max(8,r.top-h-8)+'px';
+  dd.style.left=Math.max(8,Math.min(r.left,window.innerWidth-300))+'px';
+  dd.style.visibility='';
+}
+
+/*
+  FILE EXPLORER — HOVER REVEAL LOGIC
+  ====================================
+  The explorer panel is hidden off-screen (left:-220px) by default.
+  On mousemove anywhere on the page:
+  - If the explorer is currently visible AND the cursor moves beyond 220px from the left
+    edge of the viewport, hide the explorer (remove "visible" class → slides out).
+  - If the explorer is currently hidden AND the cursor enters within 20px of the left
+    edge of the viewport, show the explorer (add "visible" class → slides in).
+  This creates a hover-to-reveal behavior: the user swipes to the left edge to open the
+  explorer, then moves away to close it. No click required to open/close.
+  On mobile (≤768px) the explorer is display:none so this handler is a no-op.
+*/
+document.addEventListener('mousemove',function(e){
+  var explorer=document.querySelector('.file-explorer');
+  if(explorer.classList.contains('visible')){
+    if(e.clientX>220){explorer.classList.remove('visible')}
+  }else{
+    if(e.clientX<20){explorer.classList.add('visible')}
+  }
+});
+
+document.querySelectorAll('.sidebar nav a').forEach(function(link){
+  link.addEventListener('click',function(e){
+    if(this.getAttribute('href')==='#'){e.preventDefault()}
+    document.querySelectorAll('.sidebar nav a').forEach(function(l){l.classList.remove('active')});
+    this.classList.add('active');
+    if(window.innerWidth<=1280){closeSidebar()}
+  });
+});
+
+var statData=[
+  {el:null,base:45231,prefix:'$',suffix:'',decimals:0},
+  {el:null,base:2350,prefix:'',suffix:'',decimals:0},
+  {el:null,base:64,prefix:'',suffix:'',decimals:0},
+  {el:null,base:3.24,prefix:'',suffix:'%',decimals:2}
+];
+document.querySelectorAll('.stat-card-value').forEach(function(el,i){
+  if(statData[i])statData[i].el=el;
+});
+function refreshStats(){
+  statData.forEach(function(s){
+    if(!s.el)return;
+    var delta=(Math.random()-0.45)*s.base*0.015;
+    s.base=Math.max(1,s.base+delta);
+    var formatted=s.decimals>0?s.base.toFixed(s.decimals):Math.round(s.base).toLocaleString();
+    s.el.textContent=s.prefix+formatted+s.suffix;
+    var card=s.el.closest('.stat-card');
+    card.classList.add('refreshing');
+    setTimeout(function(){card.classList.remove('refreshing')},350);
+  });
+}
+setInterval(refreshStats,8000);
 </script>
 </body>
 </html>

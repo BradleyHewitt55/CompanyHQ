@@ -1,0 +1,18 @@
+<Project Sdk="Microsoft.NET.Sdk.Razor">
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <AssemblyName>Companies</AssemblyName>
+    <RootNamespace>Services.Companies</RootNamespace>
+    <CopyLocalLockFileAssemblies>true</CopyLocalLockFileAssemblies>
+  </PropertyGroup>
+  <ItemGroup>
+    <FrameworkReference Include="Microsoft.AspNetCore.App" />
+    <PackageReference Include="Microsoft.EntityFrameworkCore.Sqlite" />
+    <PackageReference Include="Microsoft.EntityFrameworkCore" />
+    <PackageReference Include="Microsoft.AspNetCore.Identity.EntityFrameworkCore" />
+  </ItemGroup>
+  <ItemGroup><Content Update="companies.json" CopyToOutputDirectory="PreserveNewest" /><EmbeddedResource Include="companies.json" LogicalName="service-manifest.json" /></ItemGroup>
+  <ItemGroup><Compile Remove="Tests\**\*.cs" /><Content Remove="Tests\**\*" /><None Remove="Tests\**\*" /></ItemGroup>
+</Project>

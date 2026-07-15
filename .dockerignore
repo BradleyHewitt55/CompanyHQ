@@ -1,0 +1,11 @@
+.git
+.repos
+**/bin
+**/obj
+TestResults
+tests
+companies
+*.db
+**/.env
+**/data
+**/data-protection

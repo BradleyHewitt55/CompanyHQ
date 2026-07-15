@@ -1,0 +1,18 @@
+@using global::Services.Companies.Contracts.Metadata
+@inject IModelExtensionService Models
+
+<section data-page="model-editor">
+    <h1>Model</h1>
+    <p>Add typed extension fields and links without changing sealed platform columns.</p>
+    <div class="model-entities">
+        @foreach (var entity in entities)
+        {
+            <article data-entity="@entity.Name"><strong>@entity.Name</strong>@if (entity.IsBase) { <span>Base model</span> }</article>
+        }
+    </div>
+</section>
+
+@code {
+    private IReadOnlyList<EntityDefinition> entities = [];
+    protected override async Task OnInitializedAsync() => entities = await Models.GetEntities();
+}

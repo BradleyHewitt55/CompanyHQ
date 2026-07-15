@@ -1,0 +1,47 @@
+@inject IUserDirectory Directory
+@inject AuthenticationStateProvider AuthenticationState
+@inject IServiceProvider Services
+
+<section data-page="users">
+    <h1>Users</h1>
+    <div class="users-list">
+        @foreach (var user in users)
+        {
+            <article data-user="@user.Id">
+                <strong>@user.DisplayName</strong><span>@user.Username</span>
+                <div>
+                    @foreach (var role in user.Roles)
+                    {
+                        <span class="role-badge">@role</span>
+                    }
+                </div>
+                @foreach (var extension in user.Extensions)
+                {
+                    <div data-extension="@extension.Key"><strong>@extension.Key</strong>: @extension.Value.ToString()</div>
+                }
+                @foreach (var related in relatedRecords.GetValueOrDefault(user.Id, []))
+                {
+                    <div data-related="@related.Entity">@related.Entity: @related.Label</div>
+                }
+                @if (canManage)
+                {
+                    <button>Manage roles</button>
+                }
+            </article>
+        }
+    </div>
+</section>
+
+@code {
+    private IReadOnlyList<SafeUserDto> users = [];
+    private bool canManage;
+    private readonly Dictionary<Guid, IReadOnlyList<Services.Companies.Contracts.Metadata.RelatedRecord>> relatedRecords = [];
+    protected override async Task OnInitializedAsync()
+    {
+        users = await Directory.GetUsers();
+        var principal = (await AuthenticationState.GetAuthenticationStateAsync()).User;
+        canManage = principal.IsInRole(AuthRoles.Owner) || principal.IsInRole(AuthRoles.Admin);
+        var related = Services.GetService<Services.Companies.Contracts.Metadata.IRelatedRecordsService>();
+        if (related is not null) foreach (var user in users) relatedRecords[user.Id] = await related.GetFor("User", user.Id);
+    }
+}

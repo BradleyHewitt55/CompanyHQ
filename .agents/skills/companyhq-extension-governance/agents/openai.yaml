@@ -1,4 +1,0 @@
-interface:
-  display_name: "CompanyHQ Extension Governance"
-  short_description: "Governed pages, DTOs, and services"
-  default_prompt: "Use $companyhq-extension-governance to plan a secure CompanyHQ page, DTO, or service change."

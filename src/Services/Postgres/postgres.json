@@ -1,0 +1,5 @@
+{
+  "id": "postgres", "name": "Postgres", "version": "1.0.0", "author": "CompanyHQ",
+  "icon": "database", "color": "#336791", "tags": ["platform"],
+  "description": "Company database and model-extension persistence.", "order": 0, "hidden": true, "menu": []
+}

@@ -1,0 +1,13 @@
+{
+  "id": "companies",
+  "name": "Companies",
+  "version": "1.0.0",
+  "author": "CompanyHQ",
+  "icon": "business",
+  "color": "#334155",
+  "tags": ["platform"],
+  "description": "Company registry and switching.",
+  "order": 0,
+  "hidden": true,
+  "menu": []
+}

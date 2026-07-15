@@ -1,0 +1,1 @@
+.users-list{display:grid;gap:10px}.users-list article{background:#1e1230;border:1px solid #2d1f45;border-radius:8px;padding:14px;display:flex;align-items:center;gap:12px}.users-list article>span{color:#88789e}.role-badge{background:#a855f726;color:#d8b4fe;border-radius:12px;padding:3px 8px;font-size:11px;margin-right:4px}.users-list button{margin-left:auto}

@@ -1,0 +1,18 @@
+{
+  "id": "quotes",
+  "name": "Quotes",
+  "version": "1.0.0",
+  "author": "hewit",
+  "icon": "extension",
+  "color": "#6366f1",
+  "tags": [],
+  "description": "Quotes service.",
+  "hidden": false,
+  "parent": "sales",
+  "menu": [
+    {
+      "label": "Quotes",
+      "url": "/admin/services/quotes/index"
+    }
+  ]
+}
