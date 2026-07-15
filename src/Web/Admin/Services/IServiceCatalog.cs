@@ -7,7 +7,7 @@ public interface IServiceCatalog
     void SetEnabled(string id, bool enabled);
 }
 
-public sealed record ServiceSummary(string Id, string Name, string Description, string Version, string Author, string Icon, string Color, bool Enabled, string? Parent = null, IReadOnlyList<ServiceSummary>? Children = null);
+public sealed record ServiceSummary(string Id, string Name, string Description, string Version, string Author, string Icon, string Color, bool Enabled, bool HasSettings = false, string? Parent = null, IReadOnlyList<ServiceSummary>? Children = null);
 
 internal sealed class StubServiceCatalog : IServiceCatalog
 {

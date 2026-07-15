@@ -80,14 +80,28 @@ app.Use(async (context, next) =>
     });
     await next();
 });
+app.UseAuthentication();
+app.UseAuthorization();
 app.Use(async (context, next) =>
 {
+    if (moduleCatalog.TryMatchSettingsRoute(context.Request.Path, out var settingsModule, out var settingsPage))
+    {
+        if (settingsModule is null || settingsPage is null || !moduleCatalog.IsEffectivelyEnabled(settingsModule.Manifest.Id))
+        {
+            context.Response.StatusCode = StatusCodes.Status404NotFound;
+            return;
+        }
+        if (!(await context.RequestServices.GetRequiredService<Microsoft.AspNetCore.Authorization.IAuthorizationService>()
+            .AuthorizeAsync(context.User, null, "ManageUsers")).Succeeded)
+        {
+            context.Response.StatusCode = StatusCodes.Status403Forbidden;
+            return;
+        }
+    }
     var serviceId = moduleCatalog.MatchService(context.Request.Path);
     if (serviceId is not null && !moduleCatalog.IsHidden(serviceId) && !moduleCatalog.IsEffectivelyEnabled(serviceId)) { context.Response.StatusCode = 404; return; }
     await next();
 });
-app.UseAuthentication();
-app.UseAuthorization();
 app.UseAntiforgery();
 app.MapStaticAssets().AllowAnonymous();
 app.MapHealthChecks("/health").AllowAnonymous();

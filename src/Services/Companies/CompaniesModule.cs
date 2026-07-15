@@ -34,11 +34,13 @@ public sealed class CompaniesModule : IServiceModule
 
     public void MapEndpoints(IEndpointRouteBuilder endpoints)
     {
-        endpoints.MapPost("/api/companies", async (HttpContext context, RegisteredCompany company, ICompanyRegistry registry) =>
+        endpoints.MapPost("/api/companies", async (HttpContext context, ICompanyRegistry registry) =>
         {
             var configuration = context.RequestServices.GetRequiredService<Microsoft.Extensions.Configuration.IConfiguration>();
             if (!context.Request.Headers.TryGetValue("X-CompanyHQ-Token", out var token) || token != configuration["Registry:Token"])
                 return Results.Unauthorized();
+            var company = await context.Request.ReadFromJsonAsync<RegisteredCompany>(context.RequestAborted);
+            if (company is null) return Results.BadRequest();
             try { return Results.Created($"/api/companies/{company.Id}", await registry.Register(company)); }
             catch (InvalidOperationException exception) { return Results.Conflict(new { error = exception.Message }); }
         }).AllowAnonymous();

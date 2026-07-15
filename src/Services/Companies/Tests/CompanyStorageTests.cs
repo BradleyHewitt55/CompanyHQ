@@ -16,6 +16,27 @@ namespace Services.Companies.Tests;
 public sealed class CompanyStorageTests
 {
     [Fact]
+    public async Task DeleteDeploymentRemovesTheProxyRouteWhenTheCompanyFolderIsAlreadyMissing()
+    {
+        var serverRoot = Path.Combine(Path.GetTempPath(), "companyhq-server-" + Guid.NewGuid());
+        var companiesRoot = Path.Combine(serverRoot, "Companies");
+        var route = Path.Combine(serverRoot, "routes", "acme.caddy");
+        Directory.CreateDirectory(Path.GetDirectoryName(route)!);
+        File.WriteAllText(route, "acme.localhost");
+        try
+        {
+            var configuration = new ConfigurationManager();
+            configuration["Companies:Root"] = companiesRoot;
+            var deployments = new CompanyDeploymentManager(configuration);
+
+            await deployments.DeleteDeployment("acme");
+
+            File.Exists(route).Should().BeFalse();
+        }
+        finally { if (Directory.Exists(serverRoot)) Directory.Delete(serverRoot, true); }
+    }
+
+    [Fact]
     public async Task ProfileAndRegistryUseSeparateSqliteDatabases()
     {
         var folder = Path.Combine(Path.GetTempPath(), "companyhq-storage-" + Guid.NewGuid());

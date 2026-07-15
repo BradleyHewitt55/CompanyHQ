@@ -5,7 +5,7 @@ using Microsoft.EntityFrameworkCore;
 using Services.Auth.Models;
 using Services.Companies.Contracts.Metadata;
 
-namespace Services.Postgres.Metadata;
+namespace Services.Postgres.Services;
 
 public sealed class ModelExtensionService(CompanyDbContext database) : IModelExtensionService
 {

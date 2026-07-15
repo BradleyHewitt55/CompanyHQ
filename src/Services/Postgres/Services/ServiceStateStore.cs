@@ -2,7 +2,7 @@ using System.Collections.Concurrent;
 using Services.Companies.Contracts.Services;
 using Microsoft.Extensions.DependencyInjection;
 
-namespace Services.Postgres;
+namespace Services.Postgres.Services;
 
 public sealed class ServiceStateStore(IServiceScopeFactory scopeFactory) : IServiceStateStore
 {

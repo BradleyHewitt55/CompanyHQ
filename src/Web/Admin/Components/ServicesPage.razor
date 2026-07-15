@@ -19,11 +19,11 @@
         {
             <article class="service-card" data-service="@service.Id" @onclick="() => selected = service">
                 <div class="service-card-header"><span class="service-icon" style="color:@service.Color">@service.Icon</span>@if (canManage) { <button aria-label="Toggle @service.Name" class="service-toggle @(service.Enabled ? "active" : null)" @onclick="() => Toggle(service)" @onclick:stopPropagation></button> }</div>
-                <h2>@service.Name</h2><p>@service.Description</p><footer><span>v@(service.Version)</span><span>@(service.Enabled ? "Enabled" : "Disabled")</span></footer>
+                <h2>@service.Name</h2><p>@service.Description</p>@if (service.HasSettings && service.Enabled) { <a class="service-settings" href="@($"/admin/services/{service.Id}/settings")" @onclick:stopPropagation>Settings</a> }<footer><span>v@(service.Version)</span><span>@(service.Enabled ? "Enabled" : "Disabled")</span></footer>
             </article>
             @foreach (var child in service.Children ?? [])
             {
-                <article class="service-card child-service" data-service="@child.Id" data-parent="@service.Id"><h2>@child.Name</h2><p>@child.Description</p></article>
+                <article class="service-card child-service" data-service="@child.Id" data-parent="@service.Id"><h2>@child.Name</h2><p>@child.Description</p>@if (child.HasSettings && child.Enabled) { <a class="service-settings" href="@($"/admin/services/{child.Id}/settings")">Settings</a> }</article>
             }
         }
     </div>

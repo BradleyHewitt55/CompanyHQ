@@ -12,6 +12,7 @@ public sealed class CompanyListTests
     public void CompanyListRendersNameAndAdminLink()
     {
         using var context = new BunitContext();
+        context.AddAuthorization().SetAuthorized("owner").SetRoles("Owner");
         context.Services.AddSingleton<ICompanyRegistry>(new FakeRegistry());
         var component = context.Render<global::Services.Companies.Pages.CompaniesPage>();
         component.WaitForState(() => component.Markup.Contains("Acme"));

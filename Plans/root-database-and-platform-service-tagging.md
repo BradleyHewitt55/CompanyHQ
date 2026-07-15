@@ -1,10 +1,14 @@
-# Root CompanyHQ Postgres database
+# Root Postgres database, company isolation, and platform service tagging
 
-## Goal
+Wave 2. Two parallel lanes: the database lane runs its two tasks **sequentially in order** (root database, then isolation) under one agent; platform tagging is an independent lane.
+
+## Task: Root CompanyHQ Postgres database (database lane, part 1)
+
+### Goal
 
 Run one Postgres instance for a customer-owned CompanyHQ server, with its persistent data and operational configuration rooted at `{server-root}/CompanyHQ/`. The server owner manages database lifecycle from that root directory; company applications receive only their own database credentials.
 
-## Target layout
+### Target layout
 
 ```text
 {server-root}/
@@ -27,7 +31,7 @@ Run one Postgres instance for a customer-owned CompanyHQ server, with its persis
         .env                     # Beta app connection string/secret only
 ```
 
-## Database model
+### Database model
 
 One Postgres container runs at the server root. It owns a separate database and least-privilege role for every company:
 
@@ -39,7 +43,7 @@ Postgres container
 
 The server-level SQLite registry may store only installation metadata such as company ID, hostname, database name, and status. It must not store company profiles, users, services, orders, or other tenant data.
 
-## Developer-facing Database service
+### Developer-facing Database service
 
 Developers must not write raw SQL, receive a database connection, or depend directly on Postgres or SQLite libraries. Replace the developer-facing Postgres and SQLite persistence surfaces with one provider-neutral `Database` service.
 
@@ -57,7 +61,7 @@ The Database service exposes the same safe generic operations for every provider
 
 Postgres and SQLite remain internal provider adapters. Provider selection remains configuration-driven, but user service code calls the same `IDatabaseService<T>` contract regardless of whether the company uses Postgres or SQLite.
 
-## Tasks
+### Tasks
 
 - [ ] Move the Postgres Compose service and its persistent volume/bind mount to `{server-root}/CompanyHQ/docker-compose.yml` and `{server-root}/CompanyHQ/data/postgres/`.
 - [ ] Add a server bootstrap command that creates a company database, an application role, a generated secret, and only the privileges required for that database.
@@ -71,7 +75,7 @@ Postgres and SQLite remain internal provider adapters. Provider selection remain
 - [ ] Provide typed, parameterized field-query specifications through `IDatabaseService<T>` for filtering, sorting, paging, and CRUD. Do not expose raw SQL, provider contexts, connections, commands, or `IQueryable` to user-owned services.
 - [ ] Remove direct Postgres/SQLite package and project references from user-owned service templates. Add a build/analyzer gate rejecting `Npgsql`, `Microsoft.Data.Sqlite`, `DbConnection`, `DbCommand`, `FromSql`, `ExecuteSql*`, and raw SQL literals in user-owned service code.
 
-## Acceptance tests
+### Acceptance tests
 
 - [ ] Provision Acme and Beta from the root CompanyHQ directory.
 - [ ] Verify one Postgres container is running and both `company_acme` and `company_beta` exist.
@@ -82,3 +86,43 @@ Postgres and SQLite remain internal provider adapters. Provider selection remain
 - [ ] Verify the same `IDatabaseService<T>` CRUD and typed field-filter test suite passes against both Postgres and SQLite.
 - [ ] Verify a `BaseModel`-derived model receives its own table, while a non-derived model does not.
 - [ ] Verify a user service containing a raw SQL API, provider connection, or forbidden provider namespace fails the build gate.
+
+## Task: Shared Postgres company isolation (database lane, part 2 — run after part 1)
+
+### Goal
+
+Use one server-level Postgres container with a separate database and least-privilege role for every company.
+
+### Scope
+
+- [ ] Provision and remove one database and role per company.
+- [ ] Store only the owning company connection string in its protected deployment configuration.
+- [ ] Ensure company roles cannot connect to or query another company database.
+
+### Task-specific tests
+
+- [ ] Provision two companies and assert one Postgres service, two database names, and two role names.
+- [ ] Connect using each company role and verify access to its own database succeeds.
+- [ ] Verify each role cannot connect to or query the other company database.
+- [ ] Assert generated application configuration contains only its own connection string and no shared Postgres superuser credential.
+
+## Task: Platform service tagging (independent lane)
+
+### Goal
+
+Define platform-only services and prevent them from being scaffolded or added as company services. Gates every wave-3 service.
+
+### Scope
+
+- [ ] Add Mcp, CloudflareR2, and Resend to the root-service whitelist.
+- [ ] Add the `platform` manifest tag and helper.
+- [ ] Withhold platform service source from company scaffolds like hidden services.
+- [ ] Reject platform or hidden services as scaffold parents and exclude them from add-service catalogs.
+- [ ] Document root-service and platform-tag behavior.
+
+### Task-specific tests
+
+- [ ] Validate all three new root services.
+- [ ] Attempt to scaffold below a platform root and assert a clear rejection.
+- [ ] Generate a company and assert no platform service source is present.
+- [ ] Assert the scaffolding API/catalog contains no platform service identifier.

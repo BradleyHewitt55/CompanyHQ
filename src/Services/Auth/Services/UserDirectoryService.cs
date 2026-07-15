@@ -2,9 +2,9 @@ using Services.Auth.Models;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 
-namespace Services.Auth;
+namespace Services.Auth.Services;
 
-public interface IUserDirectory
+public interface IUserDirectoryService
 {
     Task<IReadOnlyList<SafeUserDto>> GetUsers(CancellationToken cancellationToken = default);
 }
@@ -14,7 +14,7 @@ public sealed record SafeUserDto(Guid Id, string Username, string DisplayName, s
     public SafeUserDto(Guid id, string username, string displayName, string? email, IReadOnlyList<string> roles) : this(id, username, displayName, email, roles, new Dictionary<string, System.Text.Json.JsonElement>()) { }
 }
 
-internal sealed class UserDirectory(UserManager<CompanyUser> users) : IUserDirectory
+internal sealed class UserDirectoryService(UserManager<CompanyUser> users) : IUserDirectoryService
 {
     public async Task<IReadOnlyList<SafeUserDto>> GetUsers(CancellationToken cancellationToken = default)
     {

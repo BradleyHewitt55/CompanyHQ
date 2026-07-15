@@ -84,17 +84,58 @@ public sealed class AdminComponentTests
         catalog.SubscriberCount.Should().Be(0);
     }
 
+    [Fact]
+    public void SettingsLinksOnlyRenderForEnabledServicesWithSettingsPages()
+    {
+        using var context = new BunitContext();
+        context.AddAuthorization().SetAuthorized("owner").SetPolicies("ManageUsers");
+        context.Services.AddSingleton<IServiceCatalog>(new FakeCatalog());
+
+        var component = context.Render<ServicesPage>();
+
+        component.FindAll("a.service-settings").Should().ContainSingle()
+            .Which.GetAttribute("href").Should().Be("/admin/services/orders/settings");
+    }
+
+    [Fact]
+    public void ChildSettingsLinksOnlyRenderForEnabledServicesWithSettingsPages()
+    {
+        using var context = new BunitContext();
+        context.AddAuthorization().SetAuthorized("owner").SetPolicies("ManageUsers");
+        context.Services.AddSingleton<IServiceCatalog>(new FakeCatalog(includeChildren: true));
+
+        var component = context.Render<ServicesPage>();
+
+        component.Find("[data-service='child-settings'] a.service-settings").GetAttribute("href")
+            .Should().Be("/admin/services/child-settings/settings");
+        component.FindAll("[data-service='child-disabled'] a.service-settings").Should().BeEmpty();
+        component.FindAll("[data-service='child-no-settings'] a.service-settings").Should().BeEmpty();
+    }
+
     private sealed class FakeCatalog : IServiceCatalog
     {
         private EventHandler? changed;
         public int SubscriberCount => changed?.GetInvocationList().Length ?? 0;
         public event EventHandler? Changed { add => changed += value; remove => changed -= value; }
-        private readonly List<ServiceSummary> items =
-        [
-            new("orders", "Orders", "Orders", "1", "Test", "o", "purple", true),
-            new("inventory", "Inventory", "Stock", "1", "Test", "i", "green", false),
-            new("analytics", "Analytics", "Reports", "1", "Test", "a", "blue", true)
-        ];
+        private readonly List<ServiceSummary> items;
+
+        public FakeCatalog(bool includeChildren = false)
+        {
+            var children = includeChildren
+                ? new ServiceSummary[]
+                {
+                    new("child-settings", "Child settings", "Child", "1", "Test", "c", "purple", true, true),
+                    new("child-disabled", "Child disabled", "Child", "1", "Test", "c", "purple", false, true),
+                    new("child-no-settings", "Child no settings", "Child", "1", "Test", "c", "purple", true, false)
+                }
+                : [];
+            items =
+            [
+            new("orders", "Orders", "Orders", "1", "Test", "o", "purple", true, true, Children: children),
+            new("inventory", "Inventory", "Stock", "1", "Test", "i", "green", false, true),
+            new("analytics", "Analytics", "Reports", "1", "Test", "a", "blue", true, false)
+            ];
+        }
         public IReadOnlyList<ServiceSummary> GetServices() => items;
         public void SetEnabled(string id, bool enabled)
         {

@@ -1,4 +1,4 @@
-@inject IUserDirectory Directory
+@inject IUserDirectoryService Directory
 @inject AuthenticationStateProvider AuthenticationState
 @inject IServiceProvider Services
 
@@ -35,13 +35,13 @@
 @code {
     private IReadOnlyList<SafeUserDto> users = [];
     private bool canManage;
-    private readonly Dictionary<Guid, IReadOnlyList<Services.Companies.Contracts.Metadata.RelatedRecord>> relatedRecords = [];
+    private readonly Dictionary<Guid, IReadOnlyList<global::Services.Companies.Contracts.Metadata.RelatedRecord>> relatedRecords = [];
     protected override async Task OnInitializedAsync()
     {
         users = await Directory.GetUsers();
         var principal = (await AuthenticationState.GetAuthenticationStateAsync()).User;
         canManage = principal.IsInRole(AuthRoles.Owner) || principal.IsInRole(AuthRoles.Admin);
-        var related = Services.GetService<Services.Companies.Contracts.Metadata.IRelatedRecordsService>();
+        var related = Services.GetService<global::Services.Companies.Contracts.Metadata.IRelatedRecordsService>();
         if (related is not null) foreach (var user in users) relatedRecords[user.Id] = await related.GetFor("User", user.Id);
     }
 }

@@ -29,7 +29,6 @@ public sealed class LocalProvisioningTests
             });
             using var rootClient = new HttpClient { BaseAddress = new Uri($"http://127.0.0.1:{rootPort}") };
             await Wait(rootClient, "/");
-            var ports = new HashSet<int>();
             for (var companyIndex = 0; companyIndex < 2; companyIndex++)
             {
                 var name = $"DemoCo{companyIndex}" + Guid.NewGuid().ToString("N")[..6];
@@ -41,18 +40,17 @@ public sealed class LocalProvisioningTests
                 var companyDirectory = Directory.GetDirectories(output).Except(companyDirectories).Single();
                 companyDirectories.Add(companyDirectory);
                 var companyJson = JsonDocument.Parse(File.ReadAllText(Path.Combine(companyDirectory, "company.json")));
-                var port = companyJson.RootElement.GetProperty("appPort").GetInt32();
-                var httpsPort = companyJson.RootElement.GetProperty("httpsPort").GetInt32();
-                ports.Add(port).Should().BeTrue("company ports must not collide");
-                ports.Add(httpsPort).Should().BeTrue("company TLS ports must not collide");
+                companyJson.RootElement.TryGetProperty("appPort", out _).Should().BeFalse();
+                companyJson.RootElement.TryGetProperty("httpsPort", out _).Should().BeFalse();
                 var password = Regex.Match(result.Output, "Password: ([^\\r\\n]+)").Groups[1].Value.Trim();
                 password.Should().NotBeNullOrWhiteSpace();
                 Regex.Matches(result.Output, Regex.Escape(password)).Should().ContainSingle();
                 File.ReadAllText(Path.Combine(companyDirectory, "company.json")).Should().NotContain(password);
                 File.ReadAllText(Path.Combine(companyDirectory, "docker-compose.yml")).Should().NotContain(password);
-                using var company = new HttpClient(new HttpClientHandler { AllowAutoRedirect = false, ServerCertificateCustomValidationCallback = HttpClientHandler.DangerousAcceptAnyServerCertificateValidator }) { BaseAddress = new Uri($"https://localhost:{httpsPort}") };
-                using var plain = new HttpClient(new HttpClientHandler { AllowAutoRedirect = false });
-                (await plain.GetAsync($"http://127.0.0.1:{port}/health")).StatusCode.Should().BeOneOf(HttpStatusCode.MovedPermanently, HttpStatusCode.PermanentRedirect);
+                var host = $"{companyJson.RootElement.GetProperty("slug").GetString()}.localhost";
+                using var company = new HttpClient(new HttpClientHandler { AllowAutoRedirect = false, ServerCertificateCustomValidationCallback = HttpClientHandler.DangerousAcceptAnyServerCertificateValidator }) { BaseAddress = new Uri($"https://{host}") };
+                (await company.GetAsync("/health")).StatusCode.Should().Be(HttpStatusCode.OK);
+                File.ReadAllText(Path.Combine(companyDirectory, "docker-compose.yml")).Should().NotContain("ports:");
                 var login = await company.GetStringAsync("/auth/login");
                 var token = Regex.Match(login, "name=\"__RequestVerificationToken\" value=\"([^\"]+)\"").Groups[1].Value;
                 var signedIn = await company.PostAsync("/auth/login", new FormUrlEncodedContent(new Dictionary<string, string> { ["Username"] = "admin", ["Password"] = password, ["__RequestVerificationToken"] = token }));
@@ -70,6 +68,7 @@ public sealed class LocalProvisioningTests
         finally
         {
             if (Directory.Exists(output)) foreach (var companyDirectory in Directory.GetDirectories(output)) await Run("docker", companyDirectory, ["compose", "down", "-v"], ignoreFailure: true);
+            if (Directory.Exists(output)) await Run("docker", output, ["compose", "down", "-v"], ignoreFailure: true);
             if (rootProcess is not null && !rootProcess.HasExited)
             {
                 rootProcess.Kill(true);

@@ -72,6 +72,6 @@ public sealed class PostgresEntityServiceTests : IAsyncLifetime
         (await second.Database.EnsureCreatedAsync()).Should().BeFalse();
     }
 
-    public sealed class TestEntity : Services.Postgres.Models.BaseModel { public required string Slug { get; set; } public required string Name { get; set; } }
-    public sealed class DynamicallyLoadedOrder : Services.Postgres.Models.BaseModel { public required string Slug { get; set; } public decimal Total { get; set; } }
+    public sealed class TestEntity : global::Services.Postgres.Models.BaseModel { public required string Slug { get; set; } public required string Name { get; set; } }
+    public sealed class DynamicallyLoadedOrder : global::Services.Postgres.Models.BaseModel { public required string Slug { get; set; } public decimal Total { get; set; } }
 }

@@ -20,8 +20,9 @@ public sealed class BrowserAcceptanceTests
         {
             var scaffold = ScaffoldGenerator.Generate(output, "Browser Compose");
             directory = scaffold.Directory;
+            Docker(scaffold.ServerDirectory, "compose", "up", "-d");
             Docker(directory, "compose", "up", "-d");
-            var url = $"https://localhost:{scaffold.HttpsPort}";
+            var url = scaffold.AdminUrl.Replace("/admin", "", StringComparison.Ordinal);
             using var client = new HttpClient(new HttpClientHandler { ServerCertificateCustomValidationCallback = HttpClientHandler.DangerousAcceptAnyServerCertificateValidator }) { BaseAddress = new Uri(url) };
             for (var attempt = 0; attempt < 120; attempt++)
             {
@@ -29,12 +30,8 @@ public sealed class BrowserAcceptanceTests
                 if (attempt == 119) throw new TimeoutException();
                 await Task.Delay(500);
             }
-            using (var plain = new HttpClient(new HttpClientHandler { AllowAutoRedirect = false }))
-                (await plain.GetAsync($"http://localhost:{scaffold.AppPort}/health")).StatusCode.Should().BeOneOf(HttpStatusCode.MovedPermanently, HttpStatusCode.PermanentRedirect);
-            using var seed = new HttpRequestMessage(HttpMethod.Post, "/internal/bootstrap/owner?username=admin");
-            seed.Headers.Add("X-Bootstrap-Token", scaffold.BootstrapToken);
-            var seeded = await client.SendAsync(seed); seeded.EnsureSuccessStatusCode();
-            var password = JsonDocument.Parse(await seeded.Content.ReadAsStringAsync()).RootElement.GetProperty("password").GetString()!;
+            var seeded = Docker(directory, "compose", "exec", "-T", "app", "curl", "-fsS", "-X", "POST", "-H", $"X-Bootstrap-Token: {scaffold.BootstrapToken}", "http://localhost:8080/internal/bootstrap/owner?username=admin");
+            var password = JsonDocument.Parse(seeded).RootElement.GetProperty("password").GetString()!;
             var appBefore = Docker(directory, "compose", "ps", "-q", "app").Trim();
 
             using var playwright = await Playwright.CreateAsync();
@@ -57,6 +54,7 @@ public sealed class BrowserAcceptanceTests
         finally
         {
             if (directory is not null) TryDockerIn(directory, "compose", "down", "-v");
+            if (directory is not null) TryDockerIn(Directory.GetParent(directory)!.FullName, "compose", "down", "-v");
             if (Directory.Exists(output)) Directory.Delete(output, true);
         }
     }

@@ -2,6 +2,7 @@ using System.Net;
 using System.Text.RegularExpressions;
 using Services.Companies.Contracts;
 using Services.Auth;
+using Services.Auth.Services;
 using FluentAssertions;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc.Testing;
@@ -34,7 +35,7 @@ public sealed partial class AdminOverrideIntegrationTests : IAsyncLifetime
         });
         _ = factory.Services;
         await using var scope = factory.Services.CreateAsyncScope();
-        password = (await scope.ServiceProvider.GetRequiredService<AdminUserSeeder>().SeedOwner("override@test.local")).Password!;
+        password = (await scope.ServiceProvider.GetRequiredService<AdminUserSeederService>().SeedOwner("override@test.local")).Password!;
     }
 
     [Fact]

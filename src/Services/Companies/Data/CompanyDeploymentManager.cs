@@ -22,13 +22,23 @@ public sealed class CompanyDeploymentManager(IConfiguration configuration) : ICo
         var directory = Path.GetFullPath(Path.Combine(companiesRoot, slug));
         if (!directory.StartsWith(companiesRoot + Path.DirectorySeparatorChar, StringComparison.OrdinalIgnoreCase))
             throw new InvalidOperationException("Company deployment path is invalid.");
-        if (!Directory.Exists(directory)) return;
-        if ((File.GetAttributes(directory) & FileAttributes.ReparsePoint) != 0)
+        if (Directory.Exists(directory) && (File.GetAttributes(directory) & FileAttributes.ReparsePoint) != 0)
             throw new InvalidOperationException("Company deployment directory cannot be a link.");
 
-        if (File.Exists(Path.Combine(directory, "docker-compose.yml")))
-            await RunDockerCompose(directory, cancellationToken);
-        Directory.Delete(directory, recursive: true);
+        if (Directory.Exists(directory))
+        {
+            if (File.Exists(Path.Combine(directory, "docker-compose.yml")))
+                await RunDockerCompose(directory, cancellationToken);
+            Directory.Delete(directory, recursive: true);
+        }
+        var serverRoot = Directory.GetParent(companiesRoot)?.FullName;
+        if (serverRoot is not null)
+        {
+            var route = Path.Combine(serverRoot, "routes", slug + ".caddy");
+            if (File.Exists(route)) File.Delete(route);
+            if (File.Exists(Path.Combine(serverRoot, "docker-compose.yml")))
+                await ReloadProxy(serverRoot, cancellationToken);
+        }
     }
 
     private static async Task RunDockerCompose(string directory, CancellationToken cancellationToken)
@@ -41,5 +51,14 @@ public sealed class CompanyDeploymentManager(IConfiguration configuration) : ICo
         process.Start();
         await process.WaitForExitAsync(cancellationToken);
         if (process.ExitCode != 0) throw new InvalidOperationException("Could not stop the company deployment; nothing was deleted.");
+    }
+
+    private static async Task ReloadProxy(string directory, CancellationToken cancellationToken)
+    {
+        using var process = new Process { StartInfo = new ProcessStartInfo("docker") { WorkingDirectory = directory, UseShellExecute = false } };
+        foreach (var argument in new[] { "compose", "exec", "-T", "proxy", "caddy", "reload", "--config", "/etc/caddy/Caddyfile" }) process.StartInfo.ArgumentList.Add(argument);
+        process.Start();
+        await process.WaitForExitAsync(cancellationToken);
+        if (process.ExitCode != 0) throw new InvalidOperationException("Company route was removed but the shared proxy could not be reloaded.");
     }
 }

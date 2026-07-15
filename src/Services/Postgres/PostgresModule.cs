@@ -11,6 +11,7 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Services.Postgres.Providers;
 using Microsoft.AspNetCore.Identity;
+using Services.Postgres.Services;
 
 namespace Services.Postgres;
 
@@ -67,7 +68,7 @@ public sealed class PostgresStartupTask : IServiceStartupTask
         {
             database.EntityDefinitions.Add(new EntityDefinition { Id = Guid.NewGuid(), Name = "User", IsBase = true });
             var entityTypes = scope.ServiceProvider.GetRequiredService<EntityTypeRegistry>();
-            foreach (var type in entityTypes.Types.Where(type => type.Namespace?.Contains(".Metadata", StringComparison.Ordinal) != true && type != typeof(ServiceState)))
+            foreach (var type in entityTypes.Types.Where(type => type.Namespace?.StartsWith("Services.Companies.Contracts.Metadata", StringComparison.Ordinal) != true && type != typeof(ServiceState)))
                 database.EntityDefinitions.Add(new EntityDefinition { Id = Guid.NewGuid(), Name = type.Name, IsBase = false });
             await database.SaveChangesAsync(cancellationToken);
         }

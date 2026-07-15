@@ -25,10 +25,10 @@ public sealed class RootRegistryTests
             var configuration = new Microsoft.Extensions.Configuration.ConfigurationManager();
             configuration["ConnectionStrings:Registry"] = $"Data Source={file}";
             services.AddSingleton<Microsoft.Extensions.Configuration.IConfiguration>(configuration);
-            services.AddSingleton<Services.Companies.Contracts.Data.IDbProvider, Services.Sqlite.SqliteDbProvider>();
-            new Services.Companies.CompaniesModule().Configure(services);
+            services.AddSingleton<global::Services.Companies.Contracts.Data.IDbProvider, global::Services.Sqlite.SqliteDbProvider>();
+            new global::Services.Companies.CompaniesModule().Configure(services);
             await using var provider = services.BuildServiceProvider();
-            var factory = provider.GetRequiredService<IDbContextFactory<Services.Companies.Data.CompaniesDbContext>>();
+            var factory = provider.GetRequiredService<IDbContextFactory<global::Services.Companies.Data.CompaniesDbContext>>();
             await using (var context = await factory.CreateDbContextAsync()) await context.Database.EnsureCreatedAsync();
             await using var scope = provider.CreateAsyncScope();
             var registry = scope.ServiceProvider.GetRequiredService<ICompanyRegistry>();

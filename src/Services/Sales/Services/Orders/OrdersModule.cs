@@ -12,6 +12,7 @@ public sealed class OrdersModule : IServiceModule
 {
     public ServiceManifest Manifest { get; } = ServiceManifest.Load(typeof(OrdersModule).Assembly);
     public IReadOnlyList<ServiceComponentRegistration> Components => [new("index", typeof(Pages.OrdersPage))];
+    public IReadOnlyList<ServiceSettingsPage> SettingsPages => [new("general", typeof(Pages.OrdersSettingsPage))];
     public void Configure(IServiceCollection services) { }
     public void MapEndpoints(IEndpointRouteBuilder endpoints)
     {

@@ -5,24 +5,34 @@ using Services.Companies.Contracts.Services;
 
 namespace Services.Scaffolding;
 
-public sealed record ScaffoldResult(string Directory, string Slug, string DbPassword, string BootstrapToken, int AppPort, int HttpsPort);
+public sealed record ScaffoldResult(string Directory, string ServerDirectory, string Slug, string DbPassword, string BootstrapToken, string AdminUrl);
 
 public static class ScaffoldGenerator
 {
-    public static ScaffoldResult Generate(string outputRoot, string name, string provider = "postgres", int? appPort = null)
+    private static readonly string[] BlueprintDirectories =
+    [
+        "CompanyHQ/Admin/Pages", "CompanyHQ/Admin/Services",
+        "CompanyHQ/Projects/Website/Pages", "CompanyHQ/Projects/Website/Services",
+        "src/Services", "lib", "data", "data-protection"
+    ];
+
+    public static ScaffoldResult Generate(string outputRoot, string name, string provider = "postgres")
     {
         var slug = Regex.Replace(string.Concat(name.Trim().ToLowerInvariant().Select(character => char.IsLetterOrDigit(character) ? character : '-')), "-+", "-").Trim('-');
         if (string.IsNullOrWhiteSpace(slug)) throw new ArgumentException("Company name must contain letters or numbers.", nameof(name));
         var root = Path.Combine(outputRoot, slug);
+        var outputDirectory = new DirectoryInfo(Path.GetFullPath(outputRoot));
+        var serverRoot = outputDirectory.Name.Equals("Companies", StringComparison.OrdinalIgnoreCase)
+            ? outputDirectory.Parent?.FullName ?? throw new InvalidOperationException("The companies directory must have a parent server directory.")
+            : outputDirectory.FullName;
         Directory.CreateDirectory(root);
-        foreach (var path in new[] { "CompanyHQ/Admin/Pages", "CompanyHQ/Admin/Services", "CompanyHQ/Projects/Website/Pages", "CompanyHQ/Projects/Website/Services", "src/Services", "lib", "data", "data-protection" }) Directory.CreateDirectory(Path.Combine(root, path));
+        foreach (var path in BlueprintDirectories) Directory.CreateDirectory(Path.Combine(root, path));
         CopySourceTemplate(root);
-        var port = appPort ?? SelectPort(outputRoot);
         var dbPassword = Secret(32);
         var bootstrapToken = Secret(40);
         var builderToken = Secret(40);
-        var httpsPort = port + 10000;
-        var company = new { id = Guid.NewGuid(), name, slug, dbProvider = provider, databaseName = "companyhq", deploymentStatus = "running", appPort = port, httpsPort, adminUrl = $"https://localhost:{httpsPort}/admin" };
+        var adminUrl = $"https://{slug}.localhost/admin";
+        var company = new { id = Guid.NewGuid(), name, slug, dbProvider = provider, databaseName = "companyhq", deploymentStatus = "running", adminUrl };
         File.WriteAllText(Path.Combine(root, "company.json"), JsonSerializer.Serialize(company, new JsonSerializerOptions { WriteIndented = true }));
         File.WriteAllText(Path.Combine(root, ".env"), $"COMPANYHQ_DB_PASSWORD={dbPassword}{Environment.NewLine}COMPANYHQ_BOOTSTRAP_TOKEN={bootstrapToken}{Environment.NewLine}COMPANYHQ_BUILDER_TOKEN={builderToken}{Environment.NewLine}COMPANYHQ_BOOTSTRAP_ENABLED=true{Environment.NewLine}COMPANYHQ_SITE=https://localhost{Environment.NewLine}");
         if (!OperatingSystem.IsWindows()) File.SetUnixFileMode(Path.Combine(root, ".env"), UnixFileMode.UserRead | UnixFileMode.UserWrite);
@@ -35,15 +45,6 @@ public static class ScaffoldGenerator
                   Builder__Token: ${COMPANYHQ_BUILDER_TOKEN}
                   Builder__ServicesRoot: /app/CompanyHQ/Admin/Services
                 volumes: ["./CompanyHQ/Admin/Services:/app/CompanyHQ/Admin/Services", "./lib:/app/lib:ro"]
-                logging: { driver: json-file, options: { max-size: "10m", max-file: "3" } }
-              proxy:
-                image: caddy:2.10-alpine@sha256:4c6e91c6ed0e2fa03efd5b44747b625fec79bc9cd06ac5235a779726618e530d
-                restart: unless-stopped
-                ports: ["{{port}}:80", "{{port + 10000}}:443"]
-                environment: { COMPANYHQ_SITE: "${COMPANYHQ_SITE:-https://localhost}" }
-                volumes: ["./Caddyfile:/etc/caddy/Caddyfile:ro", "caddy-data:/data"]
-                depends_on:
-                  app: { condition: service_healthy }
                 logging: { driver: json-file, options: { max-size: "10m", max-file: "3" } }
               app:
                 build: .
@@ -70,6 +71,10 @@ public static class ScaffoldGenerator
                   builder: { condition: service_started }
                 healthcheck: { test: ["CMD", "curl", "-fsS", "http://localhost:8080/health"], interval: 10s, timeout: 3s, retries: 5 }
                 logging: { driver: json-file, options: { max-size: "10m", max-file: "3" } }
+                networks:
+                  default: {}
+                  companyhq:
+                    aliases: ["{{slug}}-app"]
               db:
                 image: postgres:17-alpine@sha256:742f40ea20b9ff2ff31db5458d127452988a2164df9e17441e191f3b72252193
                 restart: unless-stopped
@@ -80,22 +85,14 @@ public static class ScaffoldGenerator
                 volumes: ["${COMPANYHQ_DATA_PATH:-./data}:/var/lib/postgresql/data"]
                 healthcheck: { test: ["CMD-SHELL", "test \"$(cat /proc/1/comm)\" = postgres && pg_isready -U companyhq -d companyhq"], interval: 2s, timeout: 2s, retries: 45 }
                 logging: { driver: json-file, options: { max-size: "10m", max-file: "3" } }
-            volumes:
-              company-data:
-              caddy-data:
+            networks:
+              companyhq:
+                external: true
+                name: companyhq
             """;
         File.WriteAllText(Path.Combine(root, "docker-compose.yml"), compose);
-        File.WriteAllText(Path.Combine(root, "Caddyfile"), """
-            :80 {
-                redir https://localhost:{{httpsPort}}{uri} permanent
-            }
-            {$COMPANYHQ_SITE} {
-                reverse_proxy app:8080 {
-                    header_up X-Forwarded-Proto https
-                }
-            }
-            """ + Environment.NewLine);
-        return new ScaffoldResult(root, slug, dbPassword, bootstrapToken, port, httpsPort);
+        WriteServerProxy(serverRoot, slug);
+        return new ScaffoldResult(root, serverRoot, slug, dbPassword, bootstrapToken, adminUrl);
     }
 
     private static void CopySourceTemplate(string destination)
@@ -163,23 +160,37 @@ public static class ScaffoldGenerator
 
     private static string Secret(int bytes) => Convert.ToHexString(RandomNumberGenerator.GetBytes(bytes)).ToLowerInvariant();
 
-    private static int SelectPort(string outputRoot)
+    private static void WriteServerProxy(string serverRoot, string slug)
     {
-        var used = new HashSet<int>();
-        if (Directory.Exists(outputRoot))
-            foreach (var file in Directory.EnumerateFiles(outputRoot, "company.json", SearchOption.AllDirectories))
-                try
-                {
-                    using var document = JsonDocument.Parse(File.ReadAllText(file));
-                    if (document.RootElement.TryGetProperty("appPort", out var app)) used.Add(app.GetInt32());
-                    if (document.RootElement.TryGetProperty("httpsPort", out var https)) used.Add(https.GetInt32());
-                }
-                catch (JsonException) { }
-        for (var attempt = 0; attempt < 1000; attempt++)
-        {
-            var candidate = RandomNumberGenerator.GetInt32(10000, 45000);
-            if (!used.Contains(candidate) && !used.Contains(candidate + 10000)) return candidate;
-        }
-        throw new InvalidOperationException("Could not allocate non-conflicting company ports.");
+        Directory.CreateDirectory(serverRoot);
+        var routes = Path.Combine(serverRoot, "routes");
+        Directory.CreateDirectory(routes);
+        var composePath = Path.Combine(serverRoot, "docker-compose.yml");
+        if (!File.Exists(composePath)) File.WriteAllText(composePath, """
+            services:
+              proxy:
+                image: caddy:2.10-alpine@sha256:4c6e91c6ed0e2fa03efd5b44747b625fec79bc9cd06ac5235a779726618e530d
+                restart: unless-stopped
+                ports: ["80:80", "443:443"]
+                volumes: ["./Caddyfile:/etc/caddy/Caddyfile:ro", "./routes:/etc/caddy/routes:ro", "caddy-data:/data"]
+                networks: [companyhq]
+                logging: { driver: json-file, options: { max-size: "10m", max-file: "3" } }
+            volumes:
+              caddy-data:
+            networks:
+              companyhq:
+                name: companyhq
+            """ + Environment.NewLine);
+        var caddyfilePath = Path.Combine(serverRoot, "Caddyfile");
+        if (!File.Exists(caddyfilePath)) File.WriteAllText(caddyfilePath, """
+            {
+                auto_https disable_redirects
+            }
+            :80 {
+                redir https://{host}{uri} permanent
+            }
+            import /etc/caddy/routes/*.caddy
+            """ + Environment.NewLine);
+        File.WriteAllText(Path.Combine(routes, slug + ".caddy"), $"https://{slug}.localhost {{\n    reverse_proxy {slug}-app:8080\n}}\n");
     }
 }

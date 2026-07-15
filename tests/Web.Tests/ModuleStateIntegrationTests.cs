@@ -8,6 +8,7 @@ using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.Extensions.DependencyInjection;
 using Testcontainers.PostgreSql;
 using Services.Auth;
+using Services.Auth.Services;
 using System.Text.RegularExpressions;
 
 namespace Web.Tests;
@@ -36,7 +37,7 @@ public sealed class ModuleStateIntegrationTests : IAsyncLifetime
         });
         client = factory.CreateClient(new WebApplicationFactoryClientOptions { BaseAddress = new Uri("https://localhost"), AllowAutoRedirect = false, HandleCookies = true });
         await using var scope = factory.Services.CreateAsyncScope();
-        var owner = await scope.ServiceProvider.GetRequiredService<AdminUserSeeder>().SeedOwner("module-owner@test");
+        var owner = await scope.ServiceProvider.GetRequiredService<AdminUserSeederService>().SeedOwner("module-owner@test");
         var html = await client.GetStringAsync("/auth/login");
         var token = Regex.Match(html, "name=\"__RequestVerificationToken\" value=\"([^\"]+)\"").Groups[1].Value;
         (await client.PostAsync("/auth/login", new FormUrlEncodedContent(new Dictionary<string, string>

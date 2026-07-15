@@ -1,4 +1,4 @@
-namespace Services.Auth;
+namespace Services.Auth.Models;
 
 public static class AuthRoles
 {

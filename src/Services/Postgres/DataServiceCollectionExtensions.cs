@@ -4,7 +4,7 @@ using Services.Companies.Contracts.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Services.Companies.Contracts.Metadata;
-using Services.Postgres.Metadata;
+using Services.Postgres.Services;
 using Services.Companies.Models;
 using Services.Companies.Data;
 

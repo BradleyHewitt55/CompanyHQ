@@ -11,13 +11,14 @@ public sealed class NestedServiceIntegrationTests(AuthHostFixture fixture)
     [Fact]
     public async Task SalesOwnsChildrenAndParentStateGatesSubtreeWithoutLosingChildState()
     {
+        var states = fixture.Factory.Services.GetRequiredService<IServiceStateStore>();
+        foreach (var id in new[] { "sales", "orders", "quotes", "products" }) await states.SetEnabled(id, true);
         using var client = fixture.CreateClient();
         (await fixture.Login(client, fixture.OwnerUsername, fixture.OwnerPassword)).StatusCode.Should().Be(HttpStatusCode.Redirect);
         var dashboard = await client.GetStringAsync("/admin/dashboard");
         dashboard.Should().Contain("data-nav=\"Sales\"").And.Contain("data-nav=\"Orders\"").And.Contain("data-nav=\"Quotes\"").And.Contain("data-nav=\"Products\"");
         (await client.GetAsync("/api/services/orders")).StatusCode.Should().Be(HttpStatusCode.OK);
 
-        var states = fixture.Factory.Services.GetRequiredService<IServiceStateStore>();
         await states.SetEnabled("sales", false);
         (await client.GetAsync("/api/services/orders")).StatusCode.Should().Be(HttpStatusCode.NotFound);
         (await client.GetStringAsync("/admin/dashboard")).Should().NotContain("data-nav=\"Orders\"");

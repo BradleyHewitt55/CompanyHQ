@@ -1,8 +1,8 @@
 using System.Security.Cryptography;
 
-namespace Services.Auth;
+namespace Services.Auth.Services;
 
-public static class PasswordGenerator
+public static class PasswordGeneratorService
 {
     private const string Upper = "ABCDEFGHJKLMNPQRSTUVWXYZ";
     private const string Lower = "abcdefghijkmnopqrstuvwxyz";

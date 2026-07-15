@@ -1,7 +1,7 @@
 using System.Text.Json;
 using Services.Auth.Models;
 using Services.Companies.Contracts.Metadata;
-using Services.Postgres.Metadata;
+using Services.Postgres.Services;
 using Services.Postgres.Providers;
 using Services.Sqlite;
 using FluentAssertions;

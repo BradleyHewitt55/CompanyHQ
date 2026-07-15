@@ -1,7 +1,7 @@
 using Services.Auth.Models;
 using Microsoft.AspNetCore.Identity;
 
-namespace Services.Auth;
+namespace Services.Auth.Services;
 
 internal sealed class CommonPasswordValidator : IPasswordValidator<CompanyUser>
 {

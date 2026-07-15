@@ -1,8 +1,8 @@
 using System.Security.Claims;
-using System.Collections.Concurrent;
 using Services.Companies.Contracts.Services;
 using Services.Auth.Models;
 using Services.Auth.Pages;
+using Services.Auth.Services;
 using Microsoft.AspNetCore.Antiforgery;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.Cookies;
@@ -88,16 +88,16 @@ public sealed class AuthModule : IServiceModule
                 return Task.CompletedTask;
             };
         });
-        services.AddScoped<AdminUserSeeder>();
-        services.AddScoped<IUserDirectory, UserDirectory>();
-        services.AddSingleton<LoginRateGate>();
+        services.AddScoped<AdminUserSeederService>();
+        services.AddScoped<IUserDirectoryService, UserDirectoryService>();
+        services.AddSingleton<LoginRateGateService>();
         services.AddHttpContextAccessor();
     }
 
     public void MapEndpoints(IEndpointRouteBuilder endpoints)
     {
         endpoints.MapGet("/auth/login", (string? returnUrl) => new RazorComponentResult<LoginPage>(new Dictionary<string, object?> { [nameof(LoginPage.ReturnUrl)] = returnUrl })).AllowAnonymous();
-        endpoints.MapPost("/auth/login", async (HttpContext context, SignInManager<CompanyUser> signIn, UserManager<CompanyUser> users, LoginRateGate rateGate, ILogger<AuthModule> logger) =>
+        endpoints.MapPost("/auth/login", async (HttpContext context, SignInManager<CompanyUser> signIn, UserManager<CompanyUser> users, LoginRateGateService rateGate, ILogger<AuthModule> logger) =>
         {
             if (context.Features.Get<IAntiforgeryValidationFeature>()?.IsValid == false) return Results.BadRequest();
             var form = await context.Request.ReadFormAsync();
@@ -149,7 +149,7 @@ public sealed class AuthModule : IServiceModule
         }).RequireAuthorization().WithMetadata(new RequireAntiforgeryTokenAttribute());
 
         endpoints.MapGet("/auth/denied", () => Results.StatusCode(StatusCodes.Status403Forbidden)).AllowAnonymous();
-        endpoints.MapPost("/internal/bootstrap/owner", async (HttpContext context, string username, AdminUserSeeder seeder) =>
+        endpoints.MapPost("/internal/bootstrap/owner", async (HttpContext context, string username, AdminUserSeederService seeder) =>
         {
             var configuration = context.RequestServices.GetRequiredService<Microsoft.Extensions.Configuration.IConfiguration>();
             var marker = Path.Combine(configuration["DataProtection:Path"] ?? AppContext.BaseDirectory, ".bootstrap-complete");
@@ -165,7 +165,7 @@ public sealed class AuthModule : IServiceModule
             else return Results.StatusCode(StatusCodes.Status410Gone);
             return Results.Ok(new { owner.Username, owner.Password, owner.Created });
         }).AllowAnonymous();
-        endpoints.MapGet("/api/admin/users", async (IUserDirectory users, CancellationToken cancellationToken) => Results.Ok(await users.GetUsers(cancellationToken))).RequireAuthorization();
+        endpoints.MapGet("/api/admin/users", async (IUserDirectoryService users, CancellationToken cancellationToken) => Results.Ok(await users.GetUsers(cancellationToken))).RequireAuthorization();
         endpoints.MapPut("/api/admin/users/{id:guid}/role", ChangeRole).RequireAuthorization("ManageUsers").WithMetadata(new RequireAntiforgeryTokenAttribute());
         endpoints.MapDelete("/api/admin/users/{id:guid}", DeleteUser).RequireAuthorization("ManageUsers").WithMetadata(new RequireAntiforgeryTokenAttribute());
     }
@@ -201,12 +201,4 @@ public sealed class AuthModule : IServiceModule
     private static bool IsLocal(string? url) => !string.IsNullOrWhiteSpace(url) && url[0] == '/' && (url.Length == 1 || (url[1] != '/' && url[1] != '\\'));
     public sealed record LoginForm(string Username, string Password, string? ReturnUrl);
     public sealed record PasswordChangeForm(string CurrentPassword, string NewPassword);
-}
-
-public sealed class LoginRateGate
-{
-    private readonly ConcurrentDictionary<string, (int Count, DateTimeOffset Until)> attempts = new();
-    public bool IsLimited(string key, int limit) => attempts.TryGetValue(key, out var value) && value.Until > DateTimeOffset.UtcNow && value.Count >= limit;
-    public int Fail(string key) => attempts.AddOrUpdate(key, _ => (1, DateTimeOffset.UtcNow.AddMinutes(1)), (_, value) => value.Until <= DateTimeOffset.UtcNow ? (1, DateTimeOffset.UtcNow.AddMinutes(1)) : (value.Count + 1, value.Until)).Count;
-    public void Succeed(string key) => attempts.TryRemove(key, out _);
 }

@@ -20,7 +20,7 @@ public sealed class ModuleServiceCatalog : IServiceCatalog
         .Where(module => !modules.IsHidden(module.Manifest.Id))
         .Select(module => new ServiceSummary(module.Manifest.Id, module.Manifest.Name, module.Manifest.Description,
             module.Manifest.Version, module.Manifest.Author, module.Manifest.Icon, module.Manifest.Color,
-            modules.IsEffectivelyEnabled(module.Manifest.Id), module.Manifest.Parent, Build(module.Manifest.Id)))
+            modules.IsEffectivelyEnabled(module.Manifest.Id), module.SettingsPages.Count > 0, module.Manifest.Parent, Build(module.Manifest.Id)))
         .ToArray();
 
     public void SetEnabled(string id, bool enabled) => states.SetEnabled(id, enabled).GetAwaiter().GetResult();

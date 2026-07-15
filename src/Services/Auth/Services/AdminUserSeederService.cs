@@ -1,9 +1,9 @@
 using Services.Auth.Models;
 using Microsoft.AspNetCore.Identity;
 
-namespace Services.Auth;
+namespace Services.Auth.Services;
 
-public sealed class AdminUserSeeder(UserManager<CompanyUser> users, RoleManager<IdentityRole<Guid>> roles, Microsoft.Extensions.Configuration.IConfiguration configuration)
+public sealed class AdminUserSeederService(UserManager<CompanyUser> users, RoleManager<IdentityRole<Guid>> roles, Microsoft.Extensions.Configuration.IConfiguration configuration)
 {
     public async Task<SeededOwner> SeedOwner(string username, CancellationToken cancellationToken = default)
     {
@@ -12,7 +12,7 @@ public sealed class AdminUserSeeder(UserManager<CompanyUser> users, RoleManager<
 
         var existing = await users.FindByNameAsync(username);
         if (existing is not null) return new SeededOwner(existing.Id, username, null, false);
-        var password = PasswordGenerator.Generate();
+        var password = PasswordGeneratorService.Generate();
         var company = configuration["Company:Id"] ?? "local";
         var user = new CompanyUser { UserName = username, DisplayName = username, Email = username.Contains('@') ? username : $"{username}@{company}.companyhq.local" };
         var result = await users.CreateAsync(user, password);

@@ -4,7 +4,7 @@ using Services.Companies.Contracts;
 using Services.Companies.Contracts.Metadata;
 using Microsoft.EntityFrameworkCore.Metadata;
 
-namespace Services.Postgres;
+namespace Services.Postgres.Services;
 
 public static class DatabaseSchemaMigrator
 {

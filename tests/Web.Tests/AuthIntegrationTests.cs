@@ -4,6 +4,7 @@ using Services.Postgres;
 using Services.Companies.Contracts.Services;
 using Services.Auth.Models;
 using Services.Auth;
+using Services.Auth.Services;
 using FluentAssertions;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
@@ -26,9 +27,9 @@ public sealed class AuthIntegrationTests(AuthHostFixture fixture)
     [Fact]
     public async Task SeededOwnerIsIdempotentHashedAndGeneratedPasswordMeetsPolicy()
     {
-        PasswordGenerator.Generate().Should().MatchRegex("^(?=.*[a-z])(?=.*[A-Z])(?=.*[0-9])(?=.*[^a-zA-Z0-9]).{12,}$");
+        PasswordGeneratorService.Generate().Should().MatchRegex("^(?=.*[a-z])(?=.*[A-Z])(?=.*[0-9])(?=.*[^a-zA-Z0-9]).{12,}$");
         await using var scope = fixture.Factory.Services.CreateAsyncScope();
-        var second = await scope.ServiceProvider.GetRequiredService<AdminUserSeeder>().SeedOwner(fixture.OwnerUsername);
+        var second = await scope.ServiceProvider.GetRequiredService<AdminUserSeederService>().SeedOwner(fixture.OwnerUsername);
         second.Created.Should().BeFalse();
         var context = scope.ServiceProvider.GetRequiredService<CompanyDbContext>();
         var user = await context.Users.SingleAsync(item => item.UserName == fixture.OwnerUsername);
@@ -41,7 +42,7 @@ public sealed class AuthIntegrationTests(AuthHostFixture fixture)
     {
         var username = "bootstrap-" + Guid.NewGuid().ToString("N");
         await using var scope = fixture.Factory.Services.CreateAsyncScope();
-        var seeded = await scope.ServiceProvider.GetRequiredService<AdminUserSeeder>().SeedOwner(username);
+        var seeded = await scope.ServiceProvider.GetRequiredService<AdminUserSeederService>().SeedOwner(username);
         seeded.Created.Should().BeTrue();
         var user = await scope.ServiceProvider.GetRequiredService<UserManager<CompanyUser>>().FindByNameAsync(username);
         user!.Email.Should().StartWith(username + "@").And.EndWith(".companyhq.local");

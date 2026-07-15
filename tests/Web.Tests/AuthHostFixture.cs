@@ -1,5 +1,6 @@
 using System.Text.RegularExpressions;
 using Services.Auth;
+using Services.Auth.Services;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.Extensions.DependencyInjection;
@@ -58,7 +59,7 @@ public sealed partial class AuthHostFixture : IAsyncLifetime
         });
         _ = Factory.Services;
         await using var scope = Factory.Services.CreateAsyncScope();
-        var seeded = await scope.ServiceProvider.GetRequiredService<AdminUserSeeder>().SeedOwner(OwnerUsername);
+        var seeded = await scope.ServiceProvider.GetRequiredService<AdminUserSeederService>().SeedOwner(OwnerUsername);
         OwnerPassword = seeded.Password!;
     }
 

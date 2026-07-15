@@ -3,7 +3,7 @@ using Services.Companies.Contracts;
 using Services.Companies.Contracts.Services;
 using Microsoft.EntityFrameworkCore;
 
-namespace Services.Postgres;
+namespace Services.Postgres.Services;
 
 public sealed class PostgresService<T>(IDbContextFactory<CompanyDbContext> contextFactory) : IEntityService<T> where T : class, IEntityRecord
 {

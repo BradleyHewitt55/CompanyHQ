@@ -59,6 +59,7 @@ public sealed class ModuleCatalog
                     var name = item.Module.Manifest.Hidden || component.Name.Equals(id, StringComparison.OrdinalIgnoreCase) ? component.Name : $"services/{id}/{component.Name}";
                     registry.Register(name, component.ComponentType, () => item.Module.Manifest.Hidden || catalog.IsEffectivelyEnabled(id));
                 }
+                RegisterSettingsPages(item.Module, registry, catalog);
             }
             catch (Exception exception) { logger.LogWarning(exception, "Skipping service {ServiceId} because configuration failed.", item.Module.Manifest.Id); }
         }
@@ -84,6 +85,7 @@ public sealed class ModuleCatalog
                     var name = component.Name.Equals(id, StringComparison.OrdinalIgnoreCase) ? component.Name : $"services/{id}/{component.Name}";
                     registry.Register(name, component.ComponentType, () => IsEffectivelyEnabled(id));
                 }
+                RegisterSettingsPages(module, registry, this);
                 return true;
             }
             catch (Exception exception)
@@ -96,6 +98,20 @@ public sealed class ModuleCatalog
     }
 
     public string? MatchService(PathString path) => modules.FirstOrDefault(module => path.StartsWithSegments($"/api/services/{module.Manifest.Id}", StringComparison.OrdinalIgnoreCase))?.Manifest.Id;
+    public bool TryMatchSettingsRoute(PathString path, out IServiceModule? module, out ServiceSettingsPage? page)
+    {
+        module = null;
+        page = null;
+        var segments = path.Value?.Trim('/').Split('/', StringSplitOptions.RemoveEmptyEntries) ?? [];
+        if (segments.Length < 4 || !segments[0].Equals("admin", StringComparison.OrdinalIgnoreCase) || !segments[1].Equals("services", StringComparison.OrdinalIgnoreCase) || !segments[3].Equals("settings", StringComparison.OrdinalIgnoreCase))
+            return false;
+
+        module = Find(segments[2]);
+        if (module is null || IsHidden(module.Manifest.Id)) return true;
+        var name = segments.Length == 4 ? null : string.Join('/', segments.Skip(4));
+        page = FindSettingsPage(module, name);
+        return true;
+    }
     public bool IsHidden(string id)
     {
         var module = Find(id);
@@ -123,4 +139,19 @@ public sealed class ModuleCatalog
     {
         for (var parent = Find(module.Manifest.Parent ?? string.Empty); parent is not null; parent = Find(parent.Manifest.Parent ?? string.Empty)) yield return parent;
     }
+
+    private static void RegisterSettingsPages(IServiceModule module, ComponentRegistry registry, ModuleCatalog catalog)
+    {
+        var pages = module.SettingsPages;
+        if (pages.Count == 0 || module.Manifest.Hidden) return;
+        var id = module.Manifest.Id;
+        registry.Register($"services/{id}/settings", pages[0].ComponentType, () => catalog.IsEffectivelyEnabled(id));
+        foreach (var page in pages.Where(page => !string.IsNullOrWhiteSpace(page.Name) && !page.Name.Equals("settings", StringComparison.OrdinalIgnoreCase)))
+            registry.Register($"services/{id}/settings/{page.Name}", page.ComponentType, () => catalog.IsEffectivelyEnabled(id));
+    }
+
+    private static ServiceSettingsPage? FindSettingsPage(IServiceModule module, string? name) =>
+        string.IsNullOrWhiteSpace(name)
+            ? module.SettingsPages.FirstOrDefault()
+            : module.SettingsPages.FirstOrDefault(page => page.Name.Equals(name, StringComparison.OrdinalIgnoreCase));
 }

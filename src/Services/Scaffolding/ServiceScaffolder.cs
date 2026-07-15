@@ -8,6 +8,8 @@ public sealed record ScaffoldServiceRequest(string Name, string Parent);
 
 public static class ServiceScaffolder
 {
+    private static readonly string[] ConventionFolders = ["Api", "Models", "Pages", "Settings", "Services", "Tests"];
+
     public static IReadOnlyList<ServiceTemplate> Catalog { get; } =
     [
         new("blank", "Blank service", "A service with API, models, pages, settings, child services, and tests."),
@@ -23,7 +25,7 @@ public static class ServiceScaffolder
         var parentDirectory = FindParent(outputRoot, parent) ?? throw new DirectoryNotFoundException($"Parent service '{parent}' was not found beneath {Path.Combine(outputRoot, "src", "Services")}.");
         var directory = Path.Combine(parentDirectory, "Services", name);
         if (Directory.Exists(directory)) throw new InvalidOperationException($"Service directory already exists: {directory}");
-        foreach (var folder in new[] { "Api", "Models", "Pages", "Settings", "Services", "Tests" }) Directory.CreateDirectory(Path.Combine(directory, folder));
+        foreach (var folder in ConventionFolders) Directory.CreateDirectory(Path.Combine(directory, folder));
         var id = ToKebab(name);
         File.WriteAllText(Path.Combine(directory, $"{id}.json"), JsonSerializer.Serialize(new
         {

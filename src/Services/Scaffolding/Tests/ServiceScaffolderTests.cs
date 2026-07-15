@@ -34,6 +34,15 @@ public sealed class ServiceScaffolderTests : IDisposable
     }
 
     [Fact]
+    public void CompanyBlueprintRetainsServiceDirectories()
+    {
+        var scaffold = ScaffoldGenerator.Generate(root, "Northwind");
+
+        Directory.Exists(Path.Combine(scaffold.Directory, "CompanyHQ", "Admin", "Services")).Should().BeTrue();
+        Directory.Exists(Path.Combine(scaffold.Directory, "CompanyHQ", "Projects", "Website", "Services")).Should().BeTrue();
+    }
+
+    [Fact]
     public void RequiresParentAndNeverWritesDomainServiceAtRoot()
     {
         var noParent = () => ServiceScaffolder.Generate(root, "Invoices", null);

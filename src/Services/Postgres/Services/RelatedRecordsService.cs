@@ -4,7 +4,7 @@ using Microsoft.EntityFrameworkCore;
 using Services.Companies.Contracts.Metadata;
 using Services.Companies.Contracts.Services;
 
-namespace Services.Postgres.Metadata;
+namespace Services.Postgres.Services;
 
 public sealed class RelatedRecordsService(CompanyDbContext database, EntityTypeRegistry types) : IRelatedRecordsService
 {
@@ -27,7 +27,7 @@ public sealed class RelatedRecordsService(CompanyDbContext database, EntityTypeR
             Expression member = Expression.Property(parameter, foreignKey);
             Expression id = propertyType == typeof(Guid?) ? Expression.Convert(Expression.Constant(sourceId), typeof(Guid?)) : Expression.Constant(sourceId);
             var predicate = Expression.Lambda(Expression.Equal(member, id), parameter);
-            var query = (IQueryable)typeof(Queryable).GetMethods().Single(method => method.Name == nameof(Queryable.Where) && method.GetParameters().Length == 2 && method.GetParameters()[1].ParameterType.GetGenericArguments()[0].GetGenericArguments().Length == 2)
+            var query = (IQueryable)typeof(Queryable).GetMethods().Single(method => method.Name == nameof(Queryable.Where) && method.IsGenericMethod && method.GetParameters().Length == 2 && method.GetParameters()[1].ParameterType.GetGenericArguments()[0].GetGenericArguments().Length == 2)
                 .MakeGenericMethod(clrType).Invoke(null, [set, predicate])!;
             foreach (var record in (IEnumerable)query)
             {
