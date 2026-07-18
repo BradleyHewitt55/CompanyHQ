@@ -1,1 +1,0 @@
-{"id":"sales","name":"Sales","version":"1.0.0","author":"CompanyHQ","icon":"point_of_sale","color":"#ea580c","tags":["commerce"],"description":"Sales capabilities and owned services.","hidden":false,"menu":[{"label":"Sales","url":"/admin/services/sales/index"}]}

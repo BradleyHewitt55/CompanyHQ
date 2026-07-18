@@ -1,6 +1,0 @@
-<Project Sdk="Microsoft.NET.Sdk.Razor">
-  <PropertyGroup><TargetFramework>net10.0</TargetFramework><Nullable>enable</Nullable><ImplicitUsings>enable</ImplicitUsings><AssemblyName>Quotes</AssemblyName><RootNamespace>Services.Quotes</RootNamespace></PropertyGroup>
-  <ItemGroup><FrameworkReference Include="Microsoft.AspNetCore.App" /><ProjectReference Include="..\..\..\Companies\Companies.csproj" /></ItemGroup>
-  <ItemGroup><Content Update="quotes.json" CopyToOutputDirectory="PreserveNewest" /><EmbeddedResource Include="quotes.json" LogicalName="service-manifest.json" /></ItemGroup>
-  <ItemGroup><Compile Remove="Tests\**\*.cs" /></ItemGroup>
-</Project>

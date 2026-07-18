@@ -27,7 +27,7 @@ TIMEOUT_S = 1800
 # This is intentionally not a CLI option. A review agent must not be allowed
 # to edit the worktree it is assessing.
 AGENT = "codex"
-MODEL = "gpt-5.6-codex"
+MODEL = "gpt-5.6-terra"
 REASONING = "medium"
 SANDBOX = "read-only"
 

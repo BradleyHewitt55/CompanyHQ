@@ -21,7 +21,7 @@ CodeAgent resolves and validates all three itself, then runs Codex inside that w
 | Setting | Value |
 |---|---|
 | Agent | Codex |
-| Model | `gpt-5.6-terra` |
+| Model | `gpt-5.6-sol` |
 | Reasoning | `medium` |
 | Permissions | workspace-write |
 
