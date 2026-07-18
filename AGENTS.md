@@ -8,7 +8,7 @@
 - If you're unsure about a task, ask questions instead of guessing
 - Do not edit `.repos` unless the user asks.
 - Do not look into the `.repos` unless the user asks.
-- When working with the Blazor framework or creating services and you get stuck, use the .NET Core, Entity Framework Core, and ASP.NET Core documentation at `Docs/DotNetDocs`, `Docs/EntityFrameworkDocs`, and `Docs/AspNetCoreDocs`.
-- When working with Google Merchant information and you get stuck, use the Google Merchant documentation at `Docs/MerchantApiDocs`.
+- Write comments on why not what the function/code is applied.
 - If you need a paragraph long-comment to justify why the workaround is okay, the code is wrong, fix it.
-- **Do not look at gipped changes unless the user specifically requests this.**
+- **All services need to be created as headless services, that can be consumed by any project**
+- update the docs if a decision has been updated
