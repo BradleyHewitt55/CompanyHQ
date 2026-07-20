@@ -3,6 +3,7 @@
 Headless usage:
     python new PlanReviewAgent <issue-number-or-url>
     python reply PlanReviewAgent <session_id> <issue> "<answers>"
+    python local PlanReviewAgent "<prompt>"
 """
 
 import argparse
@@ -76,6 +77,18 @@ Never output anything after the verdict. Approval is allowed only when there
 are no findings.
 """
 
+LOCAL_SYSTEM_PROMPT = SYSTEM_PROMPT.replace(
+    "Never\nedit files. Never create or consult .plan, plans/, or another plan file.",
+    "Never edit files. Consult task or plan files only when the caller references\n"
+    "them.",
+) + """
+
+For this local invocation, the caller's prompt replaces the GitHub issue as the
+review source. The prompt may contain the request and proposed plan directly or
+reference their locations. Do not access GitHub; apply the same review standard
+and response contract.
+"""
+
 
 def _request_from_body(body: str) -> str:
     """Remove only the managed plan block so issue wording stays verbatim."""
@@ -102,7 +115,10 @@ def _issue_prompt(issue: dict) -> str:
     )
 
 
-def run_claude(prompt: str, session_id: str | None) -> dict:
+def run_claude(
+        prompt: str,
+        session_id: str | None,
+        system_prompt: str = SYSTEM_PROMPT) -> dict:
     exe = shutil.which("claude")
     if not exe:
         return {"session_id": session_id, "status": "UNKNOWN",
@@ -110,7 +126,7 @@ def run_claude(prompt: str, session_id: str | None) -> dict:
 
     cmd = [exe, "-p", prompt, "--model", MODEL, "--effort", EFFORT,
            "--permission-mode", PERMISSION_MODE, "--output-format", "json",
-           "--append-system-prompt", SYSTEM_PROMPT]
+           "--append-system-prompt", system_prompt]
     if session_id:
         cmd += ["--resume", session_id]
 
@@ -144,10 +160,16 @@ def main() -> int:
     reply_parser.add_argument("issue", help="GitHub issue number or URL")
     reply_parser.add_argument("answers")
 
+    local_parser = sub.add_parser(
+        "local", help="review a plan from a direct prompt")
+    local_parser.add_argument("prompt")
+
     args = parser.parse_args()
     try:
         if args.command == "new":
             result = run_claude(_issue_prompt(read_issue(args.issue)), None)
+        elif args.command == "local":
+            result = run_claude(args.prompt, None, LOCAL_SYSTEM_PROMPT)
         else:
             result = run_claude(args.answers, args.session_id)
     except GitHubIssueError as error:

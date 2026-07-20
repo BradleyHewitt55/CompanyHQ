@@ -2,7 +2,7 @@
 
 ## Decision
 
-`AGENTS.md` is the **orchestrator** for headless CLI agents under `Agents/`. Each implementation has one GitHub issue as its planning source of truth and one title-derived name shared by its plan, branch, and isolated Git worktree under `.worktrees/`.
+`AGENTS.md` is the **orchestrator** for headless CLI agents under `Agents/`. The governed workflow uses one GitHub issue and isolated worktree per implementation; every agent also accepts a direct local prompt when that workflow is not requested.
 
 ```text
 AGENTS.md orchestrator
@@ -12,24 +12,26 @@ AGENTS.md orchestrator
   ├─ CodeAgent ─────────HTTPS──> reads issue and edits .worktrees/<work-name>
   ├─ CodeReviewAgent ───HTTPS──> statically reviews issue implementation
   └─ ReviewAgent ───────HTTPS──> verifies issue plan and worktree
+
+Direct caller ──prompt──> requested agent ──operates──> current working directory
 ```
 
 - **Orchestrator**: [`AGENTS.md`][1] creates the issue and worktree, relays questions and findings, and repeats implementation and review until safe to merge.
-- **Agent launcher**: [`agent_launcher.py`][2] routes `python new <AGENT>` and `python reply <AGENT>` to a preset agent without changing its arguments or exit code.
-- **Plan agent**: [`plan_agent.py`][3] investigates the worktree and writes its completed draft into managed markers in the issue description.
-- **Plan review agent**: [`plan_review_agent.py`][4] compares the issue's exact request and decisions with the draft, validates repository claims, and blocks ambiguous plans before implementation.
-- **Code agent**: [`code_agent.py`][5] reads the entire issue and implements its approved plan in the current branch and worktree.
-- **Code review agent**: [`code_review_agent.py`][6] performs a read-only static review for defects, omissions, bloat, and code smells.
-- **Review agent**: [`review_agent.py`][7] reads the approved issue plan, reviews the current worktree, and runs required verification.
+- **Agent launcher**: [`agent_launcher.py`][2] routes `python new <AGENT>`, `python reply <AGENT>`, and `python local <AGENT>` to a preset agent without changing its arguments or exit code.
+- **Plan agent**: [`plan_agent.py`][3] investigates the repository and drafts a plan; GitHub mode persists it in managed issue markers while local mode returns it only in JSON.
+- **Plan review agent**: [`plan_review_agent.py`][4] compares the exact request and decisions with the draft, validates repository claims, and blocks ambiguous plans before implementation.
+- **Code agent**: [`code_agent.py`][5] implements either the approved plan from an entire GitHub issue or a direct prompt in the current working directory.
+- **Code review agent**: [`code_review_agent.py`][6] performs a read-only static review against an issue or direct prompt for defects, omissions, bloat, and code smells.
+- **Review agent**: [`review_agent.py`][7] reviews against an issue plan or direct prompt and runs required verification.
 - **GitHub issue adapter**: [`github_issue.py`][8] owns issue reads, plan extraction, and idempotent plan replacement.
 
 ### Constraints
 
 - **Explicit use only.** The orchestrator starts this workflow only when the user requests agents.
 - **Preset values are frozen.** Model, effort, permission mode, and sandbox mode remain constants inside each wrapper.
-- **No local plan files.** Agents never create or consult `.plan`, `plans/`, or another plan file.
+- **No local plan files in the governed workflow.** GitHub workflow agents never create or consult `.plan`, `plans/`, or another plan file. Local agents may follow a task or plan location named in their prompt.
 - **One shared work name.** The lowercase kebab-case issue title is used unchanged for the branch and `.worktrees/<work-name>` directory; the plan keeps the exact issue title as its main heading.
-- **One isolated workspace.** All planning, implementation, verification, and review commands run in `.worktrees/<work-name>`.
+- **One isolated governed workspace.** GitHub workflow commands run in `.worktrees/<work-name>`; local agents operate in the caller's current working directory.
 - **Headless contracts.** Wrappers return `{session_id, status, output, exit_code}` as JSON on stdout. Plan persistence is the only orchestration side effect.
 - **Multi-turn sessions.** `QUESTIONS` responses resume through the wrapper's `reply` command with the same session ID and issue reference.
 - **Orchestrator-owned technical decisions.** Before involving the user, the orchestrator investigates the issue, repository, current behavior, and established patterns and answers routine agent questions from evidence or the strongest behavior-preserving approach.
@@ -80,6 +82,22 @@ sequenceDiagram
 5. The launcher dispatches `python new CodeReviewAgent` to the [code review agent][6]. It statically traces the issue to the implementation and reports defects, omissions, bloat, and smells.
 6. After the static review is clean, the launcher dispatches `python new ReviewAgent` to the [review agent][7] for implementation verification.
 7. The orchestrator returns findings to the code agent session and starts both reviews again until verification passes.
+
+### Local implementation flow
+
+```mermaid
+sequenceDiagram
+    participant O as Caller
+    participant A as Requested agent
+    participant W as Current directory
+    O->>A: python local <AGENT> "<prompt>"
+    A->>W: Perform the agent's role
+    A-->>O: JSON result
+```
+
+1. The caller runs `python local <AGENT> "<prompt>"` from the repository or directory the agent should inspect.
+2. The [launcher][2] passes the prompt unchanged to the requested agent.
+3. The agent performs its existing planning, review, implementation, or verification role without accessing a GitHub issue or requiring a dedicated branch or worktree.
 
 [1]: ../../AGENTS.md
 [2]: ../../Agents/agent_launcher.py

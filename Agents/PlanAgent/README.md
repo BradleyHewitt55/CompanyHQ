@@ -18,4 +18,10 @@ python reply PlanAgent "session_id" "123" "Your answers"
 
 Repeat until the returned status is `PLAN`, then run `python new PlanReviewAgent "<issue>"`. The issue description is the plan source of truth; do not create a `.plan` or plan file. Implementation cannot start until plan review returns `APPROVED`.
 
-Requires Python 3.10+, authenticated `claude` and `gh` CLIs on `PATH`, and a current directory belonging to the issue repository when using an issue number.
+For planning without GitHub, run from the repository and pass a task or referenced task location:
+
+```bash
+python local PlanAgent "Plan the task in C:\\plans\\task.md"
+```
+
+Local mode returns the plan in JSON and does not persist it. Requires Python 3.10+ and authenticated `claude`; the GitHub workflow also requires authenticated `gh`.

@@ -16,6 +16,12 @@ If essential context is missing, reply with the same issue and returned session 
 python reply CodeReviewAgent "session_id" "123" "Your answers"
 ```
 
-Start a fresh review after each fix. The agent never edits files or uses local plan files.
+Start a fresh review after each fix. In the GitHub workflow, the agent never edits files or uses local plan files.
 
-Preset: `claude-opus-4-8`, medium reasoning, plan permission mode. Requires Python 3.10+ and authenticated `claude` and `gh` CLIs on `PATH`.
+For review without GitHub, run from the implementation directory and pass the requirements or their location:
+
+```bash
+python local CodeReviewAgent "Review against C:\\plans\\task.md"
+```
+
+Preset: `claude-opus-4-8`, medium reasoning, plan permission mode. Requires Python 3.10+ and authenticated `claude`; the GitHub workflow also requires authenticated `gh`.

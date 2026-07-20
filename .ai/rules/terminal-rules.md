@@ -1,0 +1,2 @@
+- Dont use `|` , `&` or `,` for the multiple inline queries. Use `;` symbol to split cmd prompts into one line.
+- dont run `Get-ChildItem` , `ForEach-Object`, `Select-Object`. Instead use `find` , `for`

@@ -3,6 +3,7 @@
 Headless usage:
     python new CodeAgent <issue-number-or-url>
     python reply CodeAgent <session_id> <issue> "<answers-or-review-findings>"
+    python local CodeAgent "<prompt>"
 """
 
 import argparse
@@ -53,6 +54,33 @@ Known risks, or `None.`
 Never output anything after the residual risks section.
 """
 
+LOCAL_SYSTEM_PROMPT = """\
+You are a dedicated implementation agent. Implement the prompt supplied by the
+caller in the current working directory. Inspect the repository and its
+instructions, including any task or plan location referenced by the prompt.
+
+Make all required source, test, configuration, and documentation changes. Run
+relevant verification and regression tests. Do not change the requested scope
+or leave product or architecture decisions for yourself. Do not create, remove,
+or switch worktrees or branches. Do not commit, push, or merge changes.
+
+Ask questions only when missing or contradictory information prevents a safe
+implementation. A question response must start with STATUS: QUESTIONS and
+include a numbered list explaining why each answer matters.
+
+A completed response must start with STATUS: IMPLEMENTATION and contain:
+## Summary
+A concise description of the implemented behavior.
+## Changed files
+A list of changed paths and their purpose.
+## Verification
+Every command run and whether it passed. Report failures exactly.
+## Residual risks
+Known risks, or `None.`
+
+Never output anything after the residual risks section.
+"""
+
 
 def _parse_jsonl(stdout: str, fallback_session_id: str | None) -> tuple[str | None, str]:
     session_id = fallback_session_id
@@ -76,7 +104,10 @@ def _parse_jsonl(stdout: str, fallback_session_id: str | None) -> tuple[str | No
     return session_id, messages[-1] if messages else ""
 
 
-def run_codex(prompt: str, session_id: str | None) -> dict:
+def run_codex(
+        prompt: str,
+        session_id: str | None,
+        system_prompt: str = SYSTEM_PROMPT) -> dict:
     exe = shutil.which("codex")
     if not exe:
         return {"session_id": session_id, "status": "UNKNOWN",
@@ -90,7 +121,7 @@ def run_codex(prompt: str, session_id: str | None) -> dict:
     if session_id:
         cmd = [exe, "exec", "resume", *preset, session_id, prompt]
     else:
-        full_prompt = f"{SYSTEM_PROMPT}\n\n{prompt}"
+        full_prompt = f"{system_prompt}\n\n{prompt}"
         cmd = [exe, "exec", "--sandbox", SANDBOX_MODE, *preset, full_prompt]
 
     proc = subprocess.run(cmd, capture_output=True, text=True,
@@ -137,10 +168,16 @@ def main() -> int:
     reply_parser.add_argument("issue", help="GitHub issue number or URL")
     reply_parser.add_argument("answers")
 
+    local_parser = sub.add_parser(
+        "local", help="implement a prompt in the current working directory")
+    local_parser.add_argument("prompt")
+
     args = parser.parse_args()
     try:
         if args.command == "new":
             result = run_codex(_issue_prompt(read_issue(args.issue)), None)
+        elif args.command == "local":
+            result = run_codex(args.prompt, None, LOCAL_SYSTEM_PROMPT)
         else:
             result = run_codex(args.answers, args.session_id)
     except GitHubIssueError as error:

@@ -3,6 +3,7 @@
 Headless — any orchestrator can call it and gets JSON on stdout:
     python new ReviewAgent <issue-number-or-url>
     python reply ReviewAgent <session_id> <issue> "<answers>"
+    python local ReviewAgent "<prompt>"
 
 Output JSON: {"session_id": str, "status": "QUESTIONS"|"REVIEW"|"UNKNOWN",
               "output": str, "exit_code": int}
@@ -67,6 +68,19 @@ STATUS: REVIEW
 Never output anything after the verdict. Never edit files yourself.
 """
 
+LOCAL_SYSTEM_PROMPT = SYSTEM_PROMPT.replace(
+    "The request contains the\n"
+    "approved implementation plan read from the GitHub issue. Treat that issue plan\n"
+    "as the only planning source of truth; never use a .plan, plans/, or other plan\n"
+    "file.",
+    "The caller's prompt contains the implementation plan or references its\n"
+    "location. Treat that supplied plan as the planning source of truth.",
+) + """
+
+For this local invocation, review the current working directory and do not
+access GitHub. Apply the same verification and response contract.
+"""
+
 
 def _parse_jsonl(stdout: str, fallback_session_id: str | None) -> tuple[str | None, str]:
     session_id = fallback_session_id
@@ -90,7 +104,11 @@ def _parse_jsonl(stdout: str, fallback_session_id: str | None) -> tuple[str | No
     return session_id, messages[-1] if messages else ""
 
 
-def run_codex(prompt: str, session_id: str | None) -> dict:
+def run_codex(
+        prompt: str,
+        session_id: str | None,
+        system_prompt: str = SYSTEM_PROMPT,
+        prompt_heading: str = "Approved implementation plan:\n") -> dict:
     exe = shutil.which("codex")
     if not exe:
         return {"session_id": session_id, "status": "UNKNOWN",
@@ -104,7 +122,7 @@ def run_codex(prompt: str, session_id: str | None) -> dict:
     if session_id:
         cmd = [exe, "exec", "resume", *preset, session_id, prompt]
     else:
-        full_prompt = f"{SYSTEM_PROMPT}\n\nApproved implementation plan:\n{prompt}"
+        full_prompt = f"{system_prompt}\n\n{prompt_heading}{prompt}"
         cmd = [exe, "exec", "--sandbox", SANDBOX_MODE, *preset, full_prompt]
 
     proc = subprocess.run(cmd, capture_output=True, text=True,
@@ -139,6 +157,10 @@ def main() -> int:
     p_reply.add_argument("issue", help="GitHub issue number or URL")
     p_reply.add_argument("answers", help="answers to the agent's questions")
 
+    p_local = sub.add_parser(
+        "local", help="review implementation against a direct prompt")
+    p_local.add_argument("prompt")
+
     args = parser.parse_args()
     try:
         if args.command == "new":
@@ -148,6 +170,13 @@ def main() -> int:
                       f"{issue.get('title', '')}\n"
                       f"Issue URL: {issue.get('url', '')}\n\n{plan}")
             result = run_codex(prompt, session_id=None)
+        elif args.command == "local":
+            result = run_codex(
+                args.prompt,
+                session_id=None,
+                system_prompt=LOCAL_SYSTEM_PROMPT,
+                prompt_heading="",
+            )
         else:
             result = run_codex(args.answers, session_id=args.session_id)
     except GitHubIssueError as error:

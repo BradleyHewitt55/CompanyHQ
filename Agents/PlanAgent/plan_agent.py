@@ -3,6 +3,7 @@
 Headless usage:
     python new PlanAgent <issue-number-or-url>
     python reply PlanAgent <session_id> <issue> "<answers>"
+    python local PlanAgent "<prompt>"
 """
 
 import argparse
@@ -141,8 +142,25 @@ Replace placeholders and repeat T-N and completion-evidence sections as needed:
 Do not output anything after the questions or completed plan.
 """
 
+LOCAL_SYSTEM_PROMPT = SYSTEM_PROMPT.replace(
+    "The GitHub issue is the canonical\n"
+    "plan source; never create or reference .plan, plans/, or another plan file.",
+    "The caller's prompt is the canonical requirements source. Inspect any task\n"
+    "or plan location it references, but never edit repository files.",
+).replace(
+    "**Canonical issue:** <GitHub issue URL>",
+    "**Canonical issue:** Local prompt",
+) + """
 
-def run_claude(prompt: str, session_id: str | None) -> dict:
+Do not access or update GitHub. Return the completed plan only through the
+normal response contract.
+"""
+
+
+def run_claude(
+        prompt: str,
+        session_id: str | None,
+        system_prompt: str = SYSTEM_PROMPT) -> dict:
     exe = shutil.which("claude")
     if not exe:
         return {"session_id": session_id, "status": "UNKNOWN",
@@ -150,7 +168,7 @@ def run_claude(prompt: str, session_id: str | None) -> dict:
 
     cmd = [exe, "-p", prompt, "--model", MODEL, "--effort", EFFORT,
            "--permission-mode", PERMISSION_MODE, "--output-format", "json",
-           "--append-system-prompt", SYSTEM_PROMPT]
+           "--append-system-prompt", system_prompt]
     if session_id:
         cmd += ["--resume", session_id]
 
@@ -194,15 +212,22 @@ def main() -> int:
     reply_parser.add_argument("issue", help="GitHub issue number or URL")
     reply_parser.add_argument("answers")
 
+    local_parser = sub.add_parser(
+        "local", help="plan a prompt from the current working directory")
+    local_parser.add_argument("prompt")
+
     args = parser.parse_args()
     try:
         if args.command == "new":
             issue = read_issue(args.issue)
             result = run_claude(_issue_prompt(issue), None)
+        elif args.command == "local":
+            result = run_claude(args.prompt, None, LOCAL_SYSTEM_PROMPT)
         else:
             result = run_claude(args.answers, args.session_id)
 
-        if result["status"] == "PLAN" and result["exit_code"] == 0:
+        if (args.command != "local" and result["status"] == "PLAN" and
+                result["exit_code"] == 0):
             issue = read_issue(args.issue)
             update_plan(args.issue, issue.get("body", ""), result["output"],
                         issue.get("title", ""))

@@ -18,4 +18,10 @@ python reply PlanReviewAgent "session_id" "123" "Your answers"
 
 Do not begin implementation until the verdict is `APPROVED`. A `CHANGES REQUIRED` verdict must return to planning and receive a fresh plan review.
 
-Preset: `claude-opus-4-8`, medium reasoning, plan permission mode. Requires Python 3.10+ and authenticated `claude` and `gh` CLIs on `PATH`.
+For review without GitHub, pass the request and plan or reference their locations:
+
+```bash
+python local PlanReviewAgent "Review the request and plan in C:\\plans\\task.md"
+```
+
+Preset: `claude-opus-4-8`, medium reasoning, plan permission mode. Requires Python 3.10+ and authenticated `claude`; the GitHub workflow also requires authenticated `gh`.

@@ -9,14 +9,33 @@ sys.path.insert(0, str(Path(__file__).resolve().parents[2]))
 
 from Agents.CodeAgent.code_agent import (
     EFFORT,
+    LOCAL_SYSTEM_PROMPT,
     MODEL,
     SANDBOX_MODE,
     _issue_prompt,
+    main,
     run_codex,
 )
 
 
 class CodeAgentTests(unittest.TestCase):
+    @patch("Agents.CodeAgent.code_agent.run_codex")
+    def test_local_passes_prompt_without_reading_a_github_issue(self, run):
+        run.return_value = {
+            "session_id": "thread-1",
+            "status": "IMPLEMENTATION",
+            "output": "STATUS: IMPLEMENTATION",
+            "exit_code": 0,
+        }
+
+        with patch.object(
+                sys, "argv", ["code_agent.py", "local", "Read C:/plans/task.md"]):
+            exit_code = main()
+
+        self.assertEqual(0, exit_code)
+        run.assert_called_once_with(
+            "Read C:/plans/task.md", None, LOCAL_SYSTEM_PROMPT)
+
     def test_issue_prompt_contains_entire_issue_and_managed_plan(self):
         body = (
             "Original request and constraints.\n"

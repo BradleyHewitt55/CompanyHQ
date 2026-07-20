@@ -13,13 +13,13 @@
 - If you need a paragraph long-comment to justify why the workaround is okay, the code is wrong, fix it.
 - **All services need to be created as headless services, that can be consumed by any project**
 - update the docs if a decision has been updated
-- Dont use `|` , `&` or `,` for the multiple inline queries. Use `;` symbol to split cmd prompts into one line.
-- dont run `Get-ChildItem` , `ForEach-Object`, `Select-Object`. Instead use `find` , `for`
 - use the MockServer for local dev testing.
 
 ## Agent orchestration **ONLY WHEN THE USER ASKS, NOT ALL TASKS/QUERIES NEED SUBAGECTS**
 
 Use the agents under `Agents/` only when the user explicitly requests the agent workflow; never change an agent's preset model, effort, permission, or sandbox values.
+
+When the user explicitly requests an agent directly instead of the governed GitHub workflow, run `python local <AGENT> "<prompt>"` from the repository or directory it should inspect. Pass the user's task or referenced task or plan location in the prompt. Local mode is available for every agent, does not require a GitHub issue, branch, worktree, or approved issue plan, and does not invoke the workflow below.
 
 ### Decision and question policy
 

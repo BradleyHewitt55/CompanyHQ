@@ -3,6 +3,7 @@
 Headless usage:
     python new CodeReviewAgent <issue-number-or-url>
     python reply CodeReviewAgent <session_id> <issue> "<answers>"
+    python local CodeReviewAgent "<prompt>"
 """
 
 import argparse
@@ -71,8 +72,24 @@ findings, potential omissions, or bloat and smells.
 Never output anything after the verdict.
 """
 
+LOCAL_SYSTEM_PROMPT = SYSTEM_PROMPT.replace(
+    "merge, switch branches, or edit the issue. Never create or consult .plan,\n"
+    "plans/, or another plan file.",
+    "merge or switch branches. Consult task or plan files only when the caller\n"
+    "references them.",
+) + """
 
-def run_claude(prompt: str, session_id: str | None) -> dict:
+For this local invocation, review the current working directory against the
+caller's prompt instead of a GitHub issue. The prompt may contain requirements
+and a plan directly or reference their locations. Do not access GitHub; apply
+the same static review and response contract.
+"""
+
+
+def run_claude(
+        prompt: str,
+        session_id: str | None,
+        system_prompt: str = SYSTEM_PROMPT) -> dict:
     exe = shutil.which("claude")
     if not exe:
         return {"session_id": session_id, "status": "UNKNOWN",
@@ -80,7 +97,7 @@ def run_claude(prompt: str, session_id: str | None) -> dict:
 
     cmd = [exe, "-p", prompt, "--model", MODEL, "--effort", EFFORT,
            "--permission-mode", PERMISSION_MODE, "--output-format", "json",
-           "--append-system-prompt", SYSTEM_PROMPT]
+           "--append-system-prompt", system_prompt]
     if session_id:
         cmd += ["--resume", session_id]
 
@@ -127,10 +144,16 @@ def main() -> int:
     reply_parser.add_argument("issue", help="GitHub issue number or URL")
     reply_parser.add_argument("answers")
 
+    local_parser = sub.add_parser(
+        "local", help="statically review against a direct prompt")
+    local_parser.add_argument("prompt")
+
     args = parser.parse_args()
     try:
         if args.command == "new":
             result = run_claude(_issue_prompt(read_issue(args.issue)), None)
+        elif args.command == "local":
+            result = run_claude(args.prompt, None, LOCAL_SYSTEM_PROMPT)
         else:
             result = run_claude(args.answers, args.session_id)
     except GitHubIssueError as error:
