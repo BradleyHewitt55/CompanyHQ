@@ -18,7 +18,7 @@ loading a different plugin, never changing consumer code.
     conventions nor attributes can express (composite keys, seed data).
 - **Providers** live under `Projects/Services/` as one plugin per database.
   Current: [`Postgress`][5] (EF Core + Npgsql) — see the
-  [Postgress service doc](../Services/Postgress.md). Only provider projects may
+  [Postgress service README](../../Projects/Services/Postgress/README.md). Only provider projects may
   reference a database driver.
 
 ## Configuration
@@ -71,7 +71,7 @@ snapshot can describe it. Instead the migrator scaffolds the live database, diff
 it against the runtime model, and applies **additive changes only** (new tables,
 columns, indexes). Destructive operations are logged and skipped unless
 `Postgress:AllowDestructiveMigrations` is set — a restart must never silently drop
-data. See the [Postgress service doc](../Services/Postgress.md) for configuration.
+data. See the [Postgress service README](../../Projects/Services/Postgress/README.md) for configuration.
 
 [1]: ../../Projects/Abstractions/Data/BaseModel.cs
 [2]: ../../Projects/Abstractions/Data/IRepository.cs

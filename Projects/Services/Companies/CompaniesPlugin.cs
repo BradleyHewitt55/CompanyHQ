@@ -1,5 +1,5 @@
-using Abstractions;
 using Abstractions.Companies;
+using Abstractions.Plugins;
 using CompanyHQ.Services.Companies.Services;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -8,9 +8,14 @@ namespace CompanyHQ.Services.Companies;
 
 public sealed class CompaniesPlugin : ICompanyHqPlugin
 {
-    public string Id => "companyhq.companies";
-    public string Name => "Companies";
-    public Version Version => new(1, 0, 0);
+    public PluginDescriptor Descriptor { get; } = new(
+        "companyhq.companies",
+        "Companies",
+        "Company registry, tenant context, paths, and service scaffolding.",
+        new Version(1, 0, 0),
+        PluginOrigin.BuiltIn,
+        PluginActivation.Required,
+        []);
 
     public void ConfigureServices(IServiceCollection services, IConfiguration configuration)
     {

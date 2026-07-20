@@ -57,7 +57,7 @@ internal static class ServiceTemplate
     internal static string Plugin(string name) =>
         $$"""
         using System.Reflection;
-        using Abstractions;
+        using Abstractions.Plugins;
         using Microsoft.AspNetCore.Builder;
         using Microsoft.Extensions.Configuration;
         using Microsoft.Extensions.DependencyInjection;
@@ -66,9 +66,14 @@ internal static class ServiceTemplate
 
         public sealed class {{name}}Plugin : ICompanyHqPlugin
         {
-            public string Id => "companyhq.{{name.ToLowerInvariant()}}";
-            public string Name => "{{name}}";
-            public Version Version => new(0, 1, 0);
+            public PluginDescriptor Descriptor { get; } = new(
+                "companyhq.{{name.ToLowerInvariant()}}",
+                "{{name}}",
+                "{{name}} company service.",
+                new Version(0, 1, 0),
+                PluginOrigin.Company,
+                PluginActivation.Optional,
+                []);
 
             public void ConfigureServices(IServiceCollection services, IConfiguration configuration)
             {

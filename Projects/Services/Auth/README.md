@@ -22,7 +22,7 @@ DTOs stay in `Auth/Dtos` because they are Auth API contracts. Provider-neutral e
 ## I only need the default setup
 
 [`AuthPlugin`][1] is loaded through the shared registry beside Companies and a
-data-provider plugin — hosts never construct it directly (see [Plugins](../Architecture/Plugins.md)):
+data-provider plugin — hosts never construct it directly (see [Plugins](../../../Docs/Architecture/Plugins.md)):
 
 ```csharp
 builder.Services.AddCompanyHqPlugins(builder.Configuration);
@@ -72,7 +72,7 @@ app.MapRazorComponents<App>()
 </Router>
 ```
 
-The Admin host consumes Auth exactly this way — see [Admin host](../Architecture/AdminHost.md).
+The Admin host consumes Auth exactly this way — see [Admin host](../../../Docs/Architecture/AdminHost.md).
 
 Auth forms submit to [`AuthController`][8], not `IUserService`:
 
@@ -155,25 +155,25 @@ The first response renders the Auth layout. The second returns the current user'
 - **Not forwarding the client IP.** Behind a proxy without `X-Forwarded-For`, every client shares one rate-limit bucket.
 - **Omitting `RootNamespace` from a plugin project.** Razor types land in `{Assembly}.*` and the layout cannot be imported by its C# namespace.
 
-[1]: ../../Projects/Services/Auth/AuthPlugin.cs
-[2]: ../../Projects/Services/Auth/Services/AuthService.cs
-[3]: ../../Projects/Abstractions/Users/IUserService.cs
-[4]: ../../Projects/Abstractions/Users/ICurrentUser.cs
-[5]: ../../Projects/Services/Auth/Pages/Login.razor
-[6]: ../../Projects/Services/Auth/Pages/Register.razor
-[7]: ../../Projects/Services/Auth/Layout/AuthLayout.razor
-[8]: ../../Projects/Services/Auth/Api/AuthController.cs
-[9]: ../../Projects/Services/Auth/Dtos/AdminUserDto.cs
-[10]: ../../Projects/Services/Auth/Dtos/ClientUserDto.cs
-[11]: ../../Projects/Services/Auth/Components/LoginForm.razor
-[12]: ../../Projects/Services/Auth/Components/RegisterForm.razor
-[13]: ../../Projects/Services/Auth/Models/LoginModel.cs
-[14]: ../../Projects/Services/Auth/Models/RegisterModel.cs
-[15]: ../../Projects/Services/Auth/Services/UserService.cs
-[16]: ../../Projects/Services/Auth/Services/Authorization/CurrentCompanyCookieEvents.cs
-[17]: ../../Projects/Services/Auth/Services/Authorization/CurrentCompanyRequirement.cs
-[18]: ../../Projects/Services/Auth/Services/Authorization/AuthClaims.cs
-[19]: ../../Projects/Services/Auth/Auth.csproj
-[20]: ../../Projects/Abstractions/Users/PasswordPolicy.cs
-[21]: ../../Projects/Services/Auth/Api/UsersController.cs
-[22]: ../../Projects/Abstractions/ICompanyHqPlugin.cs
+[1]: AuthPlugin.cs
+[2]: Services/AuthService.cs
+[3]: ../../Abstractions/Users/IUserService.cs
+[4]: ../../Abstractions/Users/ICurrentUser.cs
+[5]: Pages/Login.razor
+[6]: Pages/Register.razor
+[7]: Layout/AuthLayout.razor
+[8]: Api/AuthController.cs
+[9]: Dtos/AdminUserDto.cs
+[10]: Dtos/ClientUserDto.cs
+[11]: Components/LoginForm.razor
+[12]: Components/RegisterForm.razor
+[13]: Models/LoginModel.cs
+[14]: Models/RegisterModel.cs
+[15]: Services/UserService.cs
+[16]: Services/Authorization/CurrentCompanyCookieEvents.cs
+[17]: Services/Authorization/CurrentCompanyRequirement.cs
+[18]: Services/Authorization/AuthClaims.cs
+[19]: Auth.csproj
+[20]: ../../Abstractions/Users/PasswordPolicy.cs
+[21]: Api/UsersController.cs
+[22]: ../../Abstractions/ICompanyHqPlugin.cs

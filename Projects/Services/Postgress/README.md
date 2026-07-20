@@ -3,7 +3,7 @@
 This guide is for hosts and plugins that need persistence. Postgress is the PostgreSQL
 provider plugin ([`PostgressPlugin`][1], EF Core + Npgsql). Consumers never reference
 it directly — you code against the contracts in `Abstractions.Data` and load this
-plugin to make PostgreSQL the store. See [Data access](../Architecture/DataAccess.md)
+plugin to make PostgreSQL the store. See [Data access](../../../Docs/Architecture/DataAccess.md)
 for the decision behind that split.
 
 ## I want to store and read data from my plugin
@@ -41,7 +41,7 @@ it through the repository instead.
 
 ## I want to host the plugin
 
-Each company gets its own database (see [Companies](../Architecture/Companies.md));
+Each company gets its own database (see [Companies](../../../Docs/Architecture/Companies.md));
 which one a call hits is decided by the scoped `ICompanyContext`. The platform
 database — shared state that belongs to no company — is optional and configured as:
 
@@ -59,7 +59,7 @@ that is intentional; there is no silent in-memory fallback.
 ## I want a company's database hosted on this server
 
 Pick "Host on this server" in the `companyhq --c <CompanyName>` flow (or the
-fallback dashboard gate; see [Companies](../Architecture/Companies.md)). [`CompanyDatabases`][10] provisions a
+fallback dashboard gate; see [Companies](../../../Docs/Architecture/Companies.md)). [`CompanyDatabases`][10] provisions a
 dedicated database + role on the local Postgres server, generates the password,
 writes `Companies/{Name}/db.json`, and syncs the schema immediately — no
 credentials are ever typed. Provisioning needs an admin login on the server:
@@ -107,7 +107,7 @@ For a destructive change in production, apply the SQL manually and restart.
 ## I want mapping the conventions can't express
 
 Attributes first (`[Index]`, `[MaxLength]`, `[Required]` — see
-[Data access](../Architecture/DataAccess.md#constraints-attributes-first)). If no
+[Data access](../../../Docs/Architecture/DataAccess.md#constraints-attributes-first)). If no
 attribute can express the rule (composite keys, seed data), register an
 [`IModelContributor`][7] in your plugin's `ConfigureServices`; the provider's
 [`DbContext`][8] applies every contributor after convention mapping.
@@ -140,15 +140,15 @@ Every concrete `BaseModel` subclass in a loaded assembly should appear as a tabl
 - **Expecting a column drop or type change to just happen.** Only additive changes
   apply automatically; check the startup log for skipped-operation warnings.
 - **Downgrading the project SDK.** Postgress looks headless but is a Razor Class
-  Library like every plugin — see [Plugins](../Architecture/Plugins.md).
+  Library like every plugin — see [Plugins](../../../Docs/Architecture/Plugins.md).
 
-[1]: ../../Projects/Services/Postgress/PostgressPlugin.cs
-[2]: ../../Projects/Abstractions/Data/BaseModel.cs
-[3]: ../../Projects/Abstractions/Data/IRepository.cs
-[4]: ../../Projects/Services/Postgress/Services/PostgressRepositories.cs
-[5]: ../../Projects/Abstractions/Data/IQueryService.cs
-[6]: ../../Projects/Services/Postgress/Services/PostgressQueries.cs
-[7]: ../../Projects/Abstractions/Data/IModelContributor.cs
-[8]: ../../Projects/Services/Postgress/DbContext.cs
-[9]: ../../Projects/Services/Postgress/Services/SchemaMigrator.cs
-[10]: ../../Projects/Services/Postgress/Services/CompanyDatabases.cs
+[1]: PostgressPlugin.cs
+[2]: ../../Abstractions/Data/BaseModel.cs
+[3]: ../../Abstractions/Data/IRepository.cs
+[4]: Services/PostgressRepositories.cs
+[5]: ../../Abstractions/Data/IQueryService.cs
+[6]: Services/PostgressQueries.cs
+[7]: ../../Abstractions/Data/IModelContributor.cs
+[8]: DbContext.cs
+[9]: Services/SchemaMigrator.cs
+[10]: Services/CompanyDatabases.cs

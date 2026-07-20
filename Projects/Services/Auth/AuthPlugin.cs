@@ -1,6 +1,6 @@
 using System.Reflection;
 using System.Threading.RateLimiting;
-using Abstractions;
+using Abstractions.Plugins;
 using Abstractions.Users;
 using CompanyHQ.Services.Auth.Api;
 using CompanyHQ.Services.Auth.Services.Authorization;
@@ -18,9 +18,14 @@ namespace CompanyHQ.Services.Auth;
 
 public sealed class AuthPlugin : ICompanyHqPlugin
 {
-    public string Id => "companyhq.auth";
-    public string Name => "Auth";
-    public Version Version => new(1, 0, 0);
+    public PluginDescriptor Descriptor { get; } = new(
+        "companyhq.auth",
+        "Auth",
+        "Users, sessions, roles, and company-bound authorization.",
+        new Version(1, 0, 0),
+        PluginOrigin.BuiltIn,
+        PluginActivation.Required,
+        ["companyhq.companies", "companyhq.postgress"]);
 
     public void ConfigureServices(IServiceCollection services, IConfiguration configuration)
     {

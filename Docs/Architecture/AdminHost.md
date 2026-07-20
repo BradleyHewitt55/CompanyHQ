@@ -49,7 +49,7 @@ user logic. All four come from the Auth plugin:
 | Cookie + policy middleware | [`AuthPlugin.ConfigureApplication`][17] |
 
 The host's only involvement is `CompanyHqPlugins.RouteAssemblies`, which makes
-those pages routable. See the [Auth service doc](../Services/Auth.md).
+those pages routable. See the [Auth service README](../../Projects/Services/Auth/README.md).
 
 ## Entry flow
 

@@ -1,4 +1,4 @@
-using Abstractions;
+using Abstractions.Plugins;
 using CompanyHQ.Services.Auth;
 using CompanyHQ.Services.Companies;
 using CompanyHQ.Services.Postgress;

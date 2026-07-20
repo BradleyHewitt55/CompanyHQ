@@ -35,7 +35,7 @@ CompanyHQ is a **plugin-based platform**: a thin ASP.NET Core host loads **headl
 
 - **Contracts**: [`ICompanyHqPlugin`][2] is the plugin entry point: identity, `ConfigureServices`, `ConfigureApplication` for the middleware a plugin's services require, and `RouteAssemblies` for its routable pages. The data contracts — [`BaseModel`][3], [`IRepository<T>`][4], [`IQueryService<T>`][5], [`IModelContributor`][6] — are the only persistence surface consumers ever see. Schema-only intent: no runtime logic beyond defaults.
 
-- **Plugins**: one project per service under `Projects/Services/`, each a Razor Class Library implementing [`ICompanyHqPlugin`][2]. Current: [`PostgressPlugin`][7] (persistence provider, see [Postgress service doc](../Services/Postgress.md)), [`CompaniesPlugin`][13] (company creation, registry, current-company context, and service scaffolding — see [Companies](Companies.md)), and [`AuthPlugin`][8] (company-bound login and authorization, see [Auth](../Services/Auth.md)). A plugin registers its own services in `ConfigureServices`; the host never wires plugin internals.
+- **Plugins**: one project per service under `Projects/Services/`, each a Razor Class Library implementing [`ICompanyHqPlugin`][2]. Current: [`PostgressPlugin`][7] (persistence provider, see [Postgress service README](../../Projects/Services/Postgress/README.md)), [`CompaniesPlugin`][13] (company creation, registry, current-company context, and service scaffolding — see [Companies](Companies.md)), and [`AuthPlugin`][8] (company-bound login and authorization, see [Auth](../../Projects/Services/Auth/README.md)). A plugin registers its own services in `ConfigureServices`; the host never wires plugin internals.
 
 ## Startup flow
 

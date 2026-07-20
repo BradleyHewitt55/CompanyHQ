@@ -1,13 +1,14 @@
 using Admin.Components;
 using Admin.Infrastructure;
-using CompanyHQ.Services.Plugins;
+using Abstractions.Plugins;
+using CompanyHQ.Infrastructure.PluginDiscovery;
 
 var builder = WebApplication.CreateBuilder(args);
 
 builder.Services.AddRazorComponents().AddInteractiveServerComponents();
 builder.Services.AddCascadingAuthenticationState();
 builder.Services.AddHttpContextAccessor();
-builder.Services.AddCompanyHqPlugins(builder.Configuration);
+builder.Services.AddPluginDiscovery(builder.Configuration);
 
 var app = builder.Build();
 
@@ -33,15 +34,16 @@ app.UseHttpsRedirection();
 // Tenant first: plugin middleware (cookie validation included) reads the ambient
 // company, so resolving it afterwards would authorize against an unset tenant.
 app.UseMiddleware<CompanyResolutionMiddleware>();
-app.UseCompanyHqPlugins();
+app.UseDiscoveredPlugins();
 
 app.UseAntiforgery();
 app.MapStaticAssets();
 app.MapControllers();
 
+var pluginCatalog = app.Services.GetRequiredService<IPluginCatalog>();
 app.MapRazorComponents<App>()
     .AddInteractiveServerRenderMode()
-    .AddAdditionalAssemblies(CompanyHqPlugins.RouteAssemblies);
+    .AddAdditionalAssemblies(pluginCatalog.RouteAssemblies.ToArray());
 app.Run();
 
 public partial class Program;

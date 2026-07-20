@@ -1,6 +1,6 @@
 using Abstractions.Companies;
 using CompanyHQ.Cli;
-using CompanyHQ.Services.Plugins;
+using CompanyHQ.Infrastructure.PluginDiscovery;
 using CompanyHQ.Services.Companies.Services;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -70,7 +70,7 @@ var config = new ConfigurationBuilder()
 var services = new ServiceCollection();
 services.AddLogging();
 services.AddSingleton<IConfiguration>(config);
-services.AddCompanyHqPlugins(config);
+services.AddPluginDiscovery(config);
 
 await using var provider = services.BuildServiceProvider();
 try

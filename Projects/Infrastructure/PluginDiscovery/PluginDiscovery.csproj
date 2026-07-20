@@ -2,21 +2,14 @@
 
   <PropertyGroup>
     <TargetFramework>net10.0</TargetFramework>
-    <RootNamespace>CompanyHQ.Services.Plugins</RootNamespace>
+    <RootNamespace>CompanyHQ.Infrastructure.PluginDiscovery</RootNamespace>
     <Nullable>enable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
-    <NoWarn>$(NoWarn);NU1510</NoWarn>
   </PropertyGroup>
 
   <ItemGroup>
     <FrameworkReference Include="Microsoft.AspNetCore.App" />
-  </ItemGroup>
-
-  <ItemGroup>
     <ProjectReference Include="..\..\Abstractions\Abstractions.csproj" />
-    <ProjectReference Include="..\Companies\Companies.csproj" />
-    <ProjectReference Include="..\Postgress\Postgress.csproj" />
-    <ProjectReference Include="..\Auth\Auth.csproj" />
   </ItemGroup>
 
 </Project>

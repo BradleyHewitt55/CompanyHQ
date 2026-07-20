@@ -13,13 +13,13 @@ One bullet per project: what it is, and the constraint that trips people up.
   that names plugins.** Hosts reference this instead of the services.
 - [`Projects/Services/Companies`][4]: tenants — registry, paths, context, scaffolding,
   catalogue, locator. **Must be registered first**; the others resolve against it.
-  See [Companies](../Services/Companies.md).
+  See [Companies](../../Projects/Services/Companies/README.md).
 - [`Projects/Services/Postgress`][5]: the persistence provider. **Loading it is the
   provider choice** — consumers only ever see `Abstractions.Data`. See
-  [Postgress](../Services/Postgress.md).
+  [Postgress](../../Projects/Services/Postgress/README.md).
 - [`Projects/Services/Auth`][6]: company-bound login, registration, authorization,
   and the pages and layout for them. **The reference layout every scaffolded
-  service copies.** See [Auth](../Services/Auth.md).
+  service copies.** See [Auth](../../Projects/Services/Auth/README.md).
 - [`Projects/Admin`][7]: the Blazor Server host. **Owns the pipeline and shell only**;
   it names no plugin. See [Admin host](../Architecture/AdminHost.md).
 - [`Projects/Cli`][8]: the `companyhq` executable. **A headless host** — it calls

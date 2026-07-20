@@ -1,6 +1,6 @@
-using Abstractions;
 using Abstractions.Companies;
 using Abstractions.Data;
+using Abstractions.Plugins;
 using CompanyHQ.Services.Postgress.Services;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
@@ -10,9 +10,14 @@ namespace CompanyHQ.Services.Postgress;
 
 public sealed class PostgressPlugin : ICompanyHqPlugin
 {
-    public string Id => "companyhq.postgress";
-    public string Name => "Postgress";
-    public Version Version => new(1, 0, 0);
+    public PluginDescriptor Descriptor { get; } = new(
+        "companyhq.postgress",
+        "Postgress",
+        "PostgreSQL persistence and per-company schema synchronization.",
+        new Version(1, 0, 0),
+        PluginOrigin.BuiltIn,
+        PluginActivation.Required,
+        ["companyhq.companies"]);
 
     public void ConfigureServices(IServiceCollection services, IConfiguration configuration)
     {

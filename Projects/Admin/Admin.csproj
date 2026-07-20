@@ -9,8 +9,11 @@
 
   <ItemGroup>
     <ProjectReference Include="..\Abstractions\Abstractions.csproj" />
-    <!-- Plugins arrive through the Plugins service so the host never names them individually. -->
-    <ProjectReference Include="..\Services\Plugins\Plugins.csproj" />
+    <ProjectReference Include="..\Infrastructure\PluginDiscovery\PluginDiscovery.csproj" />
+    <!-- Project references package built-ins; runtime code discovers them by contract. -->
+    <ProjectReference Include="..\Services\Companies\Companies.csproj" />
+    <ProjectReference Include="..\Services\Postgress\Postgress.csproj" />
+    <ProjectReference Include="..\Services\Auth\Auth.csproj" />
   </ItemGroup>
 
 </Project>

@@ -77,12 +77,12 @@ await Scaffolder.ScaffoldAsync("Billing");
 
 `ScaffoldAsync` throws `ArgumentException` for an invalid name,
 `InvalidOperationException` for a duplicate or when no company is selected. See
-[Service scaffolding](../Architecture/ServiceScaffolding.md) for the generated
+[Service scaffolding](../../../Docs/Architecture/ServiceScaffolding.md) for the generated
 layout.
 
 ## I want to create a company
 
-Interactively, through the CLI — see [Companies architecture](../Architecture/Companies.md):
+Interactively, through the CLI — see [Companies architecture](../../../Docs/Architecture/Companies.md):
 
 ```powershell
 dotnet run --project Projects/Cli/Cli.csproj -- --c "Acme" --root "$PWD/MockServer"
@@ -110,23 +110,23 @@ service directory contains `{Name}.csproj` and `{Name}Plugin.cs`.
 - **Expecting `RegisterAsync` to produce a usable tenant.** It creates directories.
   A tenant is usable after the database exists and an admin is seeded.
 - **Expecting a scaffolded service to load.** It compiles; nothing discovers it
-  yet. See [Plugins](../Architecture/Plugins.md).
+  yet. See [Plugins](../../../Docs/Architecture/Plugins.md).
 
-[1]: ../../Projects/Services/Companies/Services/CompanyRegistry.cs
-[2]: ../../Projects/Services/Companies/Services/CompanyCreation.cs
-[3]: ../../Projects/Services/Companies/Services/ServerPaths.cs
-[4]: ../../Projects/Services/Companies/Services/ServiceScaffolder.cs
-[5]: ../../Projects/Services/Companies/Services/ServiceTemplate.cs
-[6]: ../../Projects/Services/Companies/Services/ServiceCatalog.cs
-[7]: ../../Projects/Services/Companies/Services/CompanyLocator.cs
-[8]: ../../Projects/Services/Companies/Services/CompanyContext.cs
-[9]: ../../Projects/Services/Companies/Services/NameValidator.cs
-[10]: ../../Projects/Services/Companies/CompaniesPlugin.cs
-[11]: ../../Projects/Services/Companies/Companies.csproj
-[12]: ../../Projects/Abstractions/Companies/ICompanyRegistry.cs
-[13]: ../../Projects/Abstractions/Companies/ICompanyContext.cs
-[14]: ../../Projects/Abstractions/Companies/IServerPaths.cs
-[15]: ../../Projects/Abstractions/Companies/IServiceCatalog.cs
-[16]: ../../Projects/Abstractions/Companies/IServiceScaffolder.cs
-[17]: ../../Projects/Abstractions/Companies/ICompanyLocator.cs
-[18]: ../../Projects/Admin/Infrastructure/CompanyResolutionMiddleware.cs
+[1]: Services/CompanyRegistry.cs
+[2]: Services/CompanyCreation.cs
+[3]: Services/ServerPaths.cs
+[4]: Services/ServiceScaffolder.cs
+[5]: Services/ServiceTemplate.cs
+[6]: Services/ServiceCatalog.cs
+[7]: Services/CompanyLocator.cs
+[8]: Services/CompanyContext.cs
+[9]: Services/NameValidator.cs
+[10]: CompaniesPlugin.cs
+[11]: Companies.csproj
+[12]: ../../Abstractions/Companies/ICompanyRegistry.cs
+[13]: ../../Abstractions/Companies/ICompanyContext.cs
+[14]: ../../Abstractions/Companies/IServerPaths.cs
+[15]: ../../Abstractions/Companies/IServiceCatalog.cs
+[16]: ../../Abstractions/Companies/IServiceScaffolder.cs
+[17]: ../../Abstractions/Companies/ICompanyLocator.cs
+[18]: ../../Admin/Infrastructure/CompanyResolutionMiddleware.cs
