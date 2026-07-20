@@ -1,0 +1,57 @@
+@rendermode InteractiveServer
+@inject IServiceCatalog Catalog
+@inject IServiceScaffolder Scaffolder
+@inject IJSRuntime JavaScript
+
+<aside class="file-explorer @(visible ? "visible" : null)" @onmouseenter="Open" @onmouseleave="Close">
+    <div class="file-explorer-header">
+        <span>Services</span>
+        <AuthorizeView Roles="Admin">
+            <Authorized><button type="button" title="Add service" @onclick="AddServiceAsync">+</button></Authorized>
+        </AuthorizeView>
+    </div>
+    <div class="file-tree">
+        @foreach (var service in services)
+        {
+            <TreeRow Label="@service" />
+        }
+    </div>
+    @if (error is not null) { <p class="error">@error</p> }
+</aside>
+<div class="explorer-trigger-layer" @onmouseenter="Open" aria-hidden="true"></div>
+
+@code {
+    private IReadOnlyList<string> services = [];
+    private bool visible;
+    private string? error;
+
+    // The ambient company is set by CompanyResolutionMiddleware. Chrome reads it and
+    // never writes it: on an interactive circuit the DI scope outlives the request, so
+    // a component assigning it would re-point the tenant for everything downstream.
+    protected override async Task OnInitializedAsync() => await RefreshAsync();
+
+    private async Task RefreshAsync() => services = await Catalog.ListAsync();
+
+    private async Task AddServiceAsync()
+    {
+        var name = await JavaScript.InvokeAsync<string?>("prompt", "Service name");
+        if (string.IsNullOrWhiteSpace(name))
+        {
+            return;
+        }
+
+        try
+        {
+            await Scaffolder.ScaffoldAsync(name);
+            error = null;
+            await RefreshAsync();
+        }
+        catch (Exception exception)
+        {
+            error = exception.Message;
+        }
+    }
+
+    private void Open() => visible = true;
+    private void Close() => visible = false;
+}

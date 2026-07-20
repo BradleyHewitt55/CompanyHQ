@@ -1,0 +1,22 @@
+{
+  "version": "0.2.0",
+  "configurations": [
+    {
+      "name": "Run Admin UI",
+      "type": "coreclr",
+      "request": "launch",
+      "preLaunchTask": "Admin: Prepare Debug",
+      "program": "${workspaceFolder}/Projects/Admin/bin/Debug/net10.0/Admin.dll",
+      "cwd": "${workspaceFolder}/Projects/Admin",
+      "env": {
+        "ASPNETCORE_ENVIRONMENT": "Development",
+        "ASPNETCORE_URLS": "https://localhost:7081;http://localhost:5255"
+      },
+      "stopAtEntry": false,
+      "serverReadyAction": {
+        "action": "openExternally",
+        "pattern": "\\bNow listening on:\\s+(https?://\\S+)"
+      }
+    }
+  ]
+}

@@ -1,0 +1,26 @@
+<div class="tree-node">
+    <div class="tree-item" @onclick="Toggle">
+        <span>@Label</span>
+        @if (ShowAdd)
+        {
+            <button type="button" class="tree-add" @onclick:stopPropagation="true" title="Add to @Label">+</button>
+        }
+    </div>
+    @if (HasChildren && open)
+    {
+        <div class="tree-children">@ChildContent</div>
+    }
+</div>
+
+@code {
+    [Parameter, EditorRequired] public string Label { get; set; } = "";
+    [Parameter] public bool HasChildren { get; set; }
+    [Parameter] public bool ShowAdd { get; set; }
+    [Parameter] public bool InitiallyOpen { get; set; }
+    [Parameter] public RenderFragment? ChildContent { get; set; }
+
+    private bool open;
+
+    protected override void OnInitialized() => open = InitiallyOpen;
+    private void Toggle() { if (HasChildren) open = !open; }
+}

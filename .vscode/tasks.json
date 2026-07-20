@@ -1,0 +1,85 @@
+{
+  "version": "2.0.0",
+  "tasks": [
+    {
+      "label": "Admin: Terminate running instance",
+      "type": "shell",
+      "command": "Get-CimInstance Win32_Process | Where-Object { ($_.Name -eq 'dotnet.exe' -or $_.Name -eq 'Admin.exe') -and $_.CommandLine -match 'Projects[\\/]Admin|Admin\\.dll' } | ForEach-Object { taskkill /PID $_.ProcessId /T /F 2>$null }; exit 0",
+      "options": {
+        "shell": {
+          "executable": "powershell.exe",
+          "args": [
+            "-NoProfile",
+            "-ExecutionPolicy",
+            "Bypass",
+            "-Command"
+          ]
+        }
+      },
+      "problemMatcher": []
+    },
+    {
+      "label": "Admin: Build",
+      "type": "process",
+      "command": "dotnet",
+      "args": [
+        "build",
+        "${workspaceFolder}/Projects/Admin/Admin.csproj"
+      ],
+      "problemMatcher": "$msCompile"
+    },
+    {
+      "label": "Admin: Watch",
+      "type": "process",
+      "command": "dotnet",
+      "args": [
+        "watch",
+        "run",
+        "--project",
+        "${workspaceFolder}/Projects/Admin/Admin.csproj"
+      ],
+      "isBackground": true,
+      "problemMatcher": {
+        "owner": "dotnet-watch",
+        "pattern": {
+          "regexp": "^(.*)$",
+          "message": 1
+        },
+        "background": {
+          "activeOnStart": true,
+          "beginsPattern": "^dotnet watch",
+          "endsPattern": "Now listening on:"
+        }
+      },
+      "presentation": {
+        "reveal": "always",
+        "panel": "dedicated",
+        "focus": true,
+        "clear": true
+      }
+    },
+    {
+      "label": "Admin: Prepare Debug",
+      "dependsOrder": "sequence",
+      "dependsOn": [
+        "Admin: Terminate running instance",
+        "Admin: Build"
+      ],
+      "problemMatcher": []
+    },
+    {
+      "label": "Admin: Restart UI",
+      "dependsOrder": "sequence",
+      "dependsOn": [
+        "Admin: Terminate running instance",
+        "Admin: Build",
+        "Admin: Watch"
+      ],
+      "problemMatcher": [],
+      "group": {
+        "kind": "build",
+        "isDefault": true
+      }
+    }
+  ]
+}

@@ -7,5 +7,6 @@ obj
 eng
 eng
 .zap-scaffold
-.repos/
+.worktrees/
 database/backups/
+MockServer/

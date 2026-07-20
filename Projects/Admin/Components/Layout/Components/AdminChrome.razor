@@ -1,0 +1,37 @@
+@rendermode InteractiveServer
+
+<div class="mobile-overlay @(sidebarOpen ? "visible" : null)" @onclick="CloseSidebar"></div>
+<aside class="sidebar @(sidebarOpen ? "open" : null)"><NavMenu /></aside>
+
+<header class="header">
+    <div class="header-left">
+        <button class="icon-btn sidebar-toggle" @onclick="ToggleSidebar" aria-label="Toggle navigation"><span class="material-symbols-outlined">menu</span></button>
+        <span class="header-badge">BusinessHQ Admin</span>
+    </div>
+    <div class="header-right">
+        <a class="view-site" href="/" target="_blank"><span class="material-symbols-outlined">language</span><span>View website</span></a>
+        <button class="icon-btn notification-badge" aria-label="Notifications"><span class="material-symbols-outlined">notifications</span></button>
+        <div class="user-dropdown">
+            <button class="user-trigger" @onclick="ToggleUserMenu">
+                <span class="user-avatar">OM</span><span class="user-name">Olivia Martin</span><span class="material-symbols-outlined chevron">expand_more</span>
+            </button>
+            @if (userMenuOpen)
+            {
+                <div class="user-menu">
+                    <a href="profile"><span class="material-symbols-outlined">person</span>My Profile</a>
+                    <div></div>
+                    <a href="switch-company"><span class="material-symbols-outlined">swap_horiz</span>Switch Company</a>
+                </div>
+            }
+        </div>
+    </div>
+</header>
+
+@code {
+    private bool sidebarOpen;
+    private bool userMenuOpen;
+
+    private void ToggleSidebar() => sidebarOpen = !sidebarOpen;
+    private void CloseSidebar() => sidebarOpen = false;
+    private void ToggleUserMenu() => userMenuOpen = !userMenuOpen;
+}

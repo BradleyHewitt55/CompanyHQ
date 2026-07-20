@@ -1,0 +1,31 @@
+@* Root and /admin are the same screen: the gate decides whether the visitor gets the
+   dashboard, database setup, the Auth setup-user page, or the Auth login page. *@
+@page "/"
+@page "/admin"
+@layout CompanyGateLayout
+@inject ICompanyContext CompanyContext
+@inject IServiceCatalog Catalog
+
+<PageTitle>@CompanyContext.Current</PageTitle>
+
+<h1>@CompanyContext.Current</h1>
+
+@if (services.Count == 0)
+{
+    <p>No services yet. Add one from the Services explorer.</p>
+}
+else
+{
+    <ul class="service-list">
+        @foreach (var service in services)
+        {
+            <li>@service</li>
+        }
+    </ul>
+}
+
+@code {
+    private IReadOnlyList<string> services = [];
+
+    protected override async Task OnInitializedAsync() => services = await Catalog.ListAsync();
+}

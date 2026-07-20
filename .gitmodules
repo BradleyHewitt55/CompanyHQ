@@ -1,0 +1,24 @@
+[submodule ".repos/.Net.Docs"]
+	path = .repos/.Net.Docs
+	url = https://github.com/dotnet/docs.git
+[submodule ".repos/MerchantApi.Docs"]
+	path = .repos/MerchantApi.Docs
+	url = https://github.com/google/merchant-api-samples.git
+[submodule ".repos/EntityFramework.Docs"]
+	path = .repos/EntityFramework.Docs
+	url = https://github.com/dotnet/EntityFramework.Docs.git
+[submodule ".repos/AspNetCore.Docs"]
+	path = .repos/AspNetCore.Docs
+	url = https://github.com/dotnet/AspNetCore.Docs.git
+[submodule ".repos/OpenDesign"]
+	path = .repos/OpenDesign
+	url = https://github.com/nexu-io/open-design.git
+[submodule ".repos/T3Code"]
+	path = .repos/T3Code
+	url = https://github.com/pingdotgg/t3code.git
+[submodule ".repos/OrchardCore"]
+	path = .repos/OrchardCore
+	url = https://github.com/OrchardCMS/OrchardCore.git
+[submodule ".repos/Hermes"]
+	path = .repos/Hermes
+	url = https://github.com/NousResearch/hermes-agent.git

@@ -1,0 +1,118 @@
+@inherits LayoutComponentBase
+@layout MainLayout
+@using Abstractions.Data
+@inject ICompanyContext CompanyContext
+@inject ICompanyDatabases Databases
+@inject IUserService Users
+@inject NavigationManager Navigation
+
+@if (CompanyContext.Current is null)
+{
+    <p>No company is configured for this domain.</p>
+}
+else if (!configured)
+{
+    <section class="company-setup">
+        <h2>Set up the database for @CompanyContext.Current</h2>
+        <p>Choose where this company's data lives.</p>
+        <EditForm Model="this" FormName="database-setup" OnValidSubmit="SubmitAsync">
+            <label><InputRadioGroup @bind-Value="mode"><InputRadio Value="@("local")" /> Host it on this server</InputRadioGroup></label>
+            <label><InputRadioGroup @bind-Value="mode"><InputRadio Value="@("external")" /> Use an external database</InputRadioGroup></label>
+            @if (mode == "external")
+            {
+                <label>Connection string <InputText @bind-Value="connectionString" /></label>
+            }
+            <button type="submit" disabled="@busy">@(busy ? "Setting up..." : "Create database")</button>
+        </EditForm>
+        @if (error is not null) { <p class="error">@error</p> }
+    </section>
+}
+else if (!ready)
+{
+    <p>Loading company...</p>
+}
+else if (!isAdmin)
+{
+    <p>Administrator access is required.</p>
+}
+else
+{
+    @Body
+}
+
+@code {
+    [CascadingParameter] private Task<AuthenticationState> AuthenticationStateTask { get; set; } = default!;
+    private bool configured;
+    private bool ready;
+    private bool isAdmin;
+    [SupplyParameterFromForm(FormName = "database-setup")]
+    private string? mode { get; set; }
+    [SupplyParameterFromForm(FormName = "database-setup")]
+    private string? connectionString { get; set; }
+    private bool busy;
+    private string? error;
+
+    protected override async Task OnInitializedAsync()
+    {
+        mode ??= "local";
+        connectionString ??= string.Empty;
+        if (CompanyContext.Current is null)
+        {
+            return;
+        }
+
+        configured = Databases.IsConfigured(CompanyContext.Current);
+        if (!configured)
+        {
+            return;
+        }
+
+        if (!await Users.AnyAsync())
+        {
+            Navigation.NavigateTo("/admin/setup-user", forceLoad: true);
+            return;
+        }
+
+        var principal = (await AuthenticationStateTask).User;
+        if (principal.Identity?.IsAuthenticated != true)
+        {
+            Navigation.NavigateTo("/admin/login", forceLoad: true);
+            return;
+        }
+
+        isAdmin = principal.IsInRole(Roles.Admin)
+            && string.Equals(principal.FindFirst(AuthClaims.Company)?.Value,
+                CompanyContext.Current, StringComparison.OrdinalIgnoreCase);
+        ready = true;
+    }
+
+    private async Task SubmitAsync()
+    {
+        if (CompanyContext.Current is null || busy)
+        {
+            return;
+        }
+        if (mode == "external" && string.IsNullOrWhiteSpace(connectionString))
+        {
+            error = "Provide the external database's connection string.";
+            return;
+        }
+
+        busy = true;
+        error = null;
+        try
+        {
+            await Databases.EnsureDatabaseAsync(
+                CompanyContext.Current, mode == "external" ? connectionString : null);
+            Navigation.NavigateTo("/admin/setup-user", forceLoad: true);
+        }
+        catch (Exception exception)
+        {
+            error = exception.Message;
+        }
+        finally
+        {
+            busy = false;
+        }
+    }
+}

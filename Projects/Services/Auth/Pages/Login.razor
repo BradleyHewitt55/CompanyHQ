@@ -1,0 +1,29 @@
+@page "/admin/login"
+@layout AuthLayout
+
+<PageTitle>Admin login</PageTitle>
+
+<h1>Admin login</h1>
+
+@if (CompanyContext.Current is null)
+{
+    <p>No company is configured for this domain.</p>
+}
+else
+{
+    <LoginForm Model="model" Error="@Error" />
+}
+
+@code {
+    [Inject] private ICompanyContext CompanyContext { get; set; } = default!;
+    [CascadingParameter] private HttpContext HttpContext { get; set; } = default!;
+    private string? Error { get; set; }
+    private readonly LoginModel model = new();
+
+    protected override void OnInitialized()
+    {
+        Error = HttpContext.Request.Query.TryGetValue("error", out var error)
+            ? error.FirstOrDefault()
+            : null;
+    }
+}

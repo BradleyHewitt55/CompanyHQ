@@ -1,0 +1,20 @@
+<Project Sdk="Microsoft.NET.Sdk.Razor">
+
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <!-- Without this the generated Razor types land in Auth.* while the C# lands in
+         CompanyHQ.Services.Auth.*, and consumers have to import both. -->
+    <RootNamespace>CompanyHQ.Services.Auth</RootNamespace>
+    <AddRazorSupportForMvc>true</AddRazorSupportForMvc>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <NoWarn>$(NoWarn);NU1510</NoWarn>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <FrameworkReference Include="Microsoft.AspNetCore.App" />
+    <PackageReference Include="Microsoft.Extensions.Identity.Core" Version="10.0.0" />
+    <ProjectReference Include="..\..\Abstractions\Abstractions.csproj" />
+  </ItemGroup>
+
+</Project>

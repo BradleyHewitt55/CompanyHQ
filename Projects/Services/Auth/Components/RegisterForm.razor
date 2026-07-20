@@ -1,0 +1,20 @@
+<form method="post" action="/api/auth/register" class="auth-form">
+    <AntiforgeryToken />
+    <label>Name <input name="Name" value="@Model.Name" required /></label>
+    <label>Surname <input name="Surname" value="@Model.Surname" required /></label>
+    <label>Email <input name="Email" value="@Model.Email" type="email" autocomplete="username" required /></label>
+    <label>Contact number <input name="ContactNumber" value="@Model.ContactNumber" required /></label>
+    <label>Password <input name="Password" type="password" autocomplete="new-password" required /></label>
+    <label>Confirm password <input name="Confirmation" type="password" autocomplete="new-password" required /></label>
+    <button type="submit">Create admin</button>
+</form>
+
+@if (!string.IsNullOrWhiteSpace(Error))
+{
+    <p class="error">@Error</p>
+}
+
+@code {
+    [Parameter, EditorRequired] public RegisterModel Model { get; set; } = default!;
+    [Parameter] public string? Error { get; set; }
+}

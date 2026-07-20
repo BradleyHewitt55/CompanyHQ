@@ -1,0 +1,22 @@
+<form method="post" action="/api/auth/login" class="auth-form">
+    <AntiforgeryToken />
+    <label>
+        Email
+        <input name="Email" value="@Model.Email" type="email" autocomplete="username" required />
+    </label>
+    <label>
+        Password
+        <input name="Password" type="password" autocomplete="current-password" required />
+    </label>
+    <button type="submit">Sign in</button>
+</form>
+
+@if (!string.IsNullOrWhiteSpace(Error))
+{
+    <p class="error">@Error</p>
+}
+
+@code {
+    [Parameter, EditorRequired] public LoginModel Model { get; set; } = default!;
+    [Parameter] public string? Error { get; set; }
+}

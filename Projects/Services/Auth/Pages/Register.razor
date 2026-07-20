@@ -1,0 +1,29 @@
+@page "/admin/setup-user"
+@layout AuthLayout
+
+<PageTitle>Set up admin user</PageTitle>
+
+<h1>Set up admin user</h1>
+
+@if (CompanyContext.Current is null)
+{
+    <p>No company is configured for this domain.</p>
+}
+else
+{
+    <RegisterForm Model="model" Error="@Error" />
+}
+
+@code {
+    [Inject] private ICompanyContext CompanyContext { get; set; } = default!;
+    [CascadingParameter] private HttpContext HttpContext { get; set; } = default!;
+    private string? Error { get; set; }
+    private readonly RegisterModel model = new();
+
+    protected override void OnInitialized()
+    {
+        Error = HttpContext.Request.Query.TryGetValue("error", out var error)
+            ? error.FirstOrDefault()
+            : null;
+    }
+}
