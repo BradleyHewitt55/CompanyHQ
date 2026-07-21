@@ -10,3 +10,5 @@ eng
 .worktrees/
 database/backups/
 MockServer/
+__pycache__/
+*.py[cod]

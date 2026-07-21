@@ -1,2 +1,3 @@
 - Dont use `|` , `&` or `,` for the multiple inline queries. Use `;` symbol to split cmd prompts into one line.
 - dont run `Get-ChildItem` , `ForEach-Object`, `Select-Object`. Instead use `find` , `for`
+- Don't run `python local --help`; the launcher treats `--help` as an agent name. Inspect launcher docs or invoke a valid agent instead.

@@ -51,7 +51,7 @@ public sealed class CompanyDatabases(
 
             var credentials = JsonSerializer.Deserialize<CompanyDatabaseCredentials>(File.ReadAllText(path), JsonOptions)
                 ?? throw new InvalidOperationException($"Credentials file '{path}' is empty or malformed.");
-            return credentials.ConnectionString;
+            return ResolveForRuntime(credentials);
         });
     }
 
@@ -69,13 +69,13 @@ public sealed class CompanyDatabases(
 
             Directory.CreateDirectory(Path.GetDirectoryName(path)!);
             await File.WriteAllTextAsync(path, JsonSerializer.Serialize(credentials, JsonOptions), cancellationToken);
-            _cache[companyName] = credentials.ConnectionString;
+            _cache[companyName] = ResolveForRuntime(credentials);
         }
 
         // Sync immediately so a freshly registered company is usable without a restart.
         using var scope = serviceProvider.CreateScope();
         scope.ServiceProvider.GetRequiredService<ICompanyContext>().Current = companyName;
-        var context = scope.ServiceProvider.GetRequiredService<DbContext>();
+        var context = scope.ServiceProvider.GetRequiredService<PostgressDbContext>();
         await scope.ServiceProvider.GetRequiredService<SchemaSynchronizer>().SyncAsync(context, cancellationToken);
     }
 
@@ -122,7 +122,27 @@ public sealed class CompanyDatabases(
             Username = role,
             Password = password,
         };
+        // Store a host-facing address in portable state; each container may replace it
+        // with its internal Postgres service name when opening a managed database.
+        builder.Host = configuration["CompanyHq:ManagedDatabaseStoredHost"] ?? builder.Host;
         return new CompanyDatabaseCredentials(builder.ConnectionString, Managed: true);
+    }
+
+    private string ResolveForRuntime(CompanyDatabaseCredentials credentials)
+    {
+        var host = credentials.Managed
+            ? configuration["CompanyHq:ManagedDatabaseHost"]
+            : null;
+        if (string.IsNullOrWhiteSpace(host))
+        {
+            return credentials.ConnectionString;
+        }
+
+        var builder = new NpgsqlConnectionStringBuilder(credentials.ConnectionString)
+        {
+            Host = host,
+        };
+        return builder.ConnectionString;
     }
 
     private string CredentialsPath(string companyName)

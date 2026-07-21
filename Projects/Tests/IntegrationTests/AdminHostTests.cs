@@ -18,8 +18,7 @@ public sealed class AdminHostTests(PostgresFixture fixture)
     {
         var company = $"Crud{Guid.NewGuid():N}";
         await SeedCompanyAsync(company, "admin@example.com", "admin-pass");
-        await using var factory = new AdminFactory(
-            fixture, new Dictionary<string, string> { ["crud.test"] = company });
+        await using var factory = new AdminFactory(fixture, company);
         using var client = factory.CreateClient(new WebApplicationFactoryClientOptions
         {
             BaseAddress = new Uri("https://crud.test"),
@@ -131,7 +130,7 @@ public sealed class AdminHostTests(PostgresFixture fixture)
     {
         var company = $"Web{Guid.NewGuid():N}";
         await SeedCompanyAsync(company, "lin@example.com", "secret-pass");
-        await using var factory = new AdminFactory(fixture, new Dictionary<string, string> { ["web.test"] = company });
+        await using var factory = new AdminFactory(fixture, company);
         using var client = factory.CreateClient(new WebApplicationFactoryClientOptions
         {
             BaseAddress = new Uri("https://web.test"),
@@ -172,25 +171,31 @@ public sealed class AdminHostTests(PostgresFixture fixture)
     }
 
     [Fact]
-    public async Task CompanyCookieIsRejectedOnAnotherCompanyDomain()
+    public async Task CompanyCookieIsRejectedByAnotherCompanyProcess()
     {
+        // Each company is its own host process. A cookie minted by company A's process,
+        // replayed to company B's process, must still be rejected: process separation is
+        // the primary isolation, and the ambient-company check is defence in depth.
         var companyA = $"TenantA{Guid.NewGuid():N}";
         var companyB = $"TenantB{Guid.NewGuid():N}";
         await SeedCompanyAsync(companyA, "a@example.com", "secret-a");
         await SeedCompanyAsync(companyB, "b@example.com", "secret-b");
-        await using var factory = new AdminFactory(fixture, new Dictionary<string, string>
-        {
-            ["a.test"] = companyA,
-            ["b.test"] = companyB,
-        });
-        using var client = factory.CreateClient(new WebApplicationFactoryClientOptions
+        await using var factoryA = new AdminFactory(fixture, companyA);
+        await using var factoryB = new AdminFactory(fixture, companyB);
+        using var clientA = factoryA.CreateClient(new WebApplicationFactoryClientOptions
         {
             BaseAddress = new Uri("https://a.test"),
             AllowAutoRedirect = false,
             HandleCookies = true,
         });
+        using var clientB = factoryB.CreateClient(new WebApplicationFactoryClientOptions
+        {
+            BaseAddress = new Uri("https://b.test"),
+            AllowAutoRedirect = false,
+            HandleCookies = true,
+        });
 
-        var login = await PostLoginAsync(client, "a@example.com", "secret-a");
+        var login = await PostLoginAsync(clientA, "a@example.com", "secret-a");
         Assert.True(login.StatusCode == HttpStatusCode.Redirect,
             $"Expected login redirect, got {login.StatusCode}: {await login.Content.ReadAsStringAsync()}");
         var setCookie = Assert.Single(login.Headers.GetValues("Set-Cookie"));
@@ -198,7 +203,7 @@ public sealed class AdminHostTests(PostgresFixture fixture)
         using var request = new HttpRequestMessage(HttpMethod.Get, "https://b.test/api/auth/me");
         request.Headers.Add("Cookie", cookie);
 
-        var isolated = await client.SendAsync(request);
+        var isolated = await clientB.SendAsync(request);
         Assert.Equal(HttpStatusCode.Unauthorized, isolated.StatusCode);
     }
 
@@ -207,7 +212,7 @@ public sealed class AdminHostTests(PostgresFixture fixture)
     {
         var company = $"Limited{Guid.NewGuid():N}";
         await SeedCompanyAsync(company, "limit@example.com", "secret-pass");
-        await using var factory = new AdminFactory(fixture, new Dictionary<string, string> { ["limit.test"] = company });
+        await using var factory = new AdminFactory(fixture, company);
         using var client = factory.CreateClient(new WebApplicationFactoryClientOptions
         {
             BaseAddress = new Uri("https://limit.test"),
@@ -261,24 +266,28 @@ public sealed class AdminHostTests(PostgresFixture fixture)
         return result;
     }
 
-    private sealed class AdminFactory(PostgresFixture fixture, IReadOnlyDictionary<string, string> domains)
+    // One factory is one host process bound to one company, mirroring production where
+    // Caddy routes each company's domain to its own process. Cross-company isolation is
+    // therefore tested with two factories, not two domains on one host.
+    private sealed class AdminFactory(PostgresFixture fixture, string company)
         : WebApplicationFactory<global::Program>
     {
         protected override void ConfigureWebHost(IWebHostBuilder builder)
         {
             builder.UseEnvironment("Development");
+            // Plugin discovery reads CompanyHq:Company while the host is being built, before
+            // ConfigureAppConfiguration sources are layered in — UseSetting lands on the
+            // builder's configuration eagerly, and is per-factory so two companies can run
+            // side by side in one test process.
+            builder.UseSetting("CompanyHq:Company", company);
             builder.ConfigureAppConfiguration((_, configuration) =>
             {
-                var settings = new Dictionary<string, string?>
+                configuration.AddInMemoryCollection(new Dictionary<string, string?>
                 {
                     ["CompanyHq:ServerRoot"] = fixture.ServerRoot,
+                    ["CompanyHq:Company"] = company,
                     ["ConnectionStrings:CompanyHqServer"] = PostgresFixture.AdminConnection,
-                };
-                foreach (var domain in domains)
-                {
-                    settings[$"CompanyHq:Domains:{domain.Key}"] = domain.Value;
-                }
-                configuration.AddInMemoryCollection(settings);
+                });
             });
         }
     }

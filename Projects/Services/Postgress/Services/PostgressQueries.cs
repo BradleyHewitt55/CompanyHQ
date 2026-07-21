@@ -1,7 +1,6 @@
 using System.Linq.Expressions;
 using Abstractions.Data;
 using Microsoft.EntityFrameworkCore;
-using PostgressDbContext = CompanyHQ.Services.Postgress.DbContext;
 
 namespace CompanyHQ.Services.Postgress.Services;
 

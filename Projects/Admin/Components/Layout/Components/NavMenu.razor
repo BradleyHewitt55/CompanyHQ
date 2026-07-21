@@ -1,16 +1,74 @@
+@rendermode InteractiveServer
+@inject Abstractions.Services.IServiceCatalog ServiceCatalog
+@implements IAsyncDisposable
+
 <div class="brand" aria-label="Web home"><span class="material-symbols-outlined">layers</span></div>
 <nav>
-    <NavLink href="" Match="NavLinkMatch.All"><span class="material-symbols-outlined">dashboard</span>Dashboard</NavLink>
-    <NavLink href="pipeline"><span class="material-symbols-outlined">timeline</span>Pipeline</NavLink>
-    <NavLink href="users"><span class="material-symbols-outlined">group</span>Users</NavLink>
-    <NavLink href="gallery"><span class="material-symbols-outlined">image</span>Gallery</NavLink>
-    <NavLink href="keys"><span class="material-symbols-outlined">vpn_key</span>Keys</NavLink>
-    <NavLink href="skills"><span class="material-symbols-outlined">menu_book</span>Skills</NavLink>
-    <NavLink href="agents"><span class="material-symbols-outlined">smart_toy</span>Agents</NavLink>
-    <div class="divider"></div>
-    <NavLink class="services-link" href="services"><span>Services</span><span class="material-symbols-outlined">add</span></NavLink>
+    @if (_menuItems is not null && _menuItems.Count > 0)
+    {
+        @foreach (var item in _menuItems)
+        {
+            @RenderMenuItem(item)
+        }
+    }
+    <NavLink href="/services" Match="NavLinkMatch.Prefix" class="nav-item">
+        <span class="material-symbols-outlined">tune</span>Services
+    </NavLink>
 </nav>
-<div class="sidebar-bottom">
-    <NavLink href="help"><span class="material-symbols-outlined">help_outline</span>Help</NavLink>
-    <NavLink href="settings"><span class="material-symbols-outlined">settings</span>Settings</NavLink>
-</div>
+
+@code {
+    private IReadOnlyList<Abstractions.Services.ServiceMenuItem>? _menuItems;
+    private HashSet<string> _expandedGroups = [];
+
+    protected override void OnInitialized()
+    {
+        _menuItems = ServiceCatalog.GetNavMenuItems();
+    }
+
+    private void ToggleGroup(string label)
+    {
+        if (_expandedGroups.Contains(label))
+            _expandedGroups.Remove(label);
+        else
+            _expandedGroups.Add(label);
+    }
+
+    private RenderFragment RenderMenuItem(Abstractions.Services.ServiceMenuItem item) => @<text>
+        @if (item.Children?.Count > 0)
+        {
+            bool isExpanded = _expandedGroups.Contains(item.Label);
+            <div class="menu-group">
+                <button class="@($"group-toggle{(isExpanded ? " expanded" : "")}")"
+                        @onclick="() => ToggleGroup(item.Label)">
+                    <span>@item.Label</span>
+                    <span class="material-symbols-outlined chevron">expand_more</span>
+                </button>
+                @if (isExpanded)
+                {
+                    <div class="menu-children">
+                        @foreach (var child in item.Children)
+                        {
+                            @RenderMenuItem(child)
+                        }
+                    </div>
+                }
+            </div>
+        }
+        else if (!string.IsNullOrEmpty(item.Path))
+        {
+            <NavLink href="@item.Path" class="nav-item">
+                @if (!string.IsNullOrEmpty(item.Icon))
+                {
+                    <span class="material-symbols-outlined">@item.Icon</span>
+                }
+                @item.Label
+            </NavLink>
+        }
+    </text>;
+
+    async ValueTask IAsyncDisposable.DisposeAsync()
+    {
+        _expandedGroups?.Clear();
+        await ValueTask.CompletedTask;
+    }
+}

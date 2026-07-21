@@ -10,7 +10,6 @@
   - [User model](./Architecture/UserModel.md)
   - [CLI agents](./Architecture/CliAgents.md)
 - Services
-  - [Plugins](../Projects/Services/Plugins/README.md)
   - [Companies](../Projects/Services/Companies/README.md)
   - [Auth](../Projects/Services/Auth/README.md)
   - [Postgress](../Projects/Services/Postgress/README.md)

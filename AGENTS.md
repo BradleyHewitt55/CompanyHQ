@@ -14,6 +14,7 @@
 - **All services need to be created as headless services, that can be consumed by any project**
 - update the docs if a decision has been updated
 - use the MockServer for local dev testing.
+- when errors are found when running the terminal then update the `.ai/rules/*` what not to run
 
 ## Agent orchestration **ONLY WHEN THE USER ASKS, NOT ALL TASKS/QUERIES NEED SUBAGECTS**
 

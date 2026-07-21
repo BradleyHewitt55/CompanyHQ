@@ -25,14 +25,14 @@ DTOs stay in `Auth/Dtos` because they are Auth API contracts. Provider-neutral e
 data-provider plugin — hosts never construct it directly (see [Plugins](../../../Docs/Architecture/Plugins.md)):
 
 ```csharp
-builder.Services.AddCompanyHqPlugins(builder.Configuration);
+builder.Services.AddPluginDiscovery(builder.Configuration);
 ```
 
-Place company resolution before the plugin middleware, then map the Auth controller:
+Set `CompanyHq:Company`; the Companies plugin seeds every scoped company context.
+Then run discovered middleware and map the Auth controller:
 
 ```csharp
-app.UseMiddleware<CompanyResolutionMiddleware>();
-app.UseCompanyHqPlugins();   // Auth adds RateLimiter, Authentication, Authorization
+app.UseDiscoveredPlugins(); // Auth adds RateLimiter, Authentication, Authorization
 app.UseAntiforgery();
 app.MapControllers();
 ```
@@ -53,19 +53,19 @@ authorization middleware. The host must not add them itself.
 
 ## I want the Auth pages in my Admin host
 
-Feed `CompanyHqPlugins.RouteAssemblies` to both Razor endpoint discovery and the
+Feed `IPluginCatalog.RouteAssemblies` to both Razor endpoint discovery and the
 router — the plugin declares its own assembly through [`RouteAssemblies`][22], so
 the host never names Auth types. [`Login.razor`][5] and [`Register.razor`][6] select the service-owned [`AuthLayout`][7], which inherits `LayoutComponentBase` and renders a centered form on a plain background. Other Admin pages continue to use the host's main layout.
 
 ```csharp
 app.MapRazorComponents<App>()
     .AddInteractiveServerRenderMode()
-    .AddAdditionalAssemblies(CompanyHqPlugins.RouteAssemblies);
+    .AddAdditionalAssemblies(pluginCatalog.RouteAssemblies.ToArray());
 ```
 
 ```razor
 <Router AppAssembly="typeof(Program).Assembly"
-        AdditionalAssemblies="CompanyHqPlugins.RouteAssemblies">
+        AdditionalAssemblies="PluginCatalog.RouteAssemblies">
     <Found Context="routeData">
         <RouteView RouteData="routeData" DefaultLayout="typeof(MainLayout)" />
     </Found>
@@ -149,7 +149,7 @@ The first response renders the Auth layout. The second returns the current user'
 - **Putting Auth pages in the Admin project.** Load the Auth assembly so its pages and components remain service-owned.
 - **Using the Admin main layout for Auth routes.** Auth pages explicitly use `AuthLayout`; the router's default only applies when a page has no layout.
 - **Forgetting `MapControllers`.** `ConfigureServices` registers the controller, but the host must map controller endpoints.
-- **Calling `UseCompanyHqPlugins` before company resolution.** The cookie cannot be tenant-bound until `ICompanyContext.Current` is set.
+- **Starting without `CompanyHq:Company`.** Discovery fails because authentication must always be bound to one company process.
 - **Sharing a cookie across domains.** The `company` claim must match the resolved company or authentication is rejected.
 - **Adding `UseAuthentication` or `UseRateLimiter` in the host.** The plugin owns them; duplicating the middleware runs it twice.
 - **Not forwarding the client IP.** Behind a proxy without `X-Forwarded-For`, every client shares one rate-limit bucket.
@@ -176,4 +176,4 @@ The first response renders the Auth layout. The second returns the current user'
 [19]: Auth.csproj
 [20]: ../../Abstractions/Users/PasswordPolicy.cs
 [21]: Api/UsersController.cs
-[22]: ../../Abstractions/ICompanyHqPlugin.cs
+[22]: ../../Abstractions/Plugins/ICompanyHqPlugin.cs

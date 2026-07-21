@@ -17,11 +17,11 @@ This plugin owns no pages and no middleware — it implements only
 
 ## I only need the default setup
 
-Load it through the shared registry; it must come first, because the other
-plugins resolve paths and the tenant context it provides:
+Load it through discovery. Dependency ordering places it before plugins that use
+its paths and tenant context:
 
 ```csharp
-builder.Services.AddCompanyHqPlugins(builder.Configuration);
+builder.Services.AddPluginDiscovery(builder.Configuration);
 ```
 
 Point it at a server root. Production defaults to `~/CompanyHQ`:
@@ -29,6 +29,7 @@ Point it at a server root. Production defaults to `~/CompanyHQ`:
 ```json
 {
   "CompanyHq": {
+    "Company": "Acme",
     "ServerRoot": "C:/path/to/CompanyHQ/MockServer"
   }
 }
@@ -45,8 +46,9 @@ Point it at a server root. Production defaults to `~/CompanyHQ`:
 | [`IServiceScaffolder`][16] | Scoped | Generating a new service |
 | [`ICompanyLocator`][17] | Singleton | Deriving a company from a directory path |
 
-[`ICompanyContext`][13] is **scoped on purpose**: a singleton would leak one
-tenant's selection into another's work.
+[`ICompanyContext`][13] is **scoped on purpose**: every scope starts with the
+process-bound `CompanyHq:Company`, while workflows may use a child scope without
+mutating another request or circuit.
 
 ## I want to read the current company
 
@@ -57,10 +59,10 @@ shared CompanyHQ state belonging to no company.
 @inject ICompanyContext CompanyContext
 ```
 
-**Never assign `Current` from a component.** The host's
-[`CompanyResolutionMiddleware`][18] owns that value. On an interactive Blazor
-circuit the DI scope outlives the request, so a component that writes it
-re-points the tenant for everything downstream on that circuit.
+**Never assign `Current` from a component.** [`CompaniesPlugin`][10] initializes
+it from `CompanyHq:Company`. On an interactive Blazor circuit the DI scope
+outlives the request, so a component that writes it re-points the tenant for
+everything downstream on that circuit.
 
 ## I want to list or add a service
 
@@ -102,15 +104,16 @@ service directory contains `{Name}.csproj` and `{Name}Plugin.cs`.
 
 ## Common mistakes
 
-- **Assigning `ICompanyContext.Current` from UI.** Middleware owns it; see above.
+- **Assigning `ICompanyContext.Current` from UI.** Process configuration owns it; see above.
 - **Walking the filesystem to list services.** Use [`IServiceCatalog`][15], or the
   logic drifts between the CLI and the Admin explorer.
 - **Registering `ICompanyContext` as a singleton.** It is scoped so tenants stay
   isolated per request and per circuit.
 - **Expecting `RegisterAsync` to produce a usable tenant.** It creates directories.
   A tenant is usable after the database exists and an admin is seeded.
-- **Expecting a scaffolded service to load.** It compiles; nothing discovers it
-  yet. See [Plugins](../../../Docs/Architecture/Plugins.md).
+- **Expecting a scaffolded service to load immediately.** Set its
+  `Settings/service.json` manifest to enabled, then rebuild and recreate that
+  company's Admin image. See [Plugins](../../../Docs/Architecture/Plugins.md).
 
 [1]: Services/CompanyRegistry.cs
 [2]: Services/CompanyCreation.cs
@@ -129,4 +132,3 @@ service directory contains `{Name}.csproj` and `{Name}Plugin.cs`.
 [15]: ../../Abstractions/Companies/IServiceCatalog.cs
 [16]: ../../Abstractions/Companies/IServiceScaffolder.cs
 [17]: ../../Abstractions/Companies/ICompanyLocator.cs
-[18]: ../../Admin/Infrastructure/CompanyResolutionMiddleware.cs

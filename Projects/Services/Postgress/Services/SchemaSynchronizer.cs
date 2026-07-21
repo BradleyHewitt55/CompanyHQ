@@ -27,7 +27,7 @@ public sealed class SchemaSynchronizer(
     IConfiguration configuration,
     ILogger<SchemaSynchronizer> logger)
 {
-    public async Task SyncAsync(DbContext context, CancellationToken cancellationToken)
+    public async Task SyncAsync(PostgressDbContext context, CancellationToken cancellationToken)
     {
         var creator = context.GetService<IRelationalDatabaseCreator>();
 
@@ -85,7 +85,7 @@ public sealed class SchemaSynchronizer(
         logger.LogInformation("Applied {Count} schema change(s).", toApply.Count);
     }
 
-    private static IReadOnlyList<MigrationOperation> ComputeDifferences(DbContext context)
+    private static IReadOnlyList<MigrationOperation> ComputeDifferences(PostgressDbContext context)
     {
         // The differ needs both sides as EF models, so the live schema is reverse-engineered
         // through the same design-time services `dotnet ef dbcontext scaffold` uses.

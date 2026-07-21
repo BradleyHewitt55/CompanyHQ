@@ -12,10 +12,10 @@ public sealed class PluginCatalog : IPluginCatalog
         IReadOnlyList<ICompanyHqPlugin> activePlugins)
     {
         statuses = discovered
+            .Where(item => item.Plugin.Descriptor.Origin == PluginOrigin.Company)
             .Select(item => new PluginStatus(
                 item.Plugin.Descriptor,
                 item.Enabled,
-                item.Company,
                 item.AssemblyPath))
             .Distinct()
             .OrderBy(status => status.Descriptor.Name)
@@ -28,8 +28,5 @@ public sealed class PluginCatalog : IPluginCatalog
 
     public IReadOnlyList<Assembly> RouteAssemblies { get; }
 
-    public IReadOnlyList<PluginStatus> GetPlugins(string company) => statuses
-        .Where(status => status.Company is null
-            || string.Equals(status.Company, company, StringComparison.OrdinalIgnoreCase))
-        .ToArray();
+    public IReadOnlyList<PluginStatus> GetPlugins() => statuses;
 }

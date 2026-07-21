@@ -9,7 +9,6 @@ namespace CompanyHQ.Infrastructure.PluginDiscovery;
 internal sealed record DiscoveredPlugin(
     ICompanyHqPlugin Plugin,
     string AssemblyPath,
-    string? Company,
     bool Enabled);
 
 internal static class PluginAssemblyScanner
@@ -28,55 +27,58 @@ internal static class PluginAssemblyScanner
                     discovered.Add(new DiscoveredPlugin(
                         plugin,
                         path,
-                        null,
                         plugin.Descriptor.Activation == PluginActivation.Required));
                 }
             }
         }
 
+        // The process is bound to one company at startup; another tenant's services are
+        // never scanned, so a rebuild in one company cannot reach this host.
+        var company = configuration["CompanyHq:Company"];
+        if (string.IsNullOrWhiteSpace(company)
+            || company.Length > 64
+            || !company.All(character => char.IsLetterOrDigit(character) || character is ' ' or '-' or '_'))
+        {
+            throw new InvalidOperationException(
+                "CompanyHq:Company must be set to 1-64 letters, digits, spaces, dashes, or underscores.");
+        }
+
         var serverRoot = configuration["CompanyHq:ServerRoot"]
             ?? Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.UserProfile), "CompanyHQ");
-        var companiesRoot = Path.Combine(Path.GetFullPath(serverRoot), "Companies");
-        if (!Directory.Exists(companiesRoot))
+        // Containers keep immutable plugin binaries outside mutable company state so a
+        // runtime mount cannot shadow the assemblies baked into the image.
+        var pluginRoot = configuration["CompanyHq:PluginRoot"] ?? serverRoot;
+        var servicesDirectory = Path.Combine(Path.GetFullPath(pluginRoot), "Companies", company, "Services");
+        if (!Directory.Exists(servicesDirectory))
         {
             return discovered;
         }
 
-        foreach (var companyDirectory in Directory.EnumerateDirectories(companiesRoot))
+        foreach (var serviceDirectory in Directory.EnumerateDirectories(servicesDirectory))
         {
-            var company = Path.GetFileName(companyDirectory);
-            var servicesDirectory = Path.Combine(companyDirectory, "Services");
-            if (!Directory.Exists(servicesDirectory))
+            var enabled = ReadEnabled(Path.Combine(serviceDirectory, "Settings", "service.json"));
+            var assemblyPath = FindServiceAssembly(serviceDirectory);
+            if (assemblyPath is null)
             {
+                if (enabled)
+                {
+                    throw new InvalidOperationException(
+                        $"Enabled service '{Path.GetFileName(serviceDirectory)}' for company '{company}' has no built assembly.");
+                }
+
                 continue;
             }
 
-            foreach (var serviceDirectory in Directory.EnumerateDirectories(servicesDirectory))
+            var plugins = Load(assemblyPath, visited).ToArray();
+            if (enabled && plugins.Length == 0)
             {
-                var enabled = ReadEnabled(Path.Combine(serviceDirectory, "Settings", "service.json"));
-                var assemblyPath = FindServiceAssembly(serviceDirectory);
-                if (assemblyPath is null)
-                {
-                    if (enabled)
-                    {
-                        throw new InvalidOperationException(
-                            $"Enabled service '{Path.GetFileName(serviceDirectory)}' for company '{company}' has no built assembly.");
-                    }
+                throw new InvalidOperationException(
+                    $"Enabled service assembly '{assemblyPath}' contains no ICompanyHqPlugin implementation.");
+            }
 
-                    continue;
-                }
-
-                var plugins = Load(assemblyPath, visited).ToArray();
-                if (enabled && plugins.Length == 0)
-                {
-                    throw new InvalidOperationException(
-                        $"Enabled service assembly '{assemblyPath}' contains no ICompanyHqPlugin implementation.");
-                }
-
-                foreach (var plugin in plugins)
-                {
-                    discovered.Add(new DiscoveredPlugin(plugin, assemblyPath, company, enabled));
-                }
+            foreach (var plugin in plugins)
+            {
+                discovered.Add(new DiscoveredPlugin(plugin, assemblyPath, enabled));
             }
         }
 

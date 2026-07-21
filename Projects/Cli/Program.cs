@@ -56,7 +56,10 @@ if (arguments.ServerIp is not null)
     }
 }
 
-var settings = new Dictionary<string, string?>();
+var settings = new Dictionary<string, string?>
+{
+    ["CompanyHq:Company"] = companyName,
+};
 if (serverRoot is not null)
 {
     settings["CompanyHq:ServerRoot"] = serverRoot;

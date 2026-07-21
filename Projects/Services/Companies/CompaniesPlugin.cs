@@ -26,8 +26,11 @@ public sealed class CompaniesPlugin : ICompanyHqPlugin
         services.AddSingleton<ICompanyLocator, CompanyLocator>();
         services.AddTransient<CompanyCreation>();
 
-        // Scoped so each request/admin session carries its own current company;
-        // a singleton here would leak one tenant's selection into another's work.
-        services.AddScoped<ICompanyContext, CompanyContext>();
+        // Every scope starts bound to the process company. This also covers Blazor
+        // circuit and background scopes that never pass through HTTP middleware.
+        var company = configuration["CompanyHq:Company"]
+            ?? throw new InvalidOperationException(
+                "CompanyHq:Company must be set — each host process serves exactly one company.");
+        services.AddScoped<ICompanyContext>(_ => new CompanyContext { Current = company });
     }
 }

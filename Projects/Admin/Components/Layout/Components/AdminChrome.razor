@@ -1,4 +1,6 @@
 @rendermode InteractiveServer
+@inject ICurrentUser CurrentUser
+@inject NavigationManager NavigationManager
 
 <div class="mobile-overlay @(sidebarOpen ? "visible" : null)" @onclick="CloseSidebar"></div>
 <aside class="sidebar @(sidebarOpen ? "open" : null)"><NavMenu /></aside>
@@ -9,18 +11,20 @@
         <span class="header-badge">BusinessHQ Admin</span>
     </div>
     <div class="header-right">
+        <a class="view-site" href="/services" title="Manage services"><span class="material-symbols-outlined">tune</span><span>Services</span></a>
         <a class="view-site" href="/" target="_blank"><span class="material-symbols-outlined">language</span><span>View website</span></a>
         <button class="icon-btn notification-badge" aria-label="Notifications"><span class="material-symbols-outlined">notifications</span></button>
         <div class="user-dropdown">
             <button class="user-trigger" @onclick="ToggleUserMenu">
-                <span class="user-avatar">OM</span><span class="user-name">Olivia Martin</span><span class="material-symbols-outlined chevron">expand_more</span>
+                <span class="user-avatar">@Initials</span><span class="user-name">@DisplayName</span><span class="material-symbols-outlined chevron">expand_more</span>
             </button>
             @if (userMenuOpen)
             {
                 <div class="user-menu">
-                    <a href="profile"><span class="material-symbols-outlined">person</span>My Profile</a>
-                    <div></div>
-                    <a href="switch-company"><span class="material-symbols-outlined">swap_horiz</span>Switch Company</a>
+                    <form method="post" action="api/auth/logout">
+                        <AntiforgeryToken />
+                        <button type="submit"><span class="material-symbols-outlined">logout</span>Sign out</button>
+                    </form>
                 </div>
             }
         </div>
@@ -30,6 +34,26 @@
 @code {
     private bool sidebarOpen;
     private bool userMenuOpen;
+
+    protected override async Task OnInitializedAsync()
+    {
+        // Redirect unauthenticated users to signin page
+        if (CurrentUser.User is null)
+        {
+            NavigationManager.NavigateTo("/signin", forceLoad: true);
+        }
+        await base.OnInitializedAsync();
+    }
+
+    private string DisplayName => CurrentUser.User is { } user
+        ? $"{user.Name} {user.Surname}".Trim()
+        : "Not signed in";
+
+    private string Initials => CurrentUser.User is { } user
+        ? string.Concat(new[] { user.Name, user.Surname }
+            .Where(value => !string.IsNullOrWhiteSpace(value))
+            .Select(value => char.ToUpperInvariant(value.Trim()[0])))
+        : "?";
 
     private void ToggleSidebar() => sidebarOpen = !sidebarOpen;
     private void CloseSidebar() => sidebarOpen = false;

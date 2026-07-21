@@ -24,8 +24,8 @@ its database credentials and service templates.
   working directory via [`CompanyLocator`][12], so `--c` and `--root` are needed
   only from outside. See [CLI](../Reference/Cli.md).
 - **The company domain owns `/admin` and `/api`.** The dashboard is `/admin`, and
-  the authenticated company API is `/api`. The old `/companies/{name}` route is
-  gone: [`CompanyResolutionMiddleware`][6] resolves the host before authentication.
+  the authenticated company API is `/api`. Caddy routes the domain to a process
+  whose [`CompaniesPlugin`][6] binds every scope to one configured company.
 - **CLI setup is primary; the dashboard gate is fallback.** [`CompanyGateLayout`][7]
   preserves the hosted/external database form for incomplete companies, then sends
   companies without users to `/admin/setup-user` and unauthenticated users to
@@ -58,10 +58,9 @@ sequenceDiagram
 ```json
 {
   "CompanyHq": {
+    "Company": "Acme",
     "ServerRoot": "C:/path/to/CompanyHQ/MockServer",
-    "Domains": {
-      "acme.example.com": "Acme"
-    }
+    "PluginRoot": "C:/path/to/CompanyHQ/MockServer"
   },
   "ConnectionStrings": {
     "CompanyHqServer": "Host=localhost;Database=postgres;Username=companyhq;Password=..."
@@ -69,17 +68,20 @@ sequenceDiagram
 }
 ```
 
-Resolution order is `CompanyHq:Domains:{host}` first, then the only registered
-company when exactly one exists. No match with multiple companies leaves the
-context empty. Production defaults to `~/CompanyHQ`; development uses the repo's
-`MockServer/` directory.
+Each host process serves one company, fixed by `CompanyHq:Company`; the value is
+required and the process fails to start without it. There is no `Host`-header
+resolution and no single-company fallback — Caddy routes each domain to the right
+process (see [Hosting](../Operations/Hosting.md)). `ServerRoot` owns mutable source,
+`db.json`, and generated state. `PluginRoot` owns assemblies scanned at startup and
+defaults to `ServerRoot` outside containers; images separate the two so runtime
+mounts cannot shadow rebuilt plugins.
 
 [1]: ../../Projects/Cli/Program.cs
 [2]: ../../Projects/Services/Companies/Services/CompanyCreation.cs
 [3]: ../../Projects/Services/Companies/Services/CompanyRegistry.cs
 [4]: ../../Projects/Abstractions/Companies/IServiceScaffolder.cs
 [5]: ../../Projects/Abstractions/Companies/ICompanyContext.cs
-[6]: ../../Projects/Admin/Infrastructure/CompanyResolutionMiddleware.cs
+[6]: ../../Projects/Services/Companies/CompaniesPlugin.cs
 [7]: ../../Projects/Admin/Components/Layout/CompanyGateLayout.razor
 [8]: ../../Projects/Abstractions/Companies/ICompanyRegistry.cs
 [9]: ../../Projects/Abstractions/Data/ICompanyDatabases.cs

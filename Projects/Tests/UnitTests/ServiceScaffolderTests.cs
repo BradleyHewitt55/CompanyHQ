@@ -63,6 +63,10 @@ public sealed class ServiceScaffolderTests : IDisposable
             paths.CompanyDirectory("Acme"), "Services", "Billing", "BillingPlugin.cs"));
         Assert.Contains("namespace CompanyHQ.Services.Billing;", plugin);
         Assert.Contains(": ICompanyHqPlugin", plugin);
+        Assert.Contains("\"company.acme.billing\"", plugin);
+        Assert.Contains(
+            "[\"companyhq.companies\", \"companyhq.postgress\", \"companyhq.auth\"]",
+            plugin);
     }
 
     [Fact]

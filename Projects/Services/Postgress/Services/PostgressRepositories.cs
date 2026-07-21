@@ -1,7 +1,6 @@
 using Abstractions.Data;
 using Microsoft.EntityFrameworkCore;
 using Npgsql;
-using PostgressDbContext = CompanyHQ.Services.Postgress.DbContext;
 
 namespace CompanyHQ.Services.Postgress.Services;
 

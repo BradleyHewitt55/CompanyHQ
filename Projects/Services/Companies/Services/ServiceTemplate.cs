@@ -54,7 +54,7 @@ internal static class ServiceTemplate
 
         """;
 
-    internal static string Plugin(string name) =>
+    internal static string Plugin(string company, string name) =>
         $$"""
         using System.Reflection;
         using Abstractions.Plugins;
@@ -66,14 +66,16 @@ internal static class ServiceTemplate
 
         public sealed class {{name}}Plugin : ICompanyHqPlugin
         {
+            // Company-qualified so a service name is only ever unique within its own
+            // company; a like-named service in another company is a different id.
             public PluginDescriptor Descriptor { get; } = new(
-                "companyhq.{{name.ToLowerInvariant()}}",
+                "company.{{company.ToLowerInvariant()}}.{{name.ToLowerInvariant()}}",
                 "{{name}}",
                 "{{name}} company service.",
                 new Version(0, 1, 0),
                 PluginOrigin.Company,
                 PluginActivation.Optional,
-                []);
+                ["companyhq.companies", "companyhq.postgress", "companyhq.auth"]);
 
             public void ConfigureServices(IServiceCollection services, IConfiguration configuration)
             {

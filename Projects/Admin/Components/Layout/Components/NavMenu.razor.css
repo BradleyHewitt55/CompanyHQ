@@ -1,1 +1,101 @@
-:host{display:flex;flex-direction:column;height:100%}.brand{display:flex;justify-content:center;padding:0 16px 20px;color:#a855f7}.brand span{font-size:32px}nav{flex:1;padding:0 8px;overflow-y:auto}nav ::deep a,.sidebar-bottom ::deep a{display:flex;align-items:center;gap:12px;padding:10px 16px;border-radius:8px;color:#b0a0c8;text-decoration:none;font-size:13px;transition:.15s}nav ::deep a:hover,.sidebar-bottom ::deep a:hover,nav ::deep a.active{color:#e0d6f0;background:rgba(168,85,247,.12)}nav ::deep .material-symbols-outlined,.sidebar-bottom ::deep .material-symbols-outlined{font-size:18px}.divider{height:1px;margin:8px 16px;background:#2d1f45}nav ::deep .services-link{justify-content:space-between;padding-top:8px;color:#7a6a9a;font-size:11px;font-weight:600;letter-spacing:1px;text-transform:uppercase}.sidebar-bottom{margin-top:auto;padding:12px 8px 0;border-top:1px solid #2d1f45}
+:host {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+}
+
+.brand {
+    display: flex;
+    justify-content: center;
+    padding: 0 16px 20px;
+    color: #a855f7;
+}
+
+.brand span {
+    font-size: 32px;
+}
+
+nav {
+    flex: 1;
+    padding: 0 8px;
+    overflow-y: auto;
+}
+
+nav ::deep a,
+nav ::deep .nav-item {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 10px 16px;
+    border-radius: 8px;
+    color: #b0a0c8;
+    text-decoration: none;
+    font-size: 13px;
+    transition: 0.15s;
+}
+
+nav ::deep a:hover,
+nav ::deep a.active {
+    color: #e0d6f0;
+    background: rgba(168, 85, 247, 0.12);
+}
+
+nav ::deep .material-symbols-outlined {
+    font-size: 18px;
+}
+
+/* Hierarchical menu group styles */
+nav ::deep .menu-group {
+    display: flex;
+    flex-direction: column;
+    gap: 0;
+}
+
+nav ::deep .menu-group .group-toggle {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    padding: 10px 16px;
+    border: none;
+    border-radius: 8px;
+    background: transparent;
+    color: #b0a0c8;
+    font-size: 13px;
+    cursor: pointer;
+    transition: 0.15s;
+    width: 100%;
+    text-align: left;
+}
+
+nav ::deep .menu-group .group-toggle:hover {
+    color: #e0d6f0;
+    background: rgba(168, 85, 247, 0.12);
+}
+
+nav ::deep .menu-group .group-toggle .chevron {
+    transition: transform 0.2s ease;
+    flex-shrink: 0;
+}
+
+nav ::deep .menu-group .group-toggle.expanded .chevron {
+    transform: rotate(180deg);
+}
+
+nav ::deep .menu-children {
+    display: flex;
+    flex-direction: column;
+    gap: 0;
+    padding-left: 8px;
+    border-left: 2px solid rgba(168, 85, 247, 0.2);
+    margin-left: 8px;
+}
+
+nav ::deep .menu-children .nav-item,
+nav ::deep .menu-children a {
+    padding-left: 20px;
+}
+
+nav ::deep .menu-children .menu-group {
+    padding-left: 0;
+}

@@ -79,8 +79,9 @@ public sealed class CompanyFlowTests(PostgresFixture fixture)
         Assert.True(File.Exists(Path.Combine(serviceDirectory, "Billing.csproj")));
         Assert.True(File.Exists(Path.Combine(serviceDirectory, "BillingPlugin.cs")));
 
-        using var emptyScope = provider.CreateScope();
-        await Assert.ThrowsAsync<InvalidOperationException>(() =>
-            emptyScope.ServiceProvider.GetRequiredService<IServiceScaffolder>().ScaffoldAsync("Other"));
+        using var processBoundScope = provider.CreateScope();
+        Assert.Equal(
+            "Integration",
+            processBoundScope.ServiceProvider.GetRequiredService<ICompanyContext>().Current);
     }
 }

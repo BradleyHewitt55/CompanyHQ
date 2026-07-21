@@ -34,7 +34,7 @@ loading a different plugin, never changing consumer code.
 Inject [`IRepository<T>`][2] for writes and [`IQueryService<T>`][3] for reads. To
 persist a new model from a plugin, inherit [`BaseModel`][1] — that's it, the table is
 discovered automatically. Add an [`IModelContributor`][4] only when the default
-mapping isn't enough. No DbContext access outside provider projects.
+mapping isn't enough. No provider context access outside provider projects.
 
 ## Constraints: attributes first
 
@@ -60,7 +60,7 @@ alone never links two tables.
 ## Plugin changes and the schema
 
 No hot reload by design. Adding/enabling a plugin requires an app restart; on
-startup, discovery in the provider's [`DbContext`][6] picks up the new `BaseModel`
+startup, discovery in the provider's [`PostgressDbContext`][6] picks up the new `BaseModel`
 subclasses and [`SchemaMigrator`][7] syncs every database — the platform one and
 each registered company's (see [Companies](Companies.md)) — to the model. Cheap
 restarts over runtime model-cache and migration machinery.
@@ -78,5 +78,5 @@ data. See the [Postgress service README](../../Projects/Services/Postgress/READM
 [3]: ../../Projects/Abstractions/Data/IQueryService.cs
 [4]: ../../Projects/Abstractions/Data/IModelContributor.cs
 [5]: ../../Projects/Services/Postgress/PostgressPlugin.cs
-[6]: ../../Projects/Services/Postgress/DbContext.cs
+[6]: ../../Projects/Services/Postgress/PostgressDbContext.cs
 [7]: ../../Projects/Services/Postgress/Services/SchemaMigrator.cs

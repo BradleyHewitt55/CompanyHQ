@@ -4,6 +4,6 @@ namespace Abstractions.Plugins;
 
 public interface IPluginCatalog
 {
-    IReadOnlyList<PluginStatus> GetPlugins(string company);
+    IReadOnlyList<PluginStatus> GetPlugins();
     IReadOnlyList<Assembly> RouteAssemblies { get; }
 }

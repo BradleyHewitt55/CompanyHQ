@@ -16,18 +16,17 @@ public sealed class PostgresFixture : IAsyncLifetime
 
     public PostgresFixture()
     {
-        ServerRoot = Path.GetFullPath(Path.Combine(
+        var mockServer = Path.GetFullPath(Path.Combine(
             AppContext.BaseDirectory, "..", "..", "..", "..", "..", "..", "MockServer"));
-        if (!File.Exists(Path.Combine(ServerRoot, ".gitignore")))
+        if (!File.Exists(Path.Combine(mockServer, ".gitignore")))
         {
-            throw new InvalidOperationException($"Refusing to clean unexpected server root '{ServerRoot}'.");
+            throw new InvalidOperationException($"Refusing to use unexpected server root '{mockServer}'.");
         }
 
-        var companies = Path.Combine(ServerRoot, "Companies");
-        if (Directory.Exists(companies))
-        {
-            Directory.Delete(companies, recursive: true);
-        }
+        // A fixture-owned root makes cleanup incapable of deleting hand-made dev
+        // companies, service source, or persisted db.json files.
+        ServerRoot = Path.Combine(mockServer, ".integration", Guid.NewGuid().ToString("N"));
+        Directory.CreateDirectory(ServerRoot);
     }
 
     public string ServerRoot { get; }
@@ -37,6 +36,7 @@ public sealed class PostgresFixture : IAsyncLifetime
         var configuration = new ConfigurationBuilder().AddInMemoryCollection(
             new Dictionary<string, string?>
             {
+                ["CompanyHq:Company"] = "Integration",
                 ["CompanyHq:ServerRoot"] = ServerRoot,
                 ["ConnectionStrings:CompanyHqServer"] = AdminConnection,
             }).Build();
@@ -70,28 +70,32 @@ public sealed class PostgresFixture : IAsyncLifetime
 
     public async Task DisposeAsync()
     {
-        NpgsqlConnection.ClearAllPools();
-        await using var connection = new NpgsqlConnection(AdminConnection);
-        await connection.OpenAsync();
-        foreach (var resource in resources)
+        try
         {
-            await using (var dropDatabase = new NpgsqlCommand(
-                $"DROP DATABASE IF EXISTS \"{resource.Database}\" WITH (FORCE)", connection))
+            NpgsqlConnection.ClearAllPools();
+            await using var connection = new NpgsqlConnection(AdminConnection);
+            await connection.OpenAsync();
+            foreach (var resource in resources)
             {
-                await dropDatabase.ExecuteNonQueryAsync();
-            }
-            if (resource.Role is not null)
-            {
-                await using var dropRole = new NpgsqlCommand(
-                    $"DROP ROLE IF EXISTS \"{resource.Role}\"", connection);
-                await dropRole.ExecuteNonQueryAsync();
+                await using (var dropDatabase = new NpgsqlCommand(
+                    $"DROP DATABASE IF EXISTS \"{resource.Database}\" WITH (FORCE)", connection))
+                {
+                    await dropDatabase.ExecuteNonQueryAsync();
+                }
+                if (resource.Role is not null)
+                {
+                    await using var dropRole = new NpgsqlCommand(
+                        $"DROP ROLE IF EXISTS \"{resource.Role}\"", connection);
+                    await dropRole.ExecuteNonQueryAsync();
+                }
             }
         }
-
-        var companies = Path.Combine(ServerRoot, "Companies");
-        if (Directory.Exists(companies))
+        finally
         {
-            Directory.Delete(companies, recursive: true);
+            if (Directory.Exists(ServerRoot))
+            {
+                Directory.Delete(ServerRoot, recursive: true);
+            }
         }
     }
 }

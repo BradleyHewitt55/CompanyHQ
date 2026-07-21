@@ -8,9 +8,9 @@ One bullet per project: what it is, and the constraint that trips people up.
   the `Companies/`, `Data/`, and `Users/` interfaces. **Depends on nothing but
   provider-neutral EF Core**, so plugins can map entities without pulling in a
   database driver. Nothing here may reference a service project.
-- [`Projects/Services/Plugins`][3]: the headless plugin composition service containing the single registry ([`CompanyHqPlugins`][3]) plus
-  the `AddCompanyHqPlugins` / `UseCompanyHqPlugins` extensions. **The only project
-  that names plugins.** Hosts reference this instead of the services.
+- [`Projects/Infrastructure/PluginDiscovery`][3]: company-scoped assembly scanning,
+  dependency ordering, startup registration, and the plugin catalog. **Scans only
+  the process-bound company plus shared built-ins.**
 - [`Projects/Services/Companies`][4]: tenants — registry, paths, context, scaffolding,
   catalogue, locator. **Must be registered first**; the others resolve against it.
   See [Companies](../../Projects/Services/Companies/README.md).
@@ -23,7 +23,7 @@ One bullet per project: what it is, and the constraint that trips people up.
 - [`Projects/Admin`][7]: the Blazor Server host. **Owns the pipeline and shell only**;
   it names no plugin. See [Admin host](../Architecture/AdminHost.md).
 - [`Projects/Cli`][8]: the `companyhq` executable. **A headless host** — it calls
-  `AddCompanyHqPlugins` but never `UseCompanyHqPlugins`. See [CLI](Cli.md).
+  `AddPluginDiscovery` but never web-only `UseDiscoveredPlugins`. See [CLI](Cli.md).
 - [`Projects/Tests/UnitTests`][9]: no database, no host. Filesystem tests use temp
   directories.
 - [`Projects/Tests/IntegrationTests`][10]: **requires the local PostgreSQL container**
@@ -42,7 +42,7 @@ One bullet per project: what it is, and the constraint that trips people up.
 
 ```
 Admin ─┐
-       ├─> Hosting ─> Services/{Companies,Postgress,Auth} ─> Abstractions
+       ├─> PluginDiscovery ─> Services/{Companies,Postgress,Auth} ─> Abstractions
 Cli  ──┘
 ```
 
@@ -50,8 +50,8 @@ Nothing flows the other way. A service never references a host, and Abstractions
 never references a service.
 
 [1]: ../../Projects/Abstractions/Abstractions.csproj
-[2]: ../../Projects/Abstractions/ICompanyHqPlugin.cs
-[3]: ../../Projects/Services/Plugins/CompanyHqPlugins.cs
+[2]: ../../Projects/Abstractions/Plugins/ICompanyHqPlugin.cs
+[3]: ../../Projects/Infrastructure/PluginDiscovery/PluginLoader.cs
 [4]: ../../Projects/Services/Companies/Companies.csproj
 [5]: ../../Projects/Services/Postgress/Postgress.csproj
 [6]: ../../Projects/Services/Auth/Auth.csproj

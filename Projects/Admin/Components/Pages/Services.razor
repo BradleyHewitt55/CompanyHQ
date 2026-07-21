@@ -1,0 +1,148 @@
+@page "/services"
+@rendermode InteractiveServer
+@inject Abstractions.Services.IServiceCatalog ServiceCatalog
+@inject NavigationManager NavigationManager
+
+<PageTitle>Services</PageTitle>
+
+<div class="services-page">
+    <div class="page-header">
+        <h1>Services</h1>
+        <p class="page-description">Manage and configure enabled services for your workspace</p>
+    </div>
+
+    @if (_services is null)
+    {
+        <div class="loading-state">
+            <p>Loading services...</p>
+        </div>
+    }
+    else if (_services.Count == 0)
+    {
+        <div class="empty-state">
+            <span class="material-symbols-outlined">integration_instructions</span>
+            <p>No services available</p>
+        </div>
+    }
+    else
+    {
+        <div class="services-grid">
+            @foreach (var service in _services)
+            {
+                <div class="service-card" @onclick="() => ViewService(service.Id)">
+                    <div class="card-header">
+                        <h3>@service.Name</h3>
+                        @if (service.IsBuiltIn)
+                        {
+                            <span class="badge built-in">Built-in</span>
+                        }
+                    </div>
+
+                    <p class="card-description">@service.Description</p>
+
+                    <div class="card-footer">
+                        @if (service.IsToggleable)
+                        {
+                            <label class="toggle-switch">
+                                <input type="checkbox"
+                                       checked="@service.IsEnabled"
+                                       @onchange="@((ChangeEventArgs e) => HandleToggleService(service.Id, (bool)e.Value!))"
+                                       @onclick:stopPropagation="true" />
+                                <span class="toggle-slider"></span>
+                            </label>
+                        }
+                        else
+                        {
+                            <div class="toggle-placeholder"></div>
+                        }
+
+                        <span class="status">
+                            @if (service.IsEnabled)
+                            {
+                                <span class="status-badge enabled">Enabled</span>
+                            }
+                            else
+                            {
+                                <span class="status-badge disabled">Disabled</span>
+                            }
+                        </span>
+                    </div>
+                </div>
+            }
+        </div>
+    }
+
+    @if (!string.IsNullOrEmpty(_errorMessage))
+    {
+        <div class="error-toast">
+            <span class="material-symbols-outlined">error</span>
+            <p>@_errorMessage</p>
+            <button @onclick="() => _errorMessage = null" class="close-btn">
+                <span class="material-symbols-outlined">close</span>
+            </button>
+        </div>
+    }
+</div>
+
+@code {
+    private IReadOnlyList<Abstractions.Services.ServiceMetadata>? _services;
+    private string? _errorMessage;
+
+    protected override void OnInitialized()
+    {
+        // Load all services (both built-in and company services)
+        _services = ServiceCatalog.GetServices(Abstractions.Services.ServiceCategory.All);
+    }
+
+    private async Task HandleToggleService(string serviceId, bool newState)
+    {
+        try
+        {
+            await InvokeAsync(() =>
+            {
+                ServiceCatalog.SetServiceEnabled(serviceId, newState);
+            });
+
+            // Update only the toggled service instead of refreshing the entire list to avoid flicker
+            if (_services is not null)
+            {
+                var index = -1;
+                for (int i = 0; i < _services.Count; i++)
+                {
+                    if (_services[i].Id.Equals(serviceId, StringComparison.OrdinalIgnoreCase))
+                    {
+                        index = i;
+                        break;
+                    }
+                }
+
+                if (index >= 0)
+                {
+                    var serviceToUpdate = _services[index];
+                    // Create updated service record with new IsEnabled state
+                    var updatedService = serviceToUpdate with { IsEnabled = newState };
+
+                    // Property assignment automatically triggers re-render
+                    _services = _services
+                        .Take(index)
+                        .Concat([updatedService])
+                        .Concat(_services.Skip(index + 1))
+                        .ToList()
+                        .AsReadOnly();
+                }
+            }
+        }
+        catch (Exception ex)
+        {
+            _errorMessage = $"Failed to toggle service: {ex.Message}";
+            await InvokeAsync(StateHasChanged);
+        }
+    }
+
+    private void ViewService(string serviceId)
+    {
+        // Stub for viewing service details - can be expanded later
+        // For now, just show an alert or navigate to a detail page
+        // This is a placeholder for future enhancement
+    }
+}

@@ -1,6 +1,6 @@
 using Admin.Components;
-using Admin.Infrastructure;
 using Abstractions.Plugins;
+using Abstractions.Services;
 using CompanyHQ.Infrastructure.PluginDiscovery;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -9,6 +9,7 @@ builder.Services.AddRazorComponents().AddInteractiveServerComponents();
 builder.Services.AddCascadingAuthenticationState();
 builder.Services.AddHttpContextAccessor();
 builder.Services.AddPluginDiscovery(builder.Configuration);
+builder.Services.AddScoped<IServiceCatalog, MenuItemService>();
 
 var app = builder.Build();
 
@@ -31,9 +32,7 @@ if (!app.Environment.IsDevelopment())
 app.UseStatusCodePagesWithReExecute("/not-found", createScopeForStatusCodePages: true);
 app.UseHttpsRedirection();
 
-// Tenant first: plugin middleware (cookie validation included) reads the ambient
-// company, so resolving it afterwards would authorize against an unset tenant.
-app.UseMiddleware<CompanyResolutionMiddleware>();
+// Plugin middleware reads the company pre-bound into every scoped ICompanyContext.
 app.UseDiscoveredPlugins();
 
 app.UseAntiforgery();

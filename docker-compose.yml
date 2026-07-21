@@ -1,0 +1,75 @@
+# Per-company process isolation (EXECUTE.md, P1). One admin-* service per company,
+# each bound to its own company at startup and built with only that company's
+# services baked in. Caddy routes each company's domain to its own process; a
+# rebuild of one company (docker compose build admin-<company>) cannot touch another.
+services:
+  postgres:
+    image: postgres:17
+    environment:
+      POSTGRES_USER: companyhq
+      POSTGRES_PASSWORD: companyhq
+      POSTGRES_DB: postgres
+    ports:
+      # Local CLI and integration tests use the same provisioning server.
+      - "5432:5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U companyhq"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+
+  admin-alpha:
+    build:
+      context: .
+      dockerfile: Projects/Admin/Dockerfile
+      args:
+        COMPANY: alpha
+    environment:
+      CompanyHq__Company: alpha
+      CompanyHq__PluginRoot: /opt/companyhq
+      CompanyHq__ServerRoot: /srv/companyhq
+      CompanyHq__ManagedDatabaseHost: postgres
+      CompanyHq__ManagedDatabaseStoredHost: localhost
+      # This admin login provisions a dedicated database and role for local companies.
+      ConnectionStrings__CompanyHqServer: "Host=postgres;Database=postgres;Username=companyhq;Password=companyhq"
+    depends_on:
+      postgres:
+        condition: service_healthy
+    volumes:
+      # Source, db.json, and generated state remain on the host. PluginRoot is outside
+      # this mount, so stale runtime files cannot shadow image-baked service binaries.
+      - ./MockServer/Companies/alpha:/srv/companyhq/Companies/alpha
+
+  admin-beta:
+    build:
+      context: .
+      dockerfile: Projects/Admin/Dockerfile
+      args:
+        COMPANY: beta
+    environment:
+      CompanyHq__Company: beta
+      CompanyHq__PluginRoot: /opt/companyhq
+      CompanyHq__ServerRoot: /srv/companyhq
+      CompanyHq__ManagedDatabaseHost: postgres
+      CompanyHq__ManagedDatabaseStoredHost: localhost
+      ConnectionStrings__CompanyHqServer: "Host=postgres;Database=postgres;Username=companyhq;Password=companyhq"
+    depends_on:
+      postgres:
+        condition: service_healthy
+    volumes:
+      - ./MockServer/Companies/beta:/srv/companyhq/Companies/beta
+
+  caddy:
+    image: caddy:2
+    ports:
+      - "8080:8080"
+    volumes:
+      - ./MockServer/Caddyfile:/etc/caddy/Caddyfile:ro
+    depends_on:
+      - admin-alpha
+      - admin-beta
+
+volumes:
+  postgres-data:

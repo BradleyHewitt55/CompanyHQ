@@ -10,24 +10,24 @@ login, registration, the current user, service listings — comes from plugins.
         ┌───────────▼────────────┐
         │ ForwardedHeaders       │  X-Forwarded-Proto/Host/For
         ├────────────────────────┤
-        │ CompanyResolution      │  sets ICompanyContext.Current
-        ├────────────────────────┤
-        │ UseCompanyHqPlugins()  │  Auth: RateLimiter → Authentication → Authorization
+        │ UseDiscoveredPlugins() │  Auth: RateLimiter → Authentication → Authorization
         ├────────────────────────┤
         │ Antiforgery            │
         ├────────────────────────┤
-        │ Controllers / Razor    │  + CompanyHqPlugins.RouteAssemblies
+        │ Controllers / Razor    │  + IPluginCatalog.RouteAssemblies
         └────────────────────────┘
 ```
 
 ## Components
 
-- **Pipeline**: [`Program.cs`][1]. It resolves the tenant, then hands the pipeline
-  to the plugins, then maps endpoints. It names no plugin — see
+- **Pipeline**: [`Program.cs`][1]. It stamps the fixed tenant, then hands the
+  pipeline to the plugins, then maps endpoints. It names no plugin — see
   [Plugins](Plugins.md).
-- **Tenant resolution**: [`CompanyResolutionMiddleware`][2] maps the request host
-  to a company via `CompanyHq:Domains:{host}`, falling back to the only registered
-  company when exactly one exists.
+- **Tenant binding**: the process serves one company, fixed at startup by
+  `CompanyHq:Company`. [`CompaniesPlugin`][2] initializes every scoped
+  [`ICompanyContext`][18] with that value, including Blazor circuit and background
+  scopes. Cross-company isolation comes from process separation (see
+  [Hosting](../Operations/Hosting.md)).
 - **Shell**: [`MainLayout`][3] composes [`AdminChrome`][4] (header + [`NavMenu`][5])
   and [`Explorer`][6] (the Services sidebar). The Explorer reads
   [`IServiceCatalog`][7] and [`IServiceScaffolder`][8]; it never touches the
@@ -48,7 +48,7 @@ user logic. All four come from the Auth plugin:
 | User records | [`IUserService`][16] |
 | Cookie + policy middleware | [`AuthPlugin.ConfigureApplication`][17] |
 
-The host's only involvement is `CompanyHqPlugins.RouteAssemblies`, which makes
+The host's only involvement is `IPluginCatalog.RouteAssemblies`, which makes
 those pages routable. See the [Auth service README](../../Projects/Services/Auth/README.md).
 
 ## Entry flow
@@ -56,15 +56,14 @@ those pages routable. See the [Auth service README](../../Projects/Services/Auth
 ```mermaid
 sequenceDiagram
     participant Browser
-    participant Middleware as CompanyResolutionMiddleware
+    participant Context as ICompanyContext
     participant Gate as CompanyGateLayout
     participant Databases as ICompanyDatabases
     participant Users as IUserService
     participant Auth as Auth pages
 
-    Browser->>Middleware: GET /
-    Middleware->>Middleware: Host → ICompanyContext.Current
-    Middleware->>Gate: Render Dashboard behind the gate
+    Browser->>Context: GET / with process-bound company
+    Context->>Gate: Render Dashboard behind the gate
     Gate->>Databases: IsConfigured(company)?
     alt no database yet
         Gate-->>Browser: Database setup form
@@ -78,9 +77,9 @@ sequenceDiagram
     end
 ```
 
-1. [`CompanyResolutionMiddleware`][2] sets [`ICompanyContext.Current`][18] from the
-   request host. No match with multiple companies leaves it `null`, and the gate
-   renders "No company is configured for this domain."
+1. [`CompaniesPlugin`][2] initializes [`ICompanyContext.Current`][18] from the
+   process's bound `CompanyHq:Company`; an unset value fails startup, so every
+   request and circuit scope renders against a known company.
 2. [`CompanyGateLayout`][9] checks [`ICompanyDatabases.IsConfigured`][19] and shows
    the hosted-vs-external form when the company was created without the CLI.
 3. With a database but no users, it redirects to `/admin/setup-user` —
@@ -94,16 +93,13 @@ the gate logic only.
 
 ## Known gaps
 
-- **The single-company fallback in [`CompanyResolutionMiddleware`][2]** means any
-  `Host` header resolves to the sole company. Convenient in development, wrong in
-  production. It also hits the filesystem on every request without caching.
 - **[`NavMenu`][5] links to routes that do not exist yet** (`pipeline`, `users`,
   `gallery`, `keys`, `skills`, `agents`, `help`, `settings`).
 - **[`AdminChrome`][4] shows a hardcoded user** ("Olivia Martin") rather than
   [`ICurrentUser`][20].
 
 [1]: ../../Projects/Admin/Program.cs
-[2]: ../../Projects/Admin/Infrastructure/CompanyResolutionMiddleware.cs
+[2]: ../../Projects/Services/Companies/CompaniesPlugin.cs
 [3]: ../../Projects/Admin/Components/Layout/MainLayout.razor
 [4]: ../../Projects/Admin/Components/Layout/Components/AdminChrome.razor
 [5]: ../../Projects/Admin/Components/Layout/Components/NavMenu.razor

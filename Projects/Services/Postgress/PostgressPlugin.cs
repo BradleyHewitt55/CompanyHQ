@@ -31,7 +31,7 @@ public sealed class PostgressPlugin : ICompanyHqPlugin
         // the current company's db.json, or the platform database when no company
         // is selected. Options must be scoped too, or the first tenant's
         // connection would be cached for everyone.
-        services.AddDbContext<DbContext>(
+        services.AddDbContext<PostgressDbContext>(
             (sp, options) => options.UseNpgsql(
                 sp.GetRequiredService<CompanyDatabases>()
                     .Resolve(sp.GetService<ICompanyContext>()?.Current)),

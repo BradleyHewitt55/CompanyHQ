@@ -1,8 +1,9 @@
 # `companyhq` CLI
 
 A headless host ([`Projects/Cli`][1]) over the same plugins the Admin host loads.
-It calls `AddCompanyHqPlugins` but never `UseCompanyHqPlugins` — there is no
-pipeline.
+It calls `AddPluginDiscovery` but never web-only `UseDiscoveredPlugins` — there
+is no HTTP pipeline. The requested or inferred company becomes
+`CompanyHq:Company` before discovery.
 
 ## Commands
 

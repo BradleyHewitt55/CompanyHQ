@@ -25,9 +25,8 @@
     private bool visible;
     private string? error;
 
-    // The ambient company is set by CompanyResolutionMiddleware. Chrome reads it and
-    // never writes it: on an interactive circuit the DI scope outlives the request, so
-    // a component assigning it would re-point the tenant for everything downstream.
+    // The scope starts with the process-bound company. Chrome never writes it because
+    // a component assignment would re-point everything downstream on this circuit.
     protected override async Task OnInitializedAsync() => await RefreshAsync();
 
     private async Task RefreshAsync() => services = await Catalog.ListAsync();

@@ -18,8 +18,8 @@ the same shape and a developer only learns one structure.
   company parameter, so a caller cannot write into the wrong tenant by accident.
 - **Listing is a service too.** [`IServiceCatalog`][6] is the only way to enumerate
   a company's services. UI never walks the filesystem.
-- **`Settings/service.json` starts `enabled: false`.** Nothing reads it yet; it is
-  the intended activation switch once the plugin loader exists.
+- **`Settings/service.json` starts `enabled: false`.** The scanner excludes the service
+  until the manifest is enabled and that company's Admin image is rebuilt.
 
 ### The Abstractions reference
 
@@ -28,6 +28,9 @@ property in a `Directory.Build.props` written once per company at
 `Companies/{Company}/Services/Directory.Build.props`. Two rules follow:
 
 - **Fix the path in one place.** A second scaffold never overwrites an edited file.
+- **Share the host's Abstractions build.** Pointing at another checkout or a copied
+  `Abstractions.dll` can give `ICompanyHqPlugin` a different runtime identity, so the
+  scanner will not recognize the generated plugin.
 - **The default assumes the MockServer geometry**
   (`../../../../../Projects/Abstractions/Abstractions.csproj`, resolved relative
   to the `.csproj`, which sits one level below the props file). Deployments outside
@@ -54,7 +57,7 @@ sequenceDiagram
 
 1. The CLI resolves the company from the working directory via
    [`CompanyLocator`][7]; the Admin explorer skips this because
-   [`CompanyResolutionMiddleware`][8] already set the tenant from the request host.
+   [`CompaniesPlugin`][8] already initialized the scope from `CompanyHq:Company`.
 2. The caller sets [`ICompanyContext.Current`][5] on a scope.
 3. [`ServiceScaffolder`][4] validates the name through [`NameValidator`][9] and
    throws when the directory already exists.
@@ -79,10 +82,10 @@ there must fail loudly rather than silently pick a neighbouring tenant.
 
 [1]: ../../Projects/Services/Auth
 [2]: ../../Projects/Services/Companies/Services/ServiceTemplate.cs
-[3]: ../../Projects/Abstractions/ICompanyHqPlugin.cs
+[3]: ../../Projects/Abstractions/Plugins/ICompanyHqPlugin.cs
 [4]: ../../Projects/Services/Companies/Services/ServiceScaffolder.cs
 [5]: ../../Projects/Abstractions/Companies/ICompanyContext.cs
 [6]: ../../Projects/Abstractions/Companies/IServiceCatalog.cs
 [7]: ../../Projects/Services/Companies/Services/CompanyLocator.cs
-[8]: ../../Projects/Admin/Infrastructure/CompanyResolutionMiddleware.cs
+[8]: ../../Projects/Services/Companies/CompaniesPlugin.cs
 [9]: ../../Projects/Services/Companies/Services/NameValidator.cs

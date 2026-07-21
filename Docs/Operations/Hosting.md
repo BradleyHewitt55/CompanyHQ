@@ -3,43 +3,57 @@
 ## Decision
 
 **Caddy** fronts the self-hosted server and manages company hosting: every
-company domain terminates at Caddy, which reverse-proxies to the single Kestrel
-process serving all companies.
+company domain terminates at Caddy, which reverse-proxies to **that company's own
+Admin process**. One process serves exactly one company; isolation is enforced by
+process separation, not by an in-app tenant check.
 
-- **One Caddy, one Kestrel.** Caddy listens on 80/443 and proxies every host to
-  the Admin app; no per-company processes (see [Companies](../Architecture/Companies.md)
-  — no orchestrator).
+- **One Caddy, one process per company.** Caddy listens on 80/443 and proxies each
+  company's host to that company's Admin process. Each process is bound at startup
+  by `CompanyHq:Company` and only ever loads its own services plus the shared
+  built-ins — a rebuild in one company cannot reach another (see
+  [Companies](../Architecture/Companies.md)).
 - **TLS per company domain is Caddy's job.** Use [on-demand TLS][1] so a new
   company domain gets a certificate the first time it is requested — adding a
   company never means editing certificate config.
-- **The app still decides the tenant.** Caddy forwards the `Host` header
-  unchanged; `CompanyResolutionMiddleware` maps it via `CompanyHq:Domains:{host}`
-  to the company. Adding a company domain = DNS record → server IP, plus one
-  entry in that map. Caddy needs no per-company block.
-- **Kestrel stays private.** Kestrel binds to localhost only; Caddy is the only
-  process exposed. `/admin` and `/api` are reached exclusively through the proxy.
+- **Routing maps domain → process, not header → tenant.** Caddy points each
+  company domain at its process's port. Adding a company = DNS record → server IP,
+  a new `admin-{company}` process, and one Caddy block. The app never reads the
+  `Host` header to pick a tenant; every scoped `ICompanyContext` starts with the
+  process's fixed `CompanyHq:Company`.
+- **Kestrel stays private.** Each Admin process binds to localhost/an internal
+  port only; Caddy is the only process exposed. `/admin` and `/api` are reached
+  exclusively through the proxy.
 - **The app honors `X-Forwarded-Proto`/`X-Forwarded-Host`** (`UseForwardedHeaders`
   in `Projects/Admin/Program.cs`, first in the pipeline). Kestrel only ever sees
   plain http from the proxy; without this, every redirect and cookie the app
   issues downgrades to `http://`.
 - **Dev uses `{company}.localhost:{port}`, prod uses the actual domain.**
-  `MockServer/Caddyfile` proxies `alpha.localhost:8080`-style hosts to the dev
-  Kestrel; `*.localhost` resolves to `127.0.0.1` in browsers with no setup. The
-  routing flow (Host header → `CompanyHq:Domains` map → company) is identical —
-  in production the map keys are the companies' real domains behind the proxy
-  on 443.
-- **The app honors `X-Forwarded-Proto`/`X-Forwarded-Host`** (`UseForwardedHeaders`
-  in `Projects/Admin/Program.cs`, first in the pipeline). Kestrel only ever sees
-  plain http from the proxy; without this, every redirect and cookie the app
-  issues downgrades to `http://`.
-- **Dev mirrors this exactly** with `MockServer/Caddyfile`: fake apex domains
-  (hosts-file entries → `127.0.0.1`) served on `https:443` via Caddy's internal
-  CA — the same DNS → SNI/Host → `CompanyHq:Domains` flow production uses, so
-  services are tested against what production sees.
-- **Run both as systemd services** on the production box (Ubuntu LTS assumed),
-  Kestrel under a dedicated non-root user.
+  `docker-compose.yml` runs an `admin-{company}` service per company and
+  `MockServer/Caddyfile` proxies `alpha.localhost:8080` → `admin-alpha`,
+  `beta.localhost:8080` → `admin-beta`; `*.localhost` resolves to `127.0.0.1` in
+  browsers with no setup. The routing flow (domain → the matching process) is
+  identical to production, where the Caddy blocks key on the companies' real
+  domains behind the proxy on 443.
+- **Rebuild to activate service changes.** `Settings/service.json` is copied beside
+  image-baked service binaries. Set `enabled`, then run
+  `docker compose build admin-{company}` and recreate that Admin service.
+- **Keep binaries and state separate.** `CompanyHq:PluginRoot` is immutable image
+  content. `CompanyHq:ServerRoot` is mounted state containing service source,
+  `db.json`, and generated files; it never shadows the scanner's plugin path.
+- **One Postgres server, isolated company databases.** `CompanyHqServer` is the
+  provisioning administrator connection. Choosing local storage creates a dedicated
+  database and role and writes its generated connection to the company's `db.json`;
+  choosing external storage writes the supplied connection instead. Compose stores
+  managed credentials with host `localhost` for host-side CLI use and applies
+  `CompanyHq:ManagedDatabaseHost=postgres` inside Admin containers. External
+  connection strings are never rewritten. Persist both Postgres data and the
+  company directory.
+- **Run each company's process and Caddy as services** on the production box
+  (Ubuntu LTS assumed, or the compose stack), each Admin process under a dedicated
+  non-root user.
 
-Minimal Caddyfile shape:
+Minimal Caddyfile shape (one block per company, each pointing at that company's
+process):
 
 ```caddyfile
 {
@@ -48,11 +62,18 @@ Minimal Caddyfile shape:
     }
 }
 
-https:// {
+acme.example.com {
     tls {
         on_demand
     }
-    reverse_proxy localhost:5000
+    reverse_proxy localhost:5001   # admin-acme
+}
+
+globex.example.com {
+    tls {
+        on_demand
+    }
+    reverse_proxy localhost:5002   # admin-globex
 }
 ```
 

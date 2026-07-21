@@ -61,7 +61,7 @@ public sealed class SchemaMigrator(
             scope.ServiceProvider.GetRequiredService<ICompanyContext>().Current = company;
         }
 
-        var context = scope.ServiceProvider.GetRequiredService<DbContext>();
+        var context = scope.ServiceProvider.GetRequiredService<PostgressDbContext>();
         await scope.ServiceProvider.GetRequiredService<SchemaSynchronizer>()
             .SyncAsync(context, cancellationToken);
     }

@@ -3,12 +3,12 @@ using Microsoft.EntityFrameworkCore;
 
 namespace CompanyHQ.Services.Postgress;
 
-public sealed class DbContext : Microsoft.EntityFrameworkCore.DbContext
+public sealed class PostgressDbContext : Microsoft.EntityFrameworkCore.DbContext
 {
     private readonly IEnumerable<IModelContributor> _contributors;
 
-    public DbContext(
-        DbContextOptions<DbContext> options,
+    public PostgressDbContext(
+        DbContextOptions<PostgressDbContext> options,
         IEnumerable<IModelContributor> contributors)
         : base(options)
     {

@@ -110,7 +110,7 @@ Attributes first (`[Index]`, `[MaxLength]`, `[Required]` — see
 [Data access](../../../Docs/Architecture/DataAccess.md#constraints-attributes-first)). If no
 attribute can express the rule (composite keys, seed data), register an
 [`IModelContributor`][7] in your plugin's `ConfigureServices`; the provider's
-[`DbContext`][8] applies every contributor after convention mapping.
+[`PostgressDbContext`][8] applies every contributor after convention mapping.
 
 ```csharp
 services.AddSingleton<IModelContributor, InvoiceModelContributor>();
@@ -149,6 +149,6 @@ Every concrete `BaseModel` subclass in a loaded assembly should appear as a tabl
 [5]: ../../Abstractions/Data/IQueryService.cs
 [6]: Services/PostgressQueries.cs
 [7]: ../../Abstractions/Data/IModelContributor.cs
-[8]: DbContext.cs
+[8]: PostgressDbContext.cs
 [9]: Services/SchemaMigrator.cs
 [10]: Services/CompanyDatabases.cs

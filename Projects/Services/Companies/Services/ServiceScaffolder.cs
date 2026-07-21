@@ -29,7 +29,7 @@ public sealed class ServiceScaffolder(
         }
 
         await WriteAsync(directory, $"{serviceName}.csproj", ServiceTemplate.Project(serviceName), cancellationToken);
-        await WriteAsync(directory, $"{serviceName}Plugin.cs", ServiceTemplate.Plugin(serviceName), cancellationToken);
+        await WriteAsync(directory, $"{serviceName}Plugin.cs", ServiceTemplate.Plugin(company, serviceName), cancellationToken);
         await WriteAsync(directory, "_Imports.razor", ServiceTemplate.Imports(serviceName), cancellationToken);
         await WriteAsync(directory, "README.md", ServiceTemplate.Readme(serviceName), cancellationToken);
         await WriteAsync(directory, Path.Combine("Api", $"{serviceName}Controller.cs"),
