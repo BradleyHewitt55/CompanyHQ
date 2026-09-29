@@ -1,0 +1,7 @@
+# Playwright is local-only: specs, config, and output never go to the repository.
+/tests/
+/playwright.config.ts
+/test-results/
+/playwright-report/
+/blob-report/
+/playwright/.cache/

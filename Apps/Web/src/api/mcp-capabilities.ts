@@ -1,0 +1,42 @@
+// Actions explicitly marked for MCP in the API. Account settings can only narrow a role's grants.
+export const allMcpCapabilities = [
+  'search_area',
+  'get_my_notification_preferences',
+  'list_blog_posts',
+  'get_blog_post',
+  'create_blog_post',
+  'update_blog_post',
+  'delete_blog_post',
+  'list_faq_entries',
+  'get_faq_entry',
+  'create_faq_entry',
+  'update_faq_entry',
+  'delete_faq_entry',
+  'list_email_templates',
+  'get_email_template',
+  'update_email_template',
+  'preview_email_template',
+  'reset_email_template',
+] as const;
+
+export type McpCapability = (typeof allMcpCapabilities)[number];
+
+export const mcpCapabilityLabels: Record<McpCapability, string> = {
+  search_area: 'Search named areas',
+  get_my_notification_preferences: 'Read my notification preferences',
+  list_blog_posts: 'List blog posts and drafts',
+  get_blog_post: 'Read a blog post or draft',
+  create_blog_post: 'Create a blog post',
+  update_blog_post: 'Update a blog post',
+  delete_blog_post: 'Delete a blog post',
+  list_faq_entries: 'List FAQ entries and drafts',
+  get_faq_entry: 'Read an FAQ entry or draft',
+  create_faq_entry: 'Create an FAQ entry',
+  update_faq_entry: 'Update an FAQ entry',
+  delete_faq_entry: 'Delete an FAQ entry',
+  list_email_templates: 'List email templates',
+  get_email_template: 'Read an email template',
+  update_email_template: 'Update an email template',
+  preview_email_template: 'Preview an email template',
+  reset_email_template: 'Reset an email template',
+};

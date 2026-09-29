@@ -1,0 +1,8 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" fill="#1f2937">
+  <!-- Neutral default mark, shown until a company uploads its own logo. The Web app tints it through
+       a CSS alpha mask, so it is drawn as opaque shapes on a transparent background. -->
+  <path fill-rule="evenodd" d="M18 4h28a14 14 0 0 1 14 14v28a14 14 0 0 1-14 14H18A14 14 0 0 1 4 46V18A14 14 0 0 1 18 4Zm0 5a9 9 0 0 0-9 9v28a9 9 0 0 0 9 9h28a9 9 0 0 0 9-9V18a9 9 0 0 0-9-9Z"/>
+  <rect x="18" y="30" width="7" height="17" rx="2"/>
+  <rect x="28.5" y="20" width="7" height="27" rx="2"/>
+  <rect x="39" y="25" width="7" height="22" rx="2"/>
+</svg>

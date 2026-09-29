@@ -1,0 +1,328 @@
+@import 'tailwindcss';
+@import './theme.css';
+
+/*
+ * Tailwind resolves source globs relative to this file, and this file no longer lives inside the
+ * site that consumes it, so every host that renders these utilities is listed here explicitly.
+ */
+@source '../../Apps/Marketing/src';
+
+/*
+ * The brand tokens in theme.css are the source of truth. This block only publishes them into
+ * Tailwind's namespaces so `bg-surface` or `text-muted` resolve to the same value the app uses —
+ * `inline` keeps the var reference rather than snapshotting a copy that could drift.
+ */
+@theme inline {
+  --color-primary: var(--primary);
+  --color-secondary: var(--secondary);
+  --color-secondary-light: var(--secondary-light);
+  --color-secondary-soft: var(--secondary-soft);
+  --color-surface: var(--surface);
+  --color-surface-raised: var(--surface-raised);
+  --color-background: var(--background);
+  --color-muted: var(--muted);
+  --color-border: var(--border);
+  --color-border-strong: var(--border-strong);
+  --color-success: var(--success);
+  --color-success-soft: var(--success-soft);
+  --color-danger: var(--accent-danger);
+  --color-danger-soft: var(--accent-danger-soft);
+  --color-mint: var(--accent-mint);
+  --color-on-primary: var(--on-primary);
+
+  --font-sans: 'Atkinson Hyperlegible', var(--font-family-base);
+  --font-display: 'Bricolage Grotesque', var(--font-family-base);
+  --color-warning: var(--accent-warning);
+  --color-warning-soft: var(--accent-warning-soft);
+  --color-text: var(--text);
+  --color-heading: var(--heading-strong);
+
+  --radius-sm: var(--radius-sm);
+  --radius-md: var(--radius-md);
+  --radius-lg: var(--radius-lg);
+  --radius-xl: var(--radius-xl);
+  --radius-pill: var(--radius-pill);
+
+  --shadow-sm: var(--shadow-sm);
+  --shadow-md: var(--shadow-md);
+
+  --tracking-tight: var(--letter-spacing-tight);
+  --tracking-eyebrow: var(--letter-spacing-eyebrow);
+}
+
+/* Local SVG logos use the active theme color, matching Web's CompanyLogo treatment. The parent
+   supplies currentColor so a logo remains visible on both page surfaces and the footer. */
+.company-logo--svg {
+  display: block;
+  aspect-ratio: 507 / 592;
+  flex: 0 0 auto;
+  background-color: currentColor;
+  -webkit-mask-image: var(--company-logo-image);
+  mask-image: var(--company-logo-image);
+  -webkit-mask-mode: alpha;
+  mask-mode: alpha;
+  -webkit-mask-position: center;
+  mask-position: center;
+  -webkit-mask-repeat: no-repeat;
+  mask-repeat: no-repeat;
+  -webkit-mask-size: contain;
+  mask-size: contain;
+}
+
+@layer base {
+  html {
+    scroll-behavior: smooth;
+  }
+
+  /* Atkinson Hyperlegible was drawn for low-vision readers, which suits copy people read while
+     stressed. The base stack stays behind it so text renders before the web font arrives. */
+  body {
+    background: var(--background);
+    color: var(--primary);
+    font-family: 'Atkinson Hyperlegible', var(--font-family-base);
+    line-height: var(--line-height-relaxed);
+    -webkit-font-smoothing: antialiased;
+  }
+
+  /* Mirrors the app's heading reset. Element colors come from theme.css. */
+  h1,
+  h2,
+  h3,
+  h4,
+  h5,
+  h6 {
+    font-family: 'Bricolage Grotesque', var(--font-family-base);
+    font-weight: var(--font-weight-bold);
+    line-height: var(--line-height-heading);
+    letter-spacing: var(--letter-spacing-tight);
+    text-wrap: balance;
+  }
+
+  p {
+    text-wrap: pretty;
+  }
+
+  a,
+  button,
+  summary,
+  select,
+  label[for] {
+    touch-action: manipulation;
+  }
+
+  button:not(:disabled),
+  summary,
+  select,
+  [role='button'] {
+    cursor: pointer;
+  }
+
+  :focus-visible {
+    outline: 2px solid var(--primary);
+    outline-offset: 2px;
+  }
+
+  /* Sticky header and fixed tab bar would otherwise cover an anchor target or a focused control. */
+  html {
+    scroll-padding-top: 5rem;
+    scroll-padding-bottom: 5rem;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    html {
+      scroll-behavior: auto;
+    }
+
+    *,
+    *::before,
+    *::after {
+      animation-duration: 0.01ms !important;
+      animation-iteration-count: 1 !important;
+      transition-duration: 0.01ms !important;
+    }
+  }
+}
+
+@layer components {
+  /* One button shape for every page, so a primary action looks the same wherever it appears. */
+  .btn {
+    display: inline-flex;
+    min-height: var(--touch-target-min);
+    align-items: center;
+    justify-content: center;
+    gap: var(--gap-sm);
+    padding: 0.625rem 1.375rem;
+    border: 2px solid transparent;
+    border-radius: var(--radius-pill);
+    font-size: 1rem;
+    font-weight: var(--font-weight-bold);
+    line-height: 1.2;
+    text-align: center;
+    text-decoration: none;
+    transition: background-color 180ms ease-out, border-color 180ms ease-out, color 180ms ease-out, transform 120ms ease-out;
+  }
+
+  .btn:active:not(:disabled) {
+    transform: scale(0.97);
+  }
+
+  .btn:disabled {
+    cursor: not-allowed;
+    opacity: 0.5;
+  }
+
+  .btn-primary {
+    background: var(--primary);
+    color: var(--on-primary);
+  }
+
+  .btn-primary:hover:not(:disabled) {
+    background: color-mix(in srgb, var(--primary) 86%, var(--heading-strong));
+  }
+
+  .btn-secondary {
+    border-color: var(--border-strong);
+    background: var(--surface-raised);
+    color: var(--primary);
+  }
+
+  .btn-secondary:hover:not(:disabled) {
+    border-color: var(--primary);
+    background: var(--secondary-soft);
+  }
+
+  /* Field text stays at 16px so iOS does not zoom the page when an input takes focus. */
+  .field {
+    width: 100%;
+    min-height: 3rem;
+    padding: 0.625rem 0.875rem;
+    border: 1px solid var(--border-strong);
+    border-radius: var(--radius-md);
+    background: var(--surface-raised);
+    color: var(--heading-strong);
+    font-size: 1rem;
+    transition: border-color 150ms ease-out, box-shadow 150ms ease-out;
+  }
+
+  .field::placeholder {
+    color: var(--muted);
+  }
+
+  .field:focus-visible {
+    border-color: var(--primary);
+    outline: none;
+    box-shadow: 0 0 0 3px color-mix(in srgb, var(--primary) 30%, transparent);
+  }
+
+  .field[aria-invalid='true'] {
+    border-color: var(--accent-danger);
+  }
+
+  .geo-autocomplete {
+    position: relative;
+  }
+
+  .geo-autocomplete__list {
+    position: absolute;
+    z-index: 20;
+    top: calc(100% + 0.25rem);
+    right: 0;
+    left: 0;
+    max-height: 16rem;
+    margin: 0;
+    padding: 0.25rem;
+    overflow-y: auto;
+    border: 1px solid var(--border-strong);
+    border-radius: var(--radius-md);
+    background: var(--surface-raised);
+    box-shadow: var(--shadow-md);
+    list-style: none;
+  }
+
+  .geo-autocomplete__item {
+    margin: 0;
+    padding: 0;
+  }
+
+  .geo-autocomplete__option {
+    display: block;
+    width: 100%;
+    min-height: var(--touch-target-min);
+    padding: 0.625rem 0.75rem;
+    border: 0;
+    border-radius: var(--radius-sm);
+    background: transparent;
+    color: var(--heading-strong);
+    font: inherit;
+    text-align: left;
+  }
+
+  .geo-autocomplete__option:hover,
+  .geo-autocomplete__option[aria-selected='true'],
+  .geo-autocomplete__option:focus-visible {
+    background: var(--secondary-soft);
+    outline: none;
+  }
+
+  .eyebrow {
+    font-size: 0.8125rem;
+    font-weight: var(--font-weight-bold);
+    letter-spacing: var(--letter-spacing-eyebrow);
+    text-transform: uppercase;
+    color: var(--success);
+  }
+
+  /* A word inside a heading that carries the promise. The rule sits under the baseline rather than
+     on it so descenders stay readable at display sizes. */
+  .marked {
+    background-image: linear-gradient(var(--secondary-light), var(--secondary-light));
+    background-repeat: no-repeat;
+    background-size: 100% 0.28em;
+    background-position: 0 88%;
+  }
+
+  /* Long-form legal and article copy is authored as markdown, so it has no class hooks of its own. */
+  .prose-marketing {
+    color: var(--primary);
+    line-height: var(--line-height-relaxed);
+  }
+
+  .prose-marketing > * + * {
+    margin-top: 1rem;
+  }
+
+  .prose-marketing h2 {
+    margin-top: 2.5rem;
+    font-size: 1.35rem;
+  }
+
+  .prose-marketing h3 {
+    margin-top: 2rem;
+    font-size: 1.1rem;
+  }
+
+  .prose-marketing a {
+    text-decoration: underline;
+    text-underline-offset: 0.2em;
+  }
+
+  .prose-marketing ul,
+  .prose-marketing ol {
+    padding-left: 1.25rem;
+    list-style: revert;
+  }
+
+  .prose-marketing li + li {
+    margin-top: 0.4rem;
+  }
+
+  .prose-marketing strong {
+    font-weight: var(--font-weight-bold);
+  }
+
+  .prose-marketing blockquote {
+    padding-left: 1rem;
+    border-left: 3px solid var(--secondary-light);
+    color: var(--muted);
+  }
+}

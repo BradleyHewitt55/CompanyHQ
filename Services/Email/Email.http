@@ -1,0 +1,55 @@
+@baseUrl = http://localhost:4002
+@adminToken = replace-with-admin-token
+@key = auth.verify-email
+
+### List every template (administrator)
+GET {{baseUrl}}/api/email-templates
+Authorization: Bearer {{adminToken}}
+Accept: application/json
+
+### List without a token (401)
+GET {{baseUrl}}/api/email-templates
+Accept: application/json
+
+### Get one template
+GET {{baseUrl}}/api/email-templates/{{key}}
+Authorization: Bearer {{adminToken}}
+Accept: application/json
+
+### Get a key outside the catalog (404)
+GET {{baseUrl}}/api/email-templates/not.a-template
+Authorization: Bearer {{adminToken}}
+Accept: application/json
+
+### Replace a template's HTML
+PUT {{baseUrl}}/api/email-templates/{{key}}
+Authorization: Bearer {{adminToken}}
+Content-Type: application/json
+
+{
+  "html": "<p>Confirm your address: <a href=\"{{link}}\">verify</a></p>"
+}
+
+### Replace with empty HTML (400)
+PUT {{baseUrl}}/api/email-templates/{{key}}
+Authorization: Bearer {{adminToken}}
+Content-Type: application/json
+
+{
+  "html": ""
+}
+
+### Preview unsaved HTML with sample values
+POST {{baseUrl}}/api/email-templates/{{key}}/preview
+Authorization: Bearer {{adminToken}}
+Content-Type: application/json
+
+{
+  "html": "<p>Confirm your address: <a href=\"{{link}}\">verify</a></p>",
+  "values": { "link": "https://example.com/verify" }
+}
+
+### Reset a template to its shipped default
+POST {{baseUrl}}/api/email-templates/{{key}}/reset
+Authorization: Bearer {{adminToken}}
+Accept: application/json

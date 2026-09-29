@@ -1,0 +1,21 @@
+bin
+obj
+.artifacts
+artifacts/
+.testagent
+
+.env
+.env.dev
+.keys/
+.key/
+keys/
+
+.plans
+
+NUL
+
+# Next.js Web admin site
+Apps/Web/node_modules/
+Apps/Web/.next/
+Apps/Web/out/
+Apps/Web/*.tsbuildinfo

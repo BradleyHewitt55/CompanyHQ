@@ -1,0 +1,154 @@
+@baseUrl = http://localhost:4002
+@accessToken = replace-with-a-bearer-token
+@currentUserId = replace-with-current-user-id
+@otherUserId = 00000000-0000-0000-0000-000000000001
+@conversationId = 00000000-0000-0000-0000-000000000002
+@clientMessageId = 00000000-0000-0000-0000-000000000003
+@messageId = 00000000-0000-0000-0000-000000000004
+@readyOwnedMediaObjectId = replace-with-a-Ready-Message-scoped-media-id-you-own
+@notOwnedMediaObjectId = replace-with-a-media-id-you-do-not-own-or-that-is-not-Ready
+
+### Unauthenticated failure: 401
+GET {{baseUrl}}/api/conversations
+
+### List caller-owned conversations
+GET {{baseUrl}}/api/conversations?page=1&pageSize=10
+Authorization: Bearer {{accessToken}}
+
+### Get or create a conversation (201; repeated calls reuse the same id)
+POST {{baseUrl}}/api/conversations
+Authorization: Bearer {{accessToken}}
+Content-Type: application/json
+
+{
+  "participantId": "{{otherUserId}}"
+}
+
+### Self conversation failure: 400
+POST {{baseUrl}}/api/conversations
+Authorization: Bearer {{accessToken}}
+Content-Type: application/json
+
+{
+  "participantId": "{{currentUserId}}"
+}
+
+### Unknown participant: 404
+POST {{baseUrl}}/api/conversations
+Authorization: Bearer {{accessToken}}
+Content-Type: application/json
+
+{
+  "participantId": "11111111-1111-1111-1111-111111111111"
+}
+
+### Thread page, newest first, with optional in-thread search
+GET {{baseUrl}}/api/conversations/{{conversationId}}/messages?q=hello
+Authorization: Bearer {{accessToken}}
+
+### Older thread page using the response's nextCursor
+GET {{baseUrl}}/api/conversations/{{conversationId}}/messages?cursor=replace-with-nextCursor
+Authorization: Bearer {{accessToken}}
+
+### Invalid cursor failure: 400
+GET {{baseUrl}}/api/conversations/{{conversationId}}/messages?cursor=not-a-cursor
+Authorization: Bearer {{accessToken}}
+
+### Non-participant failure: 404 (the route does not confirm the conversation exists)
+GET {{baseUrl}}/api/conversations/{{conversationId}}/messages
+Authorization: Bearer {{accessToken}}
+
+### Send over HTTP; retry the same clientMessageId for an idempotent 201
+POST {{baseUrl}}/api/conversations/{{conversationId}}/messages
+Authorization: Bearer {{accessToken}}
+Content-Type: application/json
+
+{
+  "clientMessageId": "{{clientMessageId}}",
+  "body": "Hello from CompanyHQ"
+}
+
+### Send with an attachment: upload multipart bytes to POST /api/media?scope=Message first.
+### The response is already Ready, Scope Message, and owned by this caller; there is no /complete route.
+### 201; the response's mediaObjectId echoes back and the attachment is read via
+### GET {{baseUrl}}/api/media/{{readyOwnedMediaObjectId}}, gated by MessagePolicy, not this route.
+POST {{baseUrl}}/api/conversations/{{conversationId}}/messages
+Authorization: Bearer {{accessToken}}
+Content-Type: application/json
+
+{
+  "clientMessageId": "{{messageId}}",
+  "body": "Photo attached",
+  "mediaObjectId": "{{readyOwnedMediaObjectId}}"
+}
+
+### Rejected attachment failure: 400 (media not owned by the caller, wrong scope, or not Ready)
+POST {{baseUrl}}/api/conversations/{{conversationId}}/messages
+Authorization: Bearer {{accessToken}}
+Content-Type: application/json
+
+{
+  "clientMessageId": "{{messageId}}",
+  "body": "This attachment reference is rejected",
+  "mediaObjectId": "{{notOwnedMediaObjectId}}"
+}
+
+### Blocked-send contract: still 201; response has no suppressed field and no delivery occurs
+POST {{baseUrl}}/api/conversations/{{conversationId}}/messages
+Authorization: Bearer {{accessToken}}
+Content-Type: application/json
+
+{
+  "clientMessageId": "{{messageId}}",
+  "body": "This is accepted silently when the recipient has blocked the sender."
+}
+
+### Flagged sender to an ordinary account: still 201; message is stored for the sender only
+POST {{baseUrl}}/api/conversations/{{conversationId}}/messages
+Authorization: Bearer {{accessToken}}
+Content-Type: application/json
+
+{
+  "clientMessageId": "{{messageId}}",
+  "body": "A message from a flagged account is accepted silently."
+}
+
+### Flagged sender to the Admin account: 201 and delivered (operator carve-out)
+### Messages sent to a flagged recipient are also delivered; neither case has a special wire shape.
+
+### Mark read (204; participant only, otherwise 404)
+POST {{baseUrl}}/api/conversations/{{conversationId}}/read
+Authorization: Bearer {{accessToken}}
+
+### Mute and unmute (204; mute changes notifications, not delivery)
+POST {{baseUrl}}/api/conversations/{{conversationId}}/mute
+Authorization: Bearer {{accessToken}}
+
+###
+POST {{baseUrl}}/api/conversations/{{conversationId}}/unmute
+Authorization: Bearer {{accessToken}}
+
+### Clear this side only (204; rows remain in Postgres)
+POST {{baseUrl}}/api/conversations/{{conversationId}}/clear
+Authorization: Bearer {{accessToken}}
+
+### Close for both participants (204); subsequent reads show IsClosed and sends fail with 409
+POST {{baseUrl}}/api/conversations/{{conversationId}}/close
+Authorization: Bearer {{accessToken}}
+
+### Unread badge total
+GET {{baseUrl}}/api/conversations/unread-count
+Authorization: Bearer {{accessToken}}
+
+### Operator-only route: open/reuse an Admin participant thread
+POST {{baseUrl}}/api/conversations/with/{{otherUserId}}
+Authorization: Bearer {{accessToken}}
+
+### Operator route failure for a non-admin: 403
+POST {{baseUrl}}/api/conversations/with/{{otherUserId}}
+Authorization: Bearer replace-with-client-token
+
+### Receive-only SignalR hub: connect with the JWT as ?access_token=...
+### wss://host/hubs/messages?access_token={{accessToken}}
+### Events: MessageReceived(ClientMessageDto), ConversationRead(conversationId, readAt).
+### The hub has no send method; refetch after reconnect.

@@ -1,0 +1,68 @@
+@baseUrl = http://localhost:4002
+@token = replace-with-bearer-token
+@mediaId = replace-with-media-id
+
+### Request a short-lived direct object-storage upload URL for an image or video
+POST {{baseUrl}}/api/media
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "scope": "Message",
+  "contentType": "image/jpeg",
+  "sizeBytes": 1024
+}
+
+### Confirm the direct PUT after uploading the exact declared bytes to ticket.uploadUrl
+POST {{baseUrl}}/api/media/{{mediaId}}/complete
+Authorization: Bearer {{token}}
+
+### 400: unsupported content type
+POST {{baseUrl}}/api/media
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "scope": "Message",
+  "contentType": "application/pdf",
+  "sizeBytes": 1024
+}
+
+### 400: videos are message attachments only
+POST {{baseUrl}}/api/media
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "scope": "User",
+  "contentType": "video/mp4",
+  "sizeBytes": 1024
+}
+
+### Read a ready object (returns a direct storage URL)
+GET {{baseUrl}}/api/media/{{mediaId}}
+Authorization: Bearer {{token}}
+
+### Delete an object (uploader or administrator)
+DELETE {{baseUrl}}/api/media/{{mediaId}}
+Authorization: Bearer {{token}}
+
+### Fetch a public image (anonymous; 302 to a signed storage URL). This is the durable src of a profile photo.
+GET {{baseUrl}}/api/media/{{mediaId}}/content
+
+### A Message object is never reachable here, even for a participant
+GET {{baseUrl}}/api/media/{{messageMediaId}}/content
+
+### Upload the bytes through the API instead of the presigned storage URL (what a browser does)
+PUT {{baseUrl}}/api/media/{{mediaId}}/upload
+Authorization: Bearer {{token}}
+Content-Type: image/jpeg
+
+< ./probe.jpg
+
+### 422: the body must match the content type and size the ticket was issued for
+PUT {{baseUrl}}/api/media/{{mediaId}}/upload
+Authorization: Bearer {{token}}
+Content-Type: image/png
+
+< ./probe.jpg

@@ -1,0 +1,71 @@
+import Link from 'next/link';
+
+import './home.css';
+import { CompanyLogo } from '../Components/company-logo';
+import { getCompanyProfile } from '../src/api/company';
+
+/** The company's default public website: who they are and how to reach them. */
+export default async function HomePage() {
+  const company = await getCompanyProfile();
+  const name = company?.name || 'Our company';
+  const year = new Date().getFullYear();
+
+  return (
+    <div className="site">
+      <header className="site-header">
+        <Link className="site-brand" href="/">
+          <CompanyLogo alt="" className="site-logo" src={company?.logoUrl ?? '/logo-frame3.svg'} />
+          <span>{name}</span>
+        </Link>
+        <nav className="site-nav" aria-label="Main">
+          <a href="#about">About</a>
+          <a href="#contact">Contact</a>
+          <Link className="site-nav-cta" href="/auth/login">Sign in</Link>
+        </nav>
+      </header>
+
+      <main>
+        <section className="site-hero">
+          <h1>{name}</h1>
+          {company?.description && <p className="site-lead">{company.description}</p>}
+          <div className="site-actions">
+            <a className="site-button site-button--primary" href="#contact">Get in touch</a>
+            {company?.website && (
+              <a className="site-button" href={company.website} rel="noreferrer">Visit our website</a>
+            )}
+          </div>
+        </section>
+
+        <section className="site-section" id="about">
+          <h2>About us</h2>
+          <p>
+            {company?.description
+              || `${name} will share more about who we are and what we do here soon.`}
+          </p>
+        </section>
+
+        <section className="site-section" id="contact">
+          <h2>Contact</h2>
+          {company ? (
+            <dl className="site-contact">
+              <div>
+                <dt>General enquiries</dt>
+                <dd><a href={`mailto:${company.infoEmail}`}>{company.infoEmail}</a></dd>
+              </div>
+              <div>
+                <dt>Support</dt>
+                <dd><a href={`mailto:${company.supportEmail}`}>{company.supportEmail}</a></dd>
+              </div>
+            </dl>
+          ) : (
+            <p>Contact details will appear here once they are published.</p>
+          )}
+        </section>
+      </main>
+
+      <footer className="site-footer">
+        <span>&copy; {year} {name}</span>
+      </footer>
+    </div>
+  );
+}

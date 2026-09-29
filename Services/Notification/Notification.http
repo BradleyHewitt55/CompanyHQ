@@ -1,0 +1,46 @@
+@baseUrl = http://localhost:4002
+@accessToken = replace-with-user-jwt
+@deviceToken = replace-with-an-url-encoded-fcm-token
+
+### Register or refresh an Android token
+POST {{baseUrl}}/api/notifications/devices
+Authorization: Bearer {{accessToken}}
+Content-Type: application/json
+
+{
+  "token": "example-fcm-token",
+  "platform": "Android"
+}
+
+### Remove the current user's token; repeated deletion remains 204
+DELETE {{baseUrl}}/api/notifications/devices/{{deviceToken}}
+Authorization: Bearer {{accessToken}}
+
+### Read preferences; a new account starts with both values true
+GET {{baseUrl}}/api/notifications/preferences
+Authorization: Bearer {{accessToken}}
+Accept: application/json
+
+### Disable email while retaining push
+PUT {{baseUrl}}/api/notifications/preferences
+Authorization: Bearer {{accessToken}}
+Content-Type: application/json
+
+{
+  "emailEnabled": false,
+  "pushEnabled": true
+}
+
+### 400: an unsupported platform value is rejected
+POST {{baseUrl}}/api/notifications/devices
+Authorization: Bearer {{accessToken}}
+Content-Type: application/json
+
+{
+  "token": "example-fcm-token",
+  "platform": "BlackBerry"
+}
+
+### 401: all four routes require a bearer token
+GET {{baseUrl}}/api/notifications/preferences
+Accept: application/json

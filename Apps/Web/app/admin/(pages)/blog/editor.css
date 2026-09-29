@@ -1,0 +1,2 @@
+.editor-page[data-resource="blog"] textarea[name="body"] { min-height: 24rem; line-height: 1.7; }
+.editor-page[data-resource="blog"] label[for="title"] { grid-column: 1 / -1; }

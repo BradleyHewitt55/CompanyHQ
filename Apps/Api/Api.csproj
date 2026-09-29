@@ -1,0 +1,53 @@
+<Project Sdk="Microsoft.NET.Sdk.Web">
+
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <!-- Emitting the document boots the real host, so it is opt-in: a routine build must not start
+         failing because a service gained a required setting. The OpenAPI helper scripts turn it on. -->
+    <OpenApiGenerateDocumentsOnBuild Condition=" '$(OpenApiGenerateDocumentsOnBuild)' == '' ">false</OpenApiGenerateDocumentsOnBuild>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.AspNetCore.OpenApi" Version="10.0.10" />
+    <PackageReference Include="Microsoft.OpenApi" Version="2.7.5" />
+    <!-- Emits the service documents at build time without requiring a running API. -->
+    <PackageReference Include="Microsoft.Extensions.ApiDescription.Server" Version="10.0.10">
+      <PrivateAssets>all</PrivateAssets>
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+    </PackageReference>
+    <!-- Design-time only: supplies IDesignTimeDbContextFactory for `dotnet ef migrations`. -->
+    <PackageReference Include="Microsoft.EntityFrameworkCore.Design" Version="10.0.10">
+      <PrivateAssets>all</PrivateAssets>
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+    </PackageReference>
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="DotNetEnv" Version="3.2.0" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\Services\Appointment\Appointment.csproj" />
+    <ProjectReference Include="..\..\Services\Auth\Auth.csproj" />
+    <ProjectReference Include="..\..\Services\Cache\Cache.csproj" />
+    <ProjectReference Include="..\..\Services\Blog\Blog.csproj" />
+    <ProjectReference Include="..\..\Services\Faq\Faq.csproj" />
+    <ProjectReference Include="..\..\Services\Cloudflare\Cloudflare.csproj" />
+    <ProjectReference Include="..\..\Services\Company\Company.csproj" />
+    <ProjectReference Include="..\..\Services\Contact\Contact.csproj" />
+    <ProjectReference Include="..\..\Services\Email\Email.csproj" />
+    <ProjectReference Include="..\..\Services\Resend\Resend.csproj" />
+    <ProjectReference Include="..\..\Services\Firebase\Firebase.csproj" />
+    <ProjectReference Include="..\..\Services\Geo\Geo.csproj" />
+    <ProjectReference Include="..\..\Services\Notification\Notification.csproj" />
+    <ProjectReference Include="..\..\Services\Postgres\Postgres.csproj" />
+    <ProjectReference Include="..\..\Services\Message\Message.csproj" />
+    <ProjectReference Include="..\..\Services\User\User.csproj" />
+    <ProjectReference Include="..\..\Services\Moderation\Moderation.csproj" />
+    <ProjectReference Include="..\..\Services\Media\Media.csproj" />
+    <ProjectReference Include="..\..\Services\Mcp\Mcp.csproj" />
+  </ItemGroup>
+
+</Project>

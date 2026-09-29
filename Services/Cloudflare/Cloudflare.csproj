@@ -1,0 +1,20 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <AssemblyName>CompanyHQ.Services.Cloudflare</AssemblyName>
+    <RootNamespace>CompanyHQ.Services.Cloudflare</RootNamespace>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <FrameworkReference Include="Microsoft.AspNetCore.App" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <!-- The adapter implements Media's IMediaObjectStorageProvider port and references nothing else of Media. -->
+    <ProjectReference Include="..\Media\Contracts\Media.Contracts.csproj" />
+  </ItemGroup>
+
+</Project>

@@ -1,0 +1,114 @@
+services:
+  postgres:
+    image: postgis/postgis:17-3.5
+    container_name: companyhq-postgres
+    restart: unless-stopped
+    # The image's own variables, filled from the same Postgres__* keys the API binds.
+    environment:
+      POSTGRES_DB: ${Postgres__Database}
+      POSTGRES_USER: ${Postgres__Username}
+      POSTGRES_PASSWORD: ${Postgres__Password}
+    volumes:
+      - companyhq-pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${Postgres__Username} -d ${Postgres__Database}"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  redis:
+    image: redis:7.4-alpine
+    container_name: companyhq-redis
+    restart: unless-stopped
+    command: ["redis-server", "--requirepass", "${REDIS_PASSWORD:?Set REDIS_PASSWORD}"]
+    environment:
+      # redis-cli reads this, so the healthcheck can authenticate.
+      REDISCLI_AUTH: ${REDIS_PASSWORD}
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+
+  api:
+    build:
+      context: .
+      dockerfile: Apps/Api/Dockerfile
+    container_name: companyhq-api
+    restart: unless-stopped
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    # The container has no repository root to walk, so EnvironmentFile.Load finds nothing and the
+    # same .env has to be handed in here instead.
+    env_file:
+      - .env
+    environment:
+      ASPNETCORE_ENVIRONMENT: Production
+      # Inside the compose network the backing services answer on their service names and
+      # internal ports, so these override the localhost values in .env.
+      Postgres__Host: postgres
+      Postgres__Port: 5432
+      Cache__ConnectionString: redis:6379,password=${REDIS_PASSWORD}
+      Postgres__AutoSeed: ${COMPANYHQ_AUTO_SEED:-true}
+    ports:
+      - "${API_PORT:-4002}:8080"
+
+  marketing:
+    build:
+      context: .
+      dockerfile: Apps/Marketing/Dockerfile
+    container_name: companyhq-marketing
+    restart: unless-stopped
+    depends_on:
+      api:
+        condition: service_started
+    environment:
+      # Static generation reaches the API over Compose; browser-side forms use the host URL.
+      API_INTERNAL_URL: http://api:8080
+      PUBLIC_API_URL: ${PUBLIC_API_URL:-http://localhost:4002}
+      PUBLIC_WEB_URL: ${PUBLIC_WEB_URL:?Set PUBLIC_WEB_URL to the browser-reachable Web URL}
+      MARKETING_START_TIMEOUT_SECONDS: ${MARKETING_START_TIMEOUT_SECONDS:-300}
+    volumes:
+      - ./Assets/Logo:/src/Assets/Logo
+    ports:
+      - "${MARKETING_PORT:-3003}:3003"
+    healthcheck:
+      test: ["CMD", "node", "-e", "fetch('http://localhost:3003').then(r=>{if(!r.ok)process.exit(1)}).catch(()=>process.exit(1))"]
+      interval: 5s
+      timeout: 5s
+      retries: 30
+      start_period: 60s
+
+  web:
+    # One Next.js service serves both the customer routes and /admin on the same published port.
+    build:
+      context: .
+      dockerfile: Apps/Web/Dockerfile
+    container_name: companyhq-web
+    restart: unless-stopped
+    depends_on:
+      api:
+        condition: service_started
+    environment:
+      NODE_ENV: production
+      HOSTNAME: 0.0.0.0
+      PORT: 3004
+      API_INTERNAL_URL: ${WEB_API_INTERNAL_URL:?Set WEB_API_INTERNAL_URL to the Web API URL}
+      MARKETING_URL: ${MARKETING_URL:?Set MARKETING_URL to the browser-reachable Marketing URL}
+      WEB_REDIS_URL: redis://:${REDIS_PASSWORD}@redis:6379
+    volumes:
+      - ./Assets/Logo:/app/Assets/Logo
+    ports:
+      - "${WEB_PORT:-3004}:3004"
+    healthcheck:
+      test: ["CMD", "node", "-e", "fetch('http://localhost:3004/admin').then(r=>{if(!r.ok)process.exit(1)}).catch(()=>process.exit(1))"]
+      interval: 5s
+      timeout: 5s
+      retries: 20
+      start_period: 10s
+
+volumes:
+  companyhq-pgdata:

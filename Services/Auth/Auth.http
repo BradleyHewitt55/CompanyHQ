@@ -1,0 +1,203 @@
+@Auth_HostAddress = http://localhost:4002
+@accessToken = replace-with-a-bearer-token
+@refreshToken = replace-with-a-refresh-token
+
+### Register
+POST {{Auth_HostAddress}}/api/auth/register
+Content-Type: application/json
+
+{
+  "email": "new-owner@companyhq.test",
+  "password": "at-least-12-characters",
+  "firstName": "New",
+  "lastName": "Owner"
+}
+
+### Register — rate-limited IP or normalized email (429 after the fixed window budget)
+POST {{Auth_HostAddress}}/api/auth/register
+Content-Type: application/json
+
+{
+  "email": "new-owner+retry@companyhq.test",
+  "password": "at-least-12-characters",
+  "firstName": "Retry",
+  "lastName": "Owner"
+}
+
+### Register — email already taken (409)
+POST {{Auth_HostAddress}}/api/auth/register
+Content-Type: application/json
+
+{
+  "email": "new-owner@companyhq.test",
+  "password": "at-least-12-characters",
+  "firstName": "Duplicate",
+  "lastName": "Owner"
+}
+
+### Login
+POST {{Auth_HostAddress}}/api/auth/login
+Content-Type: application/json
+
+{
+  "email": "new-owner@companyhq.test",
+  "password": "at-least-12-characters",
+  "deviceLabel": "Pixel 8"
+}
+
+### Login — unknown email or wrong password answer identically (401)
+POST {{Auth_HostAddress}}/api/auth/login
+Content-Type: application/json
+
+{
+  "email": "unknown@companyhq.test",
+  "password": "whatever-it-is"
+}
+
+### Refresh
+POST {{Auth_HostAddress}}/api/auth/refresh
+Content-Type: application/json
+
+{
+  "refreshToken": "{{refreshToken}}"
+}
+
+### Refresh — rotated/unknown token (401)
+POST {{Auth_HostAddress}}/api/auth/refresh
+Content-Type: application/json
+
+{
+  "refreshToken": "already-used-or-never-issued"
+}
+
+### Logout
+POST {{Auth_HostAddress}}/api/auth/logout
+Content-Type: application/json
+
+{
+  "refreshToken": "{{refreshToken}}"
+}
+
+### Verify email
+POST {{Auth_HostAddress}}/api/auth/verify-email
+Content-Type: application/json
+
+{
+  "token": "replace-with-the-token-from-the-email-link"
+}
+
+### Verify email — consumed or unknown token (400)
+POST {{Auth_HostAddress}}/api/auth/verify-email
+Content-Type: application/json
+
+{
+  "token": "not-a-real-token"
+}
+
+### Resend verification — always 204, known or unknown address alike
+POST {{Auth_HostAddress}}/api/auth/resend-verification
+Content-Type: application/json
+
+{
+  "email": "new-owner@companyhq.test"
+}
+
+### Forgot password — always 204, known or unknown address alike
+POST {{Auth_HostAddress}}/api/auth/forgot-password
+Content-Type: application/json
+
+{
+  "email": "new-owner@companyhq.test"
+}
+
+### Reset password
+POST {{Auth_HostAddress}}/api/auth/reset-password
+Content-Type: application/json
+
+{
+  "token": "replace-with-the-token-from-the-email-link",
+  "newPassword": "a-different-password-12"
+}
+
+### Reset password — consumed token (400)
+POST {{Auth_HostAddress}}/api/auth/reset-password
+Content-Type: application/json
+
+{
+  "token": "already-used-token",
+  "newPassword": "a-different-password-12"
+}
+
+### Change password — needs the caller's own refresh token to know which session to keep
+POST {{Auth_HostAddress}}/api/auth/change-password
+Authorization: Bearer {{accessToken}}
+Content-Type: application/json
+
+{
+  "currentPassword": "at-least-12-characters",
+  "newPassword": "a-different-password-12",
+  "refreshToken": "{{refreshToken}}"
+}
+
+### Change email
+POST {{Auth_HostAddress}}/api/auth/change-email
+Authorization: Bearer {{accessToken}}
+Content-Type: application/json
+
+{
+  "currentPassword": "at-least-12-characters",
+  "newEmail": "moved-owner@companyhq.test"
+}
+
+### Change email — address already taken (409)
+POST {{Auth_HostAddress}}/api/auth/change-email
+Authorization: Bearer {{accessToken}}
+Content-Type: application/json
+
+{
+  "currentPassword": "at-least-12-characters",
+  "newEmail": "new-owner@companyhq.test"
+}
+
+### Confirm email change
+POST {{Auth_HostAddress}}/api/auth/confirm-email-change
+Content-Type: application/json
+
+{
+  "token": "replace-with-the-token-from-the-confirmation-email"
+}
+
+### List sessions
+GET {{Auth_HostAddress}}/api/auth/sessions?page=1&pageSize=10
+Authorization: Bearer {{accessToken}}
+Accept: application/json
+
+### List sessions — flag the caller's own row
+GET {{Auth_HostAddress}}/api/auth/sessions?page=1&pageSize=10&currentSessionId=00000000-0000-0000-0000-000000000000
+Authorization: Bearer {{accessToken}}
+Accept: application/json
+
+### Delete one session
+DELETE {{Auth_HostAddress}}/api/auth/sessions/00000000-0000-0000-0000-000000000000
+Authorization: Bearer {{accessToken}}
+
+### Delete a session that isn't the caller's (404)
+DELETE {{Auth_HostAddress}}/api/auth/sessions/11111111-1111-1111-1111-111111111111
+Authorization: Bearer {{accessToken}}
+
+### Sign out everywhere
+POST {{Auth_HostAddress}}/api/auth/sessions/revoke-all
+Authorization: Bearer {{accessToken}}
+
+### Get the signed-in account
+GET {{Auth_HostAddress}}/api/auth/me
+Authorization: Bearer {{accessToken}}
+Accept: application/json
+
+### Get the signed-in account — no token (401)
+GET {{Auth_HostAddress}}/api/auth/me
+Accept: application/json
+
+### Delete the signed-in account
+DELETE {{Auth_HostAddress}}/api/auth/me
+Authorization: Bearer {{accessToken}}

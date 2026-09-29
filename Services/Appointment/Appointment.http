@@ -1,0 +1,72 @@
+@Appointment_HostAddress = http://localhost:4002
+@accessToken = replace-with-a-bearer-token
+@appointmentId = 00000000-0000-0000-0000-000000000000
+
+### List upcoming appointments
+GET {{Appointment_HostAddress}}/api/appointments?upcoming=true&page=1&pageSize=10
+Authorization: Bearer {{accessToken}}
+Accept: application/json
+
+### List past appointments, most recent first
+GET {{Appointment_HostAddress}}/api/appointments?upcoming=false
+Authorization: Bearer {{accessToken}}
+Accept: application/json
+
+### List without a token (401)
+GET {{Appointment_HostAddress}}/api/appointments
+Accept: application/json
+
+### Get one appointment
+GET {{Appointment_HostAddress}}/api/appointments/{{appointmentId}}
+Authorization: Bearer {{accessToken}}
+Accept: application/json
+
+### Get someone else's appointment (404, never 403)
+GET {{Appointment_HostAddress}}/api/appointments/11111111-1111-1111-1111-111111111111
+Authorization: Bearer {{accessToken}}
+Accept: application/json
+
+### Book an appointment (201)
+POST {{Appointment_HostAddress}}/api/appointments
+Authorization: Bearer {{accessToken}}
+Content-Type: application/json
+
+{
+  "title": "Quarterly review",
+  "scheduledAt": "2026-10-14T09:30:00+02:00",
+  "location": "Head office, boardroom 2",
+  "notes": "Bring the Q3 figures."
+}
+
+### Book with a blank title (400)
+POST {{Appointment_HostAddress}}/api/appointments
+Authorization: Bearer {{accessToken}}
+Content-Type: application/json
+
+{
+  "title": "   ",
+  "scheduledAt": "2026-10-14T09:30:00+02:00"
+}
+
+### Book with no scheduledAt (400)
+POST {{Appointment_HostAddress}}/api/appointments
+Authorization: Bearer {{accessToken}}
+Content-Type: application/json
+
+{
+  "title": "Missing time"
+}
+
+### Replace an appointment (200; a source-linked or someone else's row is 404)
+PUT {{Appointment_HostAddress}}/api/appointments/{{appointmentId}}
+Authorization: Bearer {{accessToken}}
+Content-Type: application/json
+
+{
+  "title": "Quarterly review (moved)",
+  "scheduledAt": "2026-10-15T09:30:00+02:00"
+}
+
+### Delete an appointment (204; a source-linked or someone else's row is 404)
+DELETE {{Appointment_HostAddress}}/api/appointments/{{appointmentId}}
+Authorization: Bearer {{accessToken}}

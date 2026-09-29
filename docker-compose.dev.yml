@@ -1,0 +1,32 @@
+# Development override. API and its backing services stay in Docker; one local Web process serves
+# both the customer routes and /admin through the PowerShell launcher. Development uses .env.dev only.
+
+services:
+  marketing: !reset null
+
+  # The local Next.js process owns the single Web port. There is no separate admin service.
+  web: !reset null
+
+  api:
+    restart: unless-stopped
+    env_file: !override
+      - ./.env.dev
+    ports: !override
+      - "${API_DEV_PORT:-4002}:8080"
+    environment:
+      ASPNETCORE_ENVIRONMENT: Development
+      Postgres__AutoSeed: "true"
+
+  postgres:
+    restart: unless-stopped
+    volumes:
+      - companyhq-pgdata-dev:/var/lib/postgresql/data
+
+  redis:
+    restart: unless-stopped
+    # The host Web process needs a host-reachable Redis endpoint.
+    ports:
+      - "${REDIS_DEV_PORT:-6379}:6379"
+
+volumes:
+  companyhq-pgdata-dev:

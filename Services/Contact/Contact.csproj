@@ -1,0 +1,22 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <AssemblyName>CompanyHQ.Services.Contact</AssemblyName>
+    <RootNamespace>CompanyHQ.Services.Contact</RootNamespace>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <FrameworkReference Include="Microsoft.AspNetCore.App" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <!-- Contracts/ is its own client-shippable assembly. -->
+    <Compile Remove="Contracts/**" />
+    <Compile Include="Contracts/Models/**/*.cs" />
+    <ProjectReference Include="Contracts/Contact.Contracts.csproj" />
+  </ItemGroup>
+
+</Project>

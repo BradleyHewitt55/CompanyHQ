@@ -1,0 +1,35 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <AssemblyName>CompanyHQ.Services.Auth</AssemblyName>
+    <RootNamespace>CompanyHQ.Services.Auth</RootNamespace>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <!-- Carries the controller, the authentication/authorization pipeline, and IPasswordHasher. -->
+    <FrameworkReference Include="Microsoft.AspNetCore.App" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.AspNetCore.Authentication.JwtBearer" Version="10.0.10" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <!-- The User service owns the account record and the password hasher this service verifies against. -->
+    <ProjectReference Include="..\User\User.csproj" />
+    <ProjectReference Include="..\Cache\Cache.csproj" />
+    <ProjectReference Include="..\Postgres\Postgres.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <!-- Contracts/ is its own client-shippable assembly. Only the persisted entities and
+         the entity-to-DTO projections under it compile into this one. -->
+    <Compile Remove="Contracts/**" />
+    <Compile Include="Contracts/Models/**/*.cs" />
+    <ProjectReference Include="Contracts/Auth.Contracts.csproj" />
+  </ItemGroup>
+
+</Project>

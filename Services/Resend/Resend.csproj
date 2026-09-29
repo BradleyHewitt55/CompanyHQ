@@ -1,0 +1,20 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <AssemblyName>CompanyHQ.Services.Resend</AssemblyName>
+    <RootNamespace>CompanyHQ.Services.Resend</RootNamespace>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <FrameworkReference Include="Microsoft.AspNetCore.App" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <!-- The adapter implements Email's IEmailProvider port and references nothing else of Email. -->
+    <ProjectReference Include="..\Email\Contracts\Email.Contracts.csproj" />
+  </ItemGroup>
+
+</Project>

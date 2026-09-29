@@ -1,0 +1,57 @@
+@baseUrl = http://localhost:4002
+@adminToken = replace-with-admin-token
+
+### Public published list
+GET {{baseUrl}}/api/faqs?page=1&pageSize=10
+Accept: application/json
+
+### Public detail
+GET {{baseUrl}}/api/faqs/what-are-your-business-hours
+Accept: application/json
+
+### Drafts and authoring require an administrator bearer token
+POST {{baseUrl}}/api/faqs
+Authorization: Bearer {{adminToken}}
+Content-Type: application/json
+
+{
+  "key": "example-draft",
+  "question": "What is this example?",
+  "answer": "This is an example answer with enough content for the request.",
+  "category": "Getting started",
+  "seoDescription": "A concise answer describing this example FAQ entry.",
+  "isDraft": true
+}
+
+### Update an entry without changing its stable key
+PUT {{baseUrl}}/api/faqs/example-draft
+Authorization: Bearer {{adminToken}}
+Content-Type: application/json
+
+{
+  "question": "What is this updated example?",
+  "answer": "This is an updated example answer with enough content for the request.",
+  "category": "Getting started",
+  "seoDescription": "An updated FAQ description with enough content for the request.",
+  "isDraft": true
+}
+
+### Delete an entry
+DELETE {{baseUrl}}/api/faqs/example-draft
+Authorization: Bearer {{adminToken}}
+
+### Missing detail
+GET {{baseUrl}}/api/faqs/does-not-exist
+Accept: application/json
+
+### 401 without an administrator token
+POST {{baseUrl}}/api/faqs
+Content-Type: application/json
+
+{
+  "key": "unauthorised-example",
+  "question": "Can an unauthorised caller write?",
+  "answer": "This request should be rejected before a FAQ row is written.",
+  "category": "Testing",
+  "seoDescription": "An unauthorised FAQ request must not be accepted."
+}

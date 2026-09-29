@@ -1,0 +1,48 @@
+@Geo_HostAddress = http://localhost:4002
+
+### Name the area around a coordinate (anonymous). Coordinates are rounded to 3 decimals server-side.
+GET {{Geo_HostAddress}}/api/geo/area?latitude=-26.088&longitude=28.228
+Accept: application/json
+
+### Out of range, expect 400
+GET {{Geo_HostAddress}}/api/geo/area?latitude=95&longitude=28.228
+Accept: application/json
+
+### Nearby places of the configured Geo:NearbyPlaceKinds in a viewport (anonymous). ~5 km, 4 tiles.
+### With no kinds configured the search is off and answers an empty, complete result.
+### An empty `places` with `incomplete: false` means the area has none; 503 means nothing was cached
+### and Overpass was unavailable — retry. `address` and `phone` are null wherever OSM has no tag.
+GET {{Geo_HostAddress}}/api/geo/nearby-places?south=-26.15&west=28.18&north=-26.06&east=28.29
+Accept: application/json
+
+### Exactly at the 24-tile cap (4 x 6 tiles, ~25 km x 50 km), expect 200.
+GET {{Geo_HostAddress}}/api/geo/nearby-places?south=-26.35&west=28.10&north=-25.90&east=28.35
+Accept: application/json
+
+### One tile column wider, 30 tiles — expect 400
+GET {{Geo_HostAddress}}/api/geo/nearby-places?south=-26.35&west=28.10&north=-25.90&east=28.45
+Accept: application/json
+
+### Wildly over the cap (957 tiles), expect 400
+GET {{Geo_HostAddress}}/api/geo/nearby-places?south=-27.5&west=27.0&north=-25.0&east=29.5
+Accept: application/json
+
+### Inverted bounding box (south >= north), expect 400
+GET {{Geo_HostAddress}}/api/geo/nearby-places?south=-26.06&west=28.18&north=-26.15&east=28.29
+Accept: application/json
+
+### Antimeridian crossing (west >= east), expect 400
+GET {{Geo_HostAddress}}/api/geo/nearby-places?south=-26.15&west=179.9&north=-26.06&east=-179.9
+Accept: application/json
+
+### Longitude out of range, expect 400
+GET {{Geo_HostAddress}}/api/geo/nearby-places?south=-26.15&west=-200&north=-26.06&east=28.29
+Accept: application/json
+
+### Search areas for the manual picker (anonymous)
+GET {{Geo_HostAddress}}/api/geo/areas?search=Kempton%20Park&limit=5
+Accept: application/json
+
+### Missing search text, expect 400
+GET {{Geo_HostAddress}}/api/geo/areas
+Accept: application/json

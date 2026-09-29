@@ -1,0 +1,30 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <AssemblyName>CompanyHQ.Services.Messages</AssemblyName>
+    <RootNamespace>CompanyHQ.Services.Messages</RootNamespace>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <FrameworkReference Include="Microsoft.AspNetCore.App" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\Auth\Contracts\Auth.Contracts.csproj" />
+    <ProjectReference Include="..\Cache\Cache.csproj" />
+    <ProjectReference Include="..\Postgres\Postgres.csproj" />
+    <ProjectReference Include="..\User\User.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <!-- Contracts/ is its own client-shippable assembly. Only the persisted entities and
+         the entity-to-DTO projections under it compile into this one. -->
+    <Compile Remove="Contracts/**" />
+    <Compile Include="Contracts/Models/**/*.cs" />
+    <ProjectReference Include="Contracts/Message.Contracts.csproj" />
+  </ItemGroup>
+
+</Project>

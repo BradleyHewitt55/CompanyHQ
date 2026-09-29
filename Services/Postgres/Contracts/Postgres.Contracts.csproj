@@ -1,0 +1,21 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <AssemblyName>CompanyHQ.Services.Postgres.Contracts</AssemblyName>
+    <RootNamespace>CompanyHQ.Services.Postgres.Contracts</RootNamespace>
+  </PropertyGroup>
+
+  <!--
+    The wire shapes every CompanyHQ client speaks, with no dependency of any kind. That emptiness is
+    the point: Apps/Mobile targets net10.0-android, where neither the ASP.NET Core shared framework
+    nor Npgsql exists, so a contract that reaches for either stops being shippable to the phone.
+    Persisted entities stay compiled into the service assembly for exactly that reason.
+  -->
+  <ItemGroup>
+    <Compile Remove="Models/**" />
+  </ItemGroup>
+
+</Project>

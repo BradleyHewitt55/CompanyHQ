@@ -1,0 +1,273 @@
+@baseUrl = http://localhost:4002
+@accessToken = replace-with-a-bearer-token
+@adminToken = replace-with-an-admin-jwt
+@userId = 00000000-0000-0000-0000-000000000000
+@currentUserId = 00000000-0000-0000-0000-000000000000
+@reportId = 00000000-0000-0000-0000-000000000000
+@articleId = 00000000-0000-0000-0000-000000000000
+@flagId = 00000000-0000-0000-0000-000000000000
+
+### Discover article report reasons
+GET {{baseUrl}}/api/reports/options/article
+Authorization: Bearer {{accessToken}}
+
+### Discover post report reasons
+GET {{baseUrl}}/api/reports/options/post
+Authorization: Bearer {{accessToken}}
+
+### Block a user
+POST {{baseUrl}}/api/blocks
+Authorization: Bearer {{accessToken}}
+Content-Type: application/json
+
+{
+  "blockedUserId": "{{userId}}",
+  "reason": "Repeated unwanted contact"
+}
+
+### List the accounts I blocked
+GET {{baseUrl}}/api/blocks?page=1&pageSize=10
+Authorization: Bearer {{accessToken}}
+
+### Unblock a user
+DELETE {{baseUrl}}/api/blocks/{{userId}}
+Authorization: Bearer {{accessToken}}
+
+### Report an article with a target-valid reason
+POST {{baseUrl}}/api/reports
+Authorization: Bearer {{accessToken}}
+Content-Type: application/json
+
+{
+  "targetKind": "article",
+  "targetId": "{{articleId}}",
+  "reason": "Irrelevant"
+}
+
+### Report content
+POST {{baseUrl}}/api/reports
+Authorization: Bearer {{accessToken}}
+Content-Type: application/json
+
+{
+  "targetKind": "post",
+  "targetId": "{{reportId}}",
+  "reason": "Spam",
+  "details": "This is repeated advertising."
+}
+
+### List my reports
+GET {{baseUrl}}/api/reports/mine?page=1&pageSize=10
+Authorization: Bearer {{accessToken}}
+
+### Withdraw my pending post report
+DELETE {{baseUrl}}/api/reports/post/{{reportId}}
+Authorization: Bearer {{accessToken}}
+
+### Withdraw my pending article report
+DELETE {{baseUrl}}/api/reports/article/{{articleId}}
+Authorization: Bearer {{accessToken}}
+
+### List my hidden content ids
+GET {{baseUrl}}/api/hidden?page=1&pageSize=10
+Authorization: Bearer {{accessToken}}
+
+### Explicitly unhide manual/legacy content (report and block hides survive)
+DELETE {{baseUrl}}/api/hidden/post/{{reportId}}
+Authorization: Bearer {{accessToken}}
+
+### Review the moderation queue
+GET {{baseUrl}}/api/reports?status=Pending&page=1&pageSize=10
+Authorization: Bearer {{adminToken}}
+
+### Mark a report reviewed
+POST {{baseUrl}}/api/reports/{{reportId}}/decision
+Authorization: Bearer {{adminToken}}
+Content-Type: application/json
+
+{
+  "status": "Reviewed",
+  "reviewNote": "Reviewed by the moderation team."
+}
+
+### Confirm a report and suppress it from client surfaces
+POST {{baseUrl}}/api/reports/{{reportId}}/decision
+Authorization: Bearer {{adminToken}}
+Content-Type: application/json
+
+{
+  "status": "ActionTaken",
+  "reviewNote": "Confirmed after reviewing the frozen evidence."
+}
+
+### Dismiss and restore a confirmed report
+POST {{baseUrl}}/api/reports/{{reportId}}/decision
+Authorization: Bearer {{adminToken}}
+Content-Type: application/json
+
+{
+  "status": "Dismissed",
+  "reviewNote": "The allegation was not substantiated."
+}
+
+### Reverse a dismissal (a non-blank note is required)
+POST {{baseUrl}}/api/reports/{{reportId}}/decision
+Authorization: Bearer {{adminToken}}
+Content-Type: application/json
+
+{
+  "status": "ActionTaken",
+  "reviewNote": "Reversing dismissal after a second operator review."
+}
+
+### List account flags
+GET {{baseUrl}}/api/flags?status=Active&page=1&pageSize=10
+Authorization: Bearer {{adminToken}}
+
+### Decide an account flag
+POST {{baseUrl}}/api/flags/{{flagId}}/decision
+Authorization: Bearer {{adminToken}}
+Content-Type: application/json
+
+{
+  "status": "Cleared",
+  "note": "No further action required."
+}
+
+### Failure: blocking yourself (400)
+POST {{baseUrl}}/api/blocks
+Authorization: Bearer {{accessToken}}
+Content-Type: application/json
+
+{
+  "blockedUserId": "{{currentUserId}}"
+}
+
+### Failure: blocking a missing account (404)
+POST {{baseUrl}}/api/blocks
+Authorization: Bearer {{accessToken}}
+Content-Type: application/json
+
+{
+  "blockedUserId": "00000000-0000-0000-0000-000000000001"
+}
+
+### Failure: reporting yourself (400)
+POST {{baseUrl}}/api/reports
+Authorization: Bearer {{accessToken}}
+Content-Type: application/json
+
+{
+  "targetKind": "user",
+  "targetId": "{{currentUserId}}",
+  "reason": "Other",
+  "details": "Self-report should still be rejected."
+}
+
+### Failure: reporting the same target twice (409)
+POST {{baseUrl}}/api/reports
+Authorization: Bearer {{accessToken}}
+Content-Type: application/json
+
+{
+  "targetKind": "post",
+  "targetId": "{{reportId}}",
+  "reason": "Spam"
+}
+
+### Failure: unsupported target kind or clear-history combination (400)
+POST {{baseUrl}}/api/reports
+Authorization: Bearer {{accessToken}}
+Content-Type: application/json
+
+{
+  "targetKind": "unknown",
+  "targetId": "{{reportId}}",
+  "reason": "Other",
+  "details": "Unsupported kinds are never accepted."
+}
+
+### Failure: disallowed reason for a registered target (400 Problem Details)
+POST {{baseUrl}}/api/reports
+Authorization: Bearer {{accessToken}}
+Content-Type: application/json
+
+{
+  "targetKind": "message",
+  "targetId": "{{reportId}}",
+  "reason": "Irrelevant"
+}
+
+### Failure: Other without details (400 Problem Details)
+POST {{baseUrl}}/api/reports
+Authorization: Bearer {{accessToken}}
+Content-Type: application/json
+
+{
+  "targetKind": "post",
+  "targetId": "{{reportId}}",
+  "reason": "Other"
+}
+
+### Failure: unknown article id (404)
+POST {{baseUrl}}/api/reports
+Authorization: Bearer {{accessToken}}
+Content-Type: application/json
+
+{
+  "targetKind": "article",
+  "targetId": "00000000-0000-0000-0000-000000000001",
+  "reason": "Irrelevant"
+}
+
+### Failure: report throttle (429 after 20 valid reports in one hour)
+POST {{baseUrl}}/api/reports
+Authorization: Bearer {{accessToken}}
+Content-Type: application/json
+
+{
+  "targetKind": "post",
+  "targetId": "{{reportId}}",
+  "reason": "Spam"
+}
+
+### Failure: non-admin queue access (401/403)
+GET {{baseUrl}}/api/reports?status=Pending&page=1&pageSize=10
+Authorization: Bearer {{accessToken}}
+
+### Failure: invalid report decision (400)
+POST {{baseUrl}}/api/reports/{{reportId}}/decision
+Authorization: Bearer {{adminToken}}
+Content-Type: application/json
+
+{
+  "status": "Pending",
+  "reviewNote": "A decision must leave Pending."
+}
+
+### Failure: reversal without a note (400)
+POST {{baseUrl}}/api/reports/{{reportId}}/decision
+Authorization: Bearer {{adminToken}}
+Content-Type: application/json
+
+{
+  "status": "ActionTaken"
+}
+
+### Failure: non-admin flag access (401/403)
+GET {{baseUrl}}/api/flags?status=Active&page=1&pageSize=10
+Authorization: Bearer {{accessToken}}
+
+### Failure: invalid flag decision (400)
+POST {{baseUrl}}/api/flags/{{flagId}}/decision
+Authorization: Bearer {{adminToken}}
+Content-Type: application/json
+
+{
+  "status": "Active",
+  "note": "An admin decision must be Cleared or Upheld."
+}
+
+### Failure: unhide a target that is not manually hidden (404)
+DELETE {{baseUrl}}/api/hidden/post/00000000-0000-0000-0000-000000000001
+Authorization: Bearer {{accessToken}}

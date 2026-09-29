@@ -1,0 +1,86 @@
+using Microsoft.EntityFrameworkCore;
+
+using CompanyHQ.Services.Messages.Contracts.Models;
+using CompanyHQ.Services.Postgres.Data;
+
+namespace CompanyHQ.Services.Messages.Services;
+
+/// <summary>
+/// Clears one participant's view of conversations; message rows remain immutable. The host calls it
+/// after a report is filed against a message or an account.
+/// </summary>
+/// <remarks>
+/// Takes <see cref="PostgresDbContext"/> because every affected participant row is cleared in one
+/// save; one repository update per row would be one transaction per row.
+/// </remarks>
+public sealed class MessageHistoryClearer(PostgresDbContext context, TimeProvider timeProvider)
+{
+    /// <summary>Clears the reporter's view of the conversation holding <paramref name="messageId"/>.</summary>
+    public async Task ClearForMessageAsync(
+        Guid reporterUserId,
+        Guid messageId,
+        CancellationToken cancellationToken = default)
+    {
+        var conversationIds = await context.Set<Message>()
+            .AsNoTracking()
+            .Where(message => message.Id == messageId)
+            .Select(message => message.ConversationId)
+            .ToListAsync(cancellationToken);
+
+        await ClearAsync(reporterUserId, conversationIds, cancellationToken);
+    }
+
+    /// <summary>Clears the reporter's view of every conversation shared with <paramref name="otherUserId"/>.</summary>
+    public async Task ClearWithUserAsync(
+        Guid reporterUserId,
+        Guid otherUserId,
+        CancellationToken cancellationToken = default)
+    {
+        var reporterConversations = context.Set<ConversationParticipant>()
+            .Where(participant => participant.UserId == reporterUserId)
+            .Select(participant => participant.ConversationId);
+
+        var conversationIds = await context.Set<ConversationParticipant>()
+            .AsNoTracking()
+            .Where(participant => participant.UserId == otherUserId
+                && reporterConversations.Contains(participant.ConversationId))
+            .Select(participant => participant.ConversationId)
+            .ToListAsync(cancellationToken);
+
+        await ClearAsync(reporterUserId, conversationIds, cancellationToken);
+    }
+
+    private async Task ClearAsync(
+        Guid reporterUserId,
+        List<Guid> conversationIds,
+        CancellationToken cancellationToken)
+    {
+        if (conversationIds.Count == 0)
+        {
+            return;
+        }
+
+        var participants = await context.Set<ConversationParticipant>()
+            .Where(participant => participant.UserId == reporterUserId
+                && conversationIds.Contains(participant.ConversationId))
+            .ToListAsync(cancellationToken);
+
+        if (participants.Count == 0)
+        {
+            return;
+        }
+
+        var clearedAt = timeProvider.GetUtcNow();
+        foreach (var participant in participants)
+        {
+            if (participant.ClearedAt is null || participant.ClearedAt < clearedAt)
+            {
+                participant.ClearedAt = clearedAt;
+                participant.LastMessageAt = null;
+                participant.LastReadAt = clearedAt;
+            }
+        }
+
+        await context.SaveChangesAsync(cancellationToken);
+    }
+}

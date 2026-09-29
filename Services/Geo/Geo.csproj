@@ -1,0 +1,35 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <AssemblyName>CompanyHQ.Services.Geo</AssemblyName>
+    <RootNamespace>CompanyHQ.Services.Geo</RootNamespace>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <FrameworkReference Include="Microsoft.AspNetCore.App" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <!-- Cache only. Geo persists nothing, so it has no reason to see Postgres or Auth. -->
+    <ProjectReference Include="..\Cache\Cache.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <!-- Contracts/ is its own client-shippable assembly. Only the persisted entities and
+         the entity-to-DTO projections under it compile into this one. -->
+    <Compile Remove="Contracts/**" />
+    <Compile Include="Contracts/Models/GeoOptions.cs" />
+    <Compile Include="Contracts/Dtos/Nominatim*.cs" />
+    <Compile Include="Contracts/Dtos/Overpass*.cs" />
+    <ProjectReference Include="Contracts/Geo.Contracts.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <!-- Attributes for this service's own MCP tool adapter (Mcp/); Mcp discovers it from this assembly. -->
+    <PackageReference Include="ModelContextProtocol.Core" Version="2.2.0" />
+  </ItemGroup>
+
+</Project>

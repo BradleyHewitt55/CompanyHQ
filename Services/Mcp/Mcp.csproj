@@ -1,0 +1,36 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <AssemblyName>CompanyHQ.Services.Mcp</AssemblyName>
+    <RootNamespace>CompanyHQ.Services.Mcp</RootNamespace>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <!-- Carries the controller and the authentication/authorization pipeline. -->
+    <FrameworkReference Include="Microsoft.AspNetCore.App" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="ModelContextProtocol.AspNetCore" Version="2.2.0" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <!-- Auth contracts for User.GetUserId() and the claim names; User for the
+         account row AgentKey's foreign key targets and the read tools' own account lookups. -->
+    <ProjectReference Include="..\Auth\Contracts\Auth.Contracts.csproj" />
+    <ProjectReference Include="..\User\User.csproj" />
+    <ProjectReference Include="..\Postgres\Postgres.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <!-- Contracts/ is its own client-shippable assembly. Only the persisted entities and
+         the entity-to-DTO projections under it compile into this one. -->
+    <Compile Remove="Contracts/**" />
+    <Compile Include="Contracts/Models/**/*.cs" />
+    <ProjectReference Include="Contracts/Mcp.Contracts.csproj" />
+  </ItemGroup>
+
+</Project>

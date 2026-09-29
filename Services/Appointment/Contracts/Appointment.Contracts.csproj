@@ -1,0 +1,22 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <AssemblyName>CompanyHQ.Services.Appointments.Contracts</AssemblyName>
+    <RootNamespace>CompanyHQ.Services.Appointments.Contracts</RootNamespace>
+  </PropertyGroup>
+
+  <!--
+    The wire shapes this service speaks, with no dependency on the ASP.NET Core shared
+    framework, EF Core or Npgsql. Apps/Mobile targets net10.0-android where none of those
+    exist, so anything reaching for one belongs in the service assembly, not here. That is
+    why the persisted entity and the entity-to-DTO projection stay behind.
+  -->
+  <ItemGroup>
+    <Compile Remove="Models/**" />
+    <Compile Remove="Dtos/AppointmentProjections.cs" />
+  </ItemGroup>
+
+</Project>

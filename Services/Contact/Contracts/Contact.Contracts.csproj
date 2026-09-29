@@ -1,0 +1,19 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <AssemblyName>CompanyHQ.Services.Contact.Contracts</AssemblyName>
+    <RootNamespace>CompanyHQ.Services.Contact.Contracts</RootNamespace>
+  </PropertyGroup>
+
+  <!--
+    The wire shapes this service speaks. Host-only option binding lives in the service assembly, so
+    a client project can reference this without dragging in configuration or the shared framework.
+  -->
+  <ItemGroup>
+    <Compile Remove="Models/**" />
+  </ItemGroup>
+
+</Project>

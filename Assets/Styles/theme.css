@@ -1,0 +1,208 @@
+:root {
+  color-scheme: light;
+  --primary: #00504E;
+  --secondary: #E2F1E8;
+  --secondary-light: #c5e3d0;
+  --secondary-soft: #f1f8f3;
+  --surface: #EAF2F0;
+  --surface-raised: #ffffff;
+  --background: #f8faf9;
+  --muted: #667085;
+  --text: #4B5563;
+  --heading-strong: #1F2933;
+  --heading: #293541;
+  --heading-soft: #344250;
+
+  --border: #e2e7e5;
+  --border-strong: #c7d1cd;
+
+  --success: #237a55;
+  --success-soft: #e5f4ec;
+  --accent-danger: #b42318;
+  --accent-danger-soft: rgb(180 35 24 / 0.08);
+  --accent-warning: #b25a06;
+  --accent-warning-soft: rgb(178 90 6 / 0.10);
+  --accent-mint: #00FFA6;
+  --on-primary: #ffffff;
+  --on-secondary: #ffffff;
+  --font-family-base: 'Helvetica Neue', Helvetica, Arial, sans-serif;
+  --font-size-micro: 0.68rem;
+  --font-size-owner: 0.7rem;
+  --font-size-status: 0.72rem;
+  --font-size-meta: 0.75rem;
+  --font-size-label: 0.76rem;
+  --font-size-caption: 0.78rem;
+  --font-size-detail: 0.8rem;
+  --font-size-body-sm: 0.82rem;
+  --font-size-body-md: 0.85rem;
+  --font-size-body: 0.9rem;
+  --font-size-subheading: 0.95rem;
+  --font-size-icon: 1rem;
+  --font-size-section: 1.1rem;
+  --font-size-section-lg: 1.15rem;
+  --font-size-stat: 1.1rem;
+  --font-size-heading: 1.5rem;
+  --font-size-icon-lg: 1.75rem;
+  --font-size-avatar: 2rem;
+  --font-weight-medium: 500;
+  --font-weight-semibold: 600;
+  --font-weight-bold: 700;
+  --font-weight-extrabold: 800;
+  --font-weight-black: 900;
+  --line-height-tight: 1;
+  --line-height-heading: 1.2;
+  --line-height-compact: 1.35;
+  --line-height-detail: 1.4;
+  --line-height-body: 1.45;
+  --line-height-relaxed: 1.5;
+  --letter-spacing-tight: -0.02em;
+  --letter-spacing-eyebrow: 0.08em;
+  --letter-spacing-caps: 0.1em;
+  --touch-target-min: 2.75rem;
+  --layout-desktop-rail-width: 13rem;
+  --layout-desktop-rail-width-compact: 11rem;
+  --layout-topbar-height: 4.5rem;
+  --layout-admin-rail-width: 14.5rem;
+  --layout-admin-rail-width-compact: 13.5rem;
+  --layout-admin-topbar-height: 4rem;
+  --layout-mobile-topbar-height: 4.25rem;
+  --layout-mobile-bottom-nav-height: 4.5rem;
+  --layout-content-gutter: 4vw;
+  --layout-content-bottom-space: 4rem;
+  /* Shared visible pills use slim label padding; their transparent buttons retain the 44px target. */
+  --gap-xxs: 0.125rem;
+  --pill-padding-block: 0.325rem;
+  --pill-padding-inline: 0.75rem;
+  --focus-ring: color-mix(in srgb, var(--secondary) 55%, transparent);
+  --focus-ring-strong: color-mix(in srgb, var(--secondary) 70%, transparent);
+  --overlay: rgb(29 35 63 / 0.42);
+  /* The photo viewer is opaque, not a dim: nothing of the page behind it may stay legible. */
+  --viewer-backdrop: #000000;
+  --viewer-control: rgb(255 255 255 / 0.16);
+  --on-viewer: #ffffff;
+  /* Media tiles sit on the photo itself: the badge keeps a surface behind it and the label rides a
+     dark fade, so neither depends on what the photo happens to look like underneath. */
+  --media-badge-surface: var(--surface-raised);
+  --media-label-fade: rgb(0 0 0 / 0.55);
+  --shadow-sm: 0 0.2rem 0.7rem rgb(29 35 63 / 0.08);
+  --shadow-md: 0 0.75rem 2rem rgb(29 35 63 / 0.18);
+  --navbar-control-background: color-mix(in srgb, var(--surface) 35%, transparent);
+  --navbar-control-border: var(--border);
+  --navbar-control-shadow: var(--shadow-sm);
+  --gap-xs: 0.25rem;
+  --gap-sm: 0.5rem;
+  --gap-md: 1rem;
+  --gap-lg: 1.5rem;
+  --gap-xl: 2rem;
+  --gap-section-inline: 0.75rem;
+
+  --admin-sidebar-muted: color-mix(in srgb, var(--on-primary) 68%, transparent);
+  --admin-sidebar-faint: color-mix(in srgb, var(--on-primary) 48%, transparent);
+  --admin-sidebar-hover: color-mix(in srgb, var(--on-primary) 10%, transparent);
+  --admin-sidebar-line: color-mix(in srgb, var(--on-primary) 16%, transparent);
+  --admin-input-background: color-mix(in srgb, var(--surface) 55%, var(--surface-raised));
+
+  --radius-sm: 0.5rem;
+  --radius-md: 0.8rem;
+  --radius-lg: 1rem;
+  --radius-xl: 1.25rem;
+  --radius-pill: 999px;
+
+  /* Bootstrap is a form primitive on Mobile; publish the brand tokens it needs here so its
+     controls follow the same appearance choice as the rest of the app. */
+  --bs-body-bg: var(--background);
+  --bs-body-bg-rgb: 248, 250, 249;
+  --bs-body-color: var(--text);
+  --bs-body-color-rgb: 75, 85, 99;
+  --bs-border-color: var(--border-strong);
+  --bs-primary: var(--primary);
+  --bs-primary-rgb: 0, 80, 78;
+  --bs-secondary-bg: var(--surface);
+  --bs-tertiary-bg: var(--surface-raised);
+  --bs-emphasis-color: var(--heading-strong);
+  --bs-card-bg: var(--surface-raised);
+  --bs-card-color: var(--text);
+  --bs-card-border-color: var(--border);
+  --bs-card-border-radius: var(--radius-lg);
+  --bs-card-cap-bg: var(--surface);
+  --bs-card-cap-color: var(--text);
+  --bs-link-color: var(--primary);
+  --bs-link-hover-color: var(--primary);
+  --bs-focus-ring-color: var(--focus-ring-strong);
+}
+
+:root[data-theme="dark"] {
+  color-scheme: dark;
+  --primary: #8ce0cf;
+  --secondary: #2e776b;
+  --secondary-light: #4a9b8c;
+  --secondary-soft: #173b36;
+  --surface: #20322f;
+  --surface-raised: #162420;
+  --background: #0d1715;
+  --muted: #a9bbb6;
+  --text: #cbd8d4;
+  --heading-strong: #effaf6;
+  --heading: #e3f3ef;
+  --heading-soft: #d1e5df;
+  --border: #2c403b;
+  --border-strong: #49615a;
+  --success: #76d8a4;
+  --success-soft: #173b2d;
+  --accent-danger: #ff9b91;
+  --accent-danger-soft: rgb(255 155 145 / 0.14);
+  --accent-warning: #ffb570;
+  --accent-warning-soft: rgb(255 181 112 / 0.16);
+  --on-primary: #08211d;
+  --on-secondary: #effffb;
+  --overlay: rgb(0 0 0 / 0.64);
+  --bs-body-bg-rgb: 13, 23, 21;
+  --bs-body-color-rgb: 203, 216, 212;
+  --shadow-sm: 0 0.2rem 0.7rem rgb(0 0 0 / 0.24);
+  --shadow-md: 0 0.75rem 2rem rgb(0 0 0 / 0.42);
+  --bs-primary-rgb: 140, 224, 207;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    color-scheme: dark;
+    --primary: #8ce0cf;
+    --secondary: #2e776b;
+    --secondary-light: #4a9b8c;
+    --secondary-soft: #173b36;
+    --surface: #20322f;
+    --surface-raised: #162420;
+    --background: #0d1715;
+    --muted: #a9bbb6;
+    --text: #cbd8d4;
+    --heading-strong: #effaf6;
+    --heading: #e3f3ef;
+    --heading-soft: #d1e5df;
+    --border: #2c403b;
+    --border-strong: #49615a;
+    --success: #76d8a4;
+    --success-soft: #173b2d;
+    --accent-danger: #ff9b91;
+    --accent-danger-soft: rgb(255 155 145 / 0.14);
+    --accent-warning: #ffb570;
+    --accent-warning-soft: rgb(255 181 112 / 0.16);
+    --on-primary: #08211d;
+    --on-secondary: #effffb;
+    --overlay: rgb(0 0 0 / 0.64);
+    --bs-body-bg-rgb: 13, 23, 21;
+    --bs-body-color-rgb: 203, 216, 212;
+    --shadow-sm: 0 0.2rem 0.7rem rgb(0 0 0 / 0.24);
+    --shadow-md: 0 0.75rem 2rem rgb(0 0 0 / 0.42);
+    --bs-primary-rgb: 140, 224, 207;
+  }
+}
+
+@layer base {
+  h1 { color: var(--heading-strong); }
+  h2 { color: var(--heading); }
+  h3 { color: var(--heading-soft); }
+  h4,
+  h5,
+  h6 { color: var(--heading-soft); }
+  p { color: var(--text); }
+}

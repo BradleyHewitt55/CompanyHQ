@@ -1,0 +1,46 @@
+@host = http://localhost:8080
+@adminToken = {{$dotenv ADMIN_ACCESS_TOKEN}}
+
+### Read the profile (anonymous). 404 until an administrator saves one.
+GET {{host}}/api/company
+
+### Save the profile.
+PUT {{host}}/api/company
+Authorization: Bearer {{adminToken}}
+Content-Type: application/json
+
+{
+  "name": "CompanyHQ",
+  "website": "https://companyhq.app",
+  "supportEmail": "support@companyhq.app",
+  "infoEmail": "info@companyhq.app",
+  "logoUrl": "https://cdn.example.test/companyhq.svg",
+  "description": "Consulting and operations support for growing teams."
+}
+
+### Save with a blank name: 400.
+PUT {{host}}/api/company
+Authorization: Bearer {{adminToken}}
+Content-Type: application/json
+
+{
+  "name": "",
+  "website": "https://companyhq.app",
+  "supportEmail": "support@companyhq.app",
+  "infoEmail": "info@companyhq.app",
+  "logoUrl": null,
+  "description": "Consulting and operations support for growing teams."
+}
+
+### Save without an administrator token: 401/403.
+PUT {{host}}/api/company
+Content-Type: application/json
+
+{
+  "name": "CompanyHQ",
+  "website": "https://companyhq.app",
+  "supportEmail": "support@companyhq.app",
+  "infoEmail": "info@companyhq.app",
+  "logoUrl": "https://cdn.example.test/companyhq.svg",
+  "description": "Consulting and operations support for growing teams."
+}

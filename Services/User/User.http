@@ -1,0 +1,98 @@
+@baseUrl = http://localhost:4002
+@token = replace-with-a-bearer-token
+@userId = 00000000-0000-0000-0000-000000000000
+@roleId = 00000000-0000-0000-0000-000000000000
+
+### Public user profile
+GET {{baseUrl}}/api/users/{{userId}}
+Accept: application/json
+
+### Self-service profile update (the mobile profile camera sends the completed MediaScope.User URL)
+PUT {{baseUrl}}/api/users/me
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "firstName": "CompanyHQ",
+  "lastName": "Member",
+  "bio": "Operations lead at head office.",
+  "profileImageUrl": "https://media.example.test/user/profile.jpg"
+}
+
+### 400: profile image must be HTTPS
+PUT {{baseUrl}}/api/users/me
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "firstName": "CompanyHQ",
+  "lastName": "Member",
+  "profileImageUrl": "http://example.test/profile.jpg"
+}
+
+### 401: self-service update requires authentication
+PUT {{baseUrl}}/api/users/me
+Content-Type: application/json
+
+{
+  "firstName": "Unauthenticated",
+  "lastName": "Caller"
+}
+
+### 403: user search needs an admin (anonymous and non-admin alike)
+GET {{baseUrl}}/api/users?search=member
+Accept: application/json
+
+### Lookup matches an exact email, not a fragment
+GET {{baseUrl}}/api/users/lookup?search=member@companyhq.test
+Authorization: Bearer {{token}}
+Accept: application/json
+
+### Lookup by a domain fragment finds nothing
+GET {{baseUrl}}/api/users/lookup?search=companyhq.test
+Authorization: Bearer {{token}}
+Accept: application/json
+
+### List my favorite places
+GET {{baseUrl}}/api/users/me/favorite-places
+Authorization: Bearer {{token}}
+Accept: application/json
+
+### Toggle a favorite place on or off (kind is the place search's OpenStreetMap amenity value)
+PUT {{baseUrl}}/api/users/me/favorite-places
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "latitude": -26.1076,
+  "longitude": 28.0567,
+  "name": "Parkview Pharmacy",
+  "kind": "pharmacy",
+  "address": "11 First Avenue, Parkview",
+  "phone": "+27110000000"
+}
+
+### Create a reusable staff role with Client permissions
+POST {{baseUrl}}/api/access-roles
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{"name":"Sales Staff"}
+
+### Grant selected content and template permissions to the saved role
+PUT {{baseUrl}}/api/access-roles/{{roleId}}
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{"name":"Sales Staff","permissions":["search_area","get_my_notification_preferences","list_blog_posts","get_blog_post","create_blog_post"]}
+
+### Assign the same named role when editing an account
+PUT {{baseUrl}}/api/users/{{userId}}
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{"roleName":"Sales Staff"}
+
+### 403: caller without roles.manage cannot edit shared roles
+GET {{baseUrl}}/api/access-roles
+Authorization: Bearer replace-with-a-client-token

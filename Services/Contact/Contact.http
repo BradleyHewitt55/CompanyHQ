@@ -1,0 +1,34 @@
+@baseUrl = http://localhost:4002
+
+### Anonymous contact submission
+POST {{baseUrl}}/api/contact
+Content-Type: application/json
+
+{
+  "name": "Sam Okoye",
+  "email": "sam@example.test",
+  "message": "I have a question about your business hours over the holidays.",
+  "topic": "Support"
+}
+
+### 400: the public form validates the message before delivery
+POST {{baseUrl}}/api/contact
+Content-Type: application/json
+
+{
+  "name": "S",
+  "email": "not-an-email",
+  "message": "Too short.",
+  "topic": "Support"
+}
+
+### 400: numeric enum values are rejected
+POST {{baseUrl}}/api/contact
+Content-Type: application/json
+
+{
+  "name": "Sam Okoye",
+  "email": "sam@example.test",
+  "message": "This message is long enough for validation.",
+  "topic": 99
+}

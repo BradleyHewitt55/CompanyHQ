@@ -1,0 +1,57 @@
+@baseUrl = http://localhost:4002
+@adminToken = replace-with-admin-token
+
+### Public published list
+GET {{baseUrl}}/api/blog?page=1&pageSize=10
+Accept: application/json
+
+### Public detail
+GET {{baseUrl}}/api/blog/welcome-to-our-new-website
+Accept: application/json
+
+### Drafts and authoring require an administrator bearer token
+POST {{baseUrl}}/api/blog
+Authorization: Bearer {{adminToken}}
+Content-Type: application/json
+
+{
+  "slug": "example-draft",
+  "title": "Example draft",
+  "description": "A sufficiently descriptive search summary for the example draft.",
+  "body": "This is the first paragraph of the example draft.\n\nThis is its second paragraph.",
+  "author": "CompanyHQ team",
+  "isDraft": true
+}
+
+### Update a post without changing its stable slug
+PUT {{baseUrl}}/api/blog/example-draft
+Authorization: Bearer {{adminToken}}
+Content-Type: application/json
+
+{
+  "title": "Updated example draft",
+  "description": "An updated search summary with enough detail for the request body.",
+  "body": "The updated first paragraph contains enough content for this example request.",
+  "author": "CompanyHQ team",
+  "isDraft": true
+}
+
+### Delete a post
+DELETE {{baseUrl}}/api/blog/example-draft
+Authorization: Bearer {{adminToken}}
+
+### Missing detail
+GET {{baseUrl}}/api/blog/does-not-exist
+Accept: application/json
+
+### 401 without an administrator token
+POST {{baseUrl}}/api/blog
+Content-Type: application/json
+
+{
+  "slug": "unauthorised-example",
+  "title": "Unauthorised example",
+  "description": "This request should never reach the authoring service.",
+  "body": "This request should be rejected before a blog row is written.",
+  "author": "CompanyHQ team"
+}
