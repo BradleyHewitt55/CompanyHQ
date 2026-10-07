@@ -1,5 +1,5 @@
 <Project>
-  <!-- One version for every published CompanyHQ package; raise it to release. -->
+  <!-- Local builds only. A release takes its version from its vX.Y.Z tag. -->
   <PropertyGroup>
     <Version>0.1.0</Version>
     <Authors>CompanyHQ</Authors>

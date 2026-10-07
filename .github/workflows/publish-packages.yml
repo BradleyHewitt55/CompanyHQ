@@ -1,23 +1,53 @@
 name: Publish packages
+# A release is a tag: pushing v1.2.3 tests, packs and publishes every package as 1.2.3. Published
+# versions are never replaced, so a company pinned to an older one keeps building.
 on:
   push:
-    branches: [main]
-  workflow_dispatch:
+    tags: ['v[0-9]+.[0-9]+.[0-9]+']
 permissions:
   contents: read
   packages: write
 jobs:
   publish:
     runs-on: ubuntu-latest
+    outputs:
+      version: ${{ steps.version.outputs.version }}
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-dotnet@v4
         with:
           dotnet-version: 10.0.x
+      - id: version
+        run: echo "version=${GITHUB_REF_NAME#v}" >> "$GITHUB_OUTPUT"
+      - name: Test the generic services
+        run: dotnet test Tests/Services.IntegrationTests.csproj
       - name: Pack the generic services and the host library
         run: |
           find Services Apps/Api -name '*.csproj' -not -path '*/bin/*' -not -path '*/obj/*' -print0 |
-            xargs -0 -n1 dotnet pack -c Release -o packages
-      # An unchanged version is skipped, so only a raised version publishes.
+            xargs -0 -n1 dotnet pack -c Release -o packages -p:Version=${{ steps.version.outputs.version }}
       - name: Publish to GitHub Packages
         run: dotnet nuget push 'packages/*.nupkg' --source "https://nuget.pkg.github.com/${{ github.repository_owner }}/index.json" --api-key "${{ secrets.GITHUB_TOKEN }}" --skip-duplicate
+      - uses: actions/upload-artifact@v4
+        with:
+          name: packages-${{ steps.version.outputs.version }}
+          path: packages/*.nupkg
+
+  # Proves the release is usable the way a company uses it: restored from the feed, not from source.
+  consume:
+    needs: publish
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: 10.0.x
+      - name: Build a host against the published packages
+        env:
+          VERSION: ${{ needs.publish.outputs.version }}
+          FEED: https://nuget.pkg.github.com/${{ github.repository_owner }}
+          TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          dotnet new web -o consumer && cd consumer
+          dotnet nuget add source "$FEED/index.json" --name companyhq --username token --password "$TOKEN" --store-password-in-clear-text
+          dotnet add package CompanyHQ.Api --version "[$VERSION]"
+          dotnet build
+          echo "Published versions:" && curl -fsS -u "token:$TOKEN" "$FEED/download/companyhq.api/index.json"
