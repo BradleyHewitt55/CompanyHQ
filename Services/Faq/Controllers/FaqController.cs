@@ -22,15 +22,15 @@ public sealed class FaqController(IFaqService faqs) : ControllerBase
 {
     [HttpGet]
     [McpAction(McpCapabilityCatalog.ListFaqEntries, McpCapabilityCatalog.ListFaqEntries,
-        "List FAQ entries, including drafts when this connection has the listing permission. Filter by search and page through the results.")]
+        "List FAQ entries, including drafts when this connection has the listing permission. Match a keyword against one named field, or every text field when none is named; page with page and pageSize.")]
     [AllowAnonymous]
     [ProducesResponseType<PagedResult<ClientFaqEntryDto>>(StatusCodes.Status200OK)]
     public Task<PagedResult<ClientFaqEntryDto>> List(
         [FromQuery] PageRequest paging,
-        [FromQuery] string? search = null,
+        [FromQuery] SearchRequest search,
         CancellationToken cancellationToken = default) =>
         faqs.ListAsync(paging, search,
-            User.HasClaim("permission", McpCapabilityCatalog.ListFaqEntries) ? ResponseAudience.Admin : this.User.Audience(),
+            User.Audience(McpCapabilityCatalog.ListFaqEntries),
             User.GetUserId(), cancellationToken);
 
     [HttpGet("{key}")]
@@ -46,7 +46,7 @@ public sealed class FaqController(IFaqService faqs) : ControllerBase
         try
         {
             return await faqs.GetAsync(key,
-                User.HasClaim("permission", McpCapabilityCatalog.GetFaqEntry) ? ResponseAudience.Admin : this.User.Audience(),
+                User.Audience(McpCapabilityCatalog.GetFaqEntry),
                 User.GetUserId(), cancellationToken) is { } entry
                 ? entry
                 : NotFound();
@@ -73,7 +73,6 @@ public sealed class FaqController(IFaqService faqs) : ControllerBase
         {
             var entry = await faqs.CreateAsync(
                 request,
-                this.User.Audience(),
                 User.GetUserId(),
                 cancellationToken);
             return CreatedAtAction(nameof(Get), new { entry.Key }, entry);
@@ -120,7 +119,6 @@ public sealed class FaqController(IFaqService faqs) : ControllerBase
             return await faqs.UpdateAsync(
                 key,
                 request,
-                this.User.Audience(),
                 User.GetUserId(),
                 cancellationToken) is { } entry
                 ? entry
@@ -154,7 +152,6 @@ public sealed class FaqController(IFaqService faqs) : ControllerBase
         {
             return await faqs.DeleteAsync(
                 key,
-                this.User.Audience(),
                 User.GetUserId(),
                 cancellationToken)
                 ? NoContent()

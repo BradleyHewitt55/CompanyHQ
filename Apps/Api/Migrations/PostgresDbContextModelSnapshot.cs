@@ -222,6 +222,10 @@ namespace Api.Migrations
                         .HasColumnType("character varying(2048)")
                         .HasColumnName("cover_image_url");
 
+                    b.Property<Guid?>("CoverMediaObjectId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("cover_media_object_id");
+
                     b.Property<DateTimeOffset>("CreatedAt")
                         .HasColumnType("timestamp with time zone")
                         .HasColumnName("created_at");
@@ -289,11 +293,21 @@ namespace Api.Migrations
                         .HasColumnType("character varying(2000)")
                         .HasColumnName("description");
 
+                    b.Property<string>("FacebookAccount")
+                        .HasMaxLength(160)
+                        .HasColumnType("character varying(160)")
+                        .HasColumnName("facebook_account");
+
                     b.Property<string>("InfoEmail")
                         .IsRequired()
                         .HasMaxLength(320)
                         .HasColumnType("character varying(320)")
                         .HasColumnName("info_email");
+
+                    b.Property<string>("InstagramAccount")
+                        .HasMaxLength(30)
+                        .HasColumnType("character varying(30)")
+                        .HasColumnName("instagram_account");
 
                     b.Property<string>("LogoUrl")
                         .HasMaxLength(2048)
@@ -305,6 +319,10 @@ namespace Api.Migrations
                         .HasMaxLength(160)
                         .HasColumnType("character varying(160)")
                         .HasColumnName("name");
+
+                    b.Property<string>("PublicEmails")
+                        .HasColumnType("jsonb")
+                        .HasColumnName("public_emails");
 
                     b.Property<string>("SupportEmail")
                         .IsRequired()
@@ -321,6 +339,11 @@ namespace Api.Migrations
                         .HasMaxLength(320)
                         .HasColumnType("character varying(320)")
                         .HasColumnName("website");
+
+                    b.Property<string>("WhatsAppNumber")
+                        .HasMaxLength(16)
+                        .HasColumnType("character varying(16)")
+                        .HasColumnName("whats_app_number");
 
                     b.HasKey("Id")
                         .HasName("pk_company_profile");
@@ -522,6 +545,144 @@ namespace Api.Migrations
                         .HasDatabaseName("ix_faq_entry_is_draft_sort_order_published_at");
 
                     b.ToTable("faq_entry", (string)null);
+                });
+
+            modelBuilder.Entity("CompanyHQ.Services.GitHub.Contracts.Models.GitHubConnection", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .HasColumnType("uuid")
+                        .HasColumnName("id");
+
+                    b.Property<DateTimeOffset>("CreatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("created_at");
+
+                    b.Property<string>("Repository")
+                        .IsRequired()
+                        .HasMaxLength(320)
+                        .HasColumnType("character varying(320)")
+                        .HasColumnName("repository");
+
+                    b.Property<string>("TokenEncrypted")
+                        .IsRequired()
+                        .HasMaxLength(4096)
+                        .HasColumnType("character varying(4096)")
+                        .HasColumnName("token_encrypted");
+
+                    b.Property<DateTimeOffset>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("updated_at");
+
+                    b.HasKey("Id")
+                        .HasName("pk_git_hub_connection");
+
+                    b.ToTable("git_hub_connection", (string)null);
+                });
+
+            modelBuilder.Entity("CompanyHQ.Services.Inbox.Contracts.Models.InboxConversation", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .HasColumnType("uuid")
+                        .HasColumnName("id");
+
+                    b.Property<string>("Body")
+                        .IsRequired()
+                        .HasMaxLength(4000)
+                        .HasColumnType("character varying(4000)")
+                        .HasColumnName("body");
+
+                    b.Property<DateTimeOffset>("CreatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("created_at");
+
+                    b.Property<string>("Email")
+                        .IsRequired()
+                        .HasMaxLength(254)
+                        .HasColumnType("character varying(254)")
+                        .HasColumnName("email");
+
+                    b.Property<DateTimeOffset>("LastActivityAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("last_activity_at");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasMaxLength(120)
+                        .HasColumnType("character varying(120)")
+                        .HasColumnName("name");
+
+                    b.Property<string>("Origin")
+                        .HasMaxLength(600)
+                        .HasColumnType("character varying(600)")
+                        .HasColumnName("origin");
+
+                    b.Property<DateTimeOffset?>("ResolvedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("resolved_at");
+
+                    b.Property<string>("Source")
+                        .IsRequired()
+                        .HasMaxLength(40)
+                        .HasColumnType("character varying(40)")
+                        .HasColumnName("source");
+
+                    b.Property<DateTimeOffset>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("updated_at");
+
+                    b.Property<string>("VisitorTokenHash")
+                        .IsRequired()
+                        .HasMaxLength(64)
+                        .HasColumnType("character varying(64)")
+                        .HasColumnName("visitor_token_hash");
+
+                    b.HasKey("Id")
+                        .HasName("pk_inbox_conversation");
+
+                    b.HasIndex("LastActivityAt")
+                        .HasDatabaseName("ix_inbox_conversation_last_activity_at");
+
+                    b.HasIndex("ResolvedAt")
+                        .HasDatabaseName("ix_inbox_conversation_resolved_at");
+
+                    b.ToTable("inbox_conversation", (string)null);
+                });
+
+            modelBuilder.Entity("CompanyHQ.Services.Inbox.Contracts.Models.InboxReply", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .HasColumnType("uuid")
+                        .HasColumnName("id");
+
+                    b.Property<string>("Body")
+                        .IsRequired()
+                        .HasMaxLength(4000)
+                        .HasColumnType("character varying(4000)")
+                        .HasColumnName("body");
+
+                    b.Property<DateTimeOffset>("CreatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("created_at");
+
+                    b.Property<bool>("FromVisitor")
+                        .HasColumnType("boolean")
+                        .HasColumnName("from_visitor");
+
+                    b.Property<Guid>("InboxConversationId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("inbox_conversation_id");
+
+                    b.Property<DateTimeOffset>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("updated_at");
+
+                    b.HasKey("Id")
+                        .HasName("pk_inbox_reply");
+
+                    b.HasIndex("InboxConversationId", "CreatedAt")
+                        .HasDatabaseName("ix_inbox_reply_inbox_conversation_id_created_at");
+
+                    b.ToTable("inbox_reply", (string)null);
                 });
 
             modelBuilder.Entity("CompanyHQ.Services.Mcp.Contracts.Models.AgentKey", b =>
@@ -879,6 +1040,24 @@ namespace Api.Migrations
                         .HasColumnType("uuid")
                         .HasColumnName("closed_by_user_id");
 
+                    b.Property<string>("ContextId")
+                        .HasMaxLength(160)
+                        .HasColumnType("character varying(160)")
+                        .HasColumnName("context_id");
+
+                    b.Property<string>("ContextKey")
+                        .IsRequired()
+                        .ValueGeneratedOnAdd()
+                        .HasMaxLength(225)
+                        .HasColumnType("character varying(225)")
+                        .HasDefaultValue("")
+                        .HasColumnName("context_key");
+
+                    b.Property<string>("ContextKind")
+                        .HasMaxLength(64)
+                        .HasColumnType("character varying(64)")
+                        .HasColumnName("context_kind");
+
                     b.Property<DateTimeOffset>("CreatedAt")
                         .HasColumnType("timestamp with time zone")
                         .HasColumnName("created_at");
@@ -896,9 +1075,9 @@ namespace Api.Migrations
                     b.HasKey("Id")
                         .HasName("pk_conversation");
 
-                    b.HasIndex("ParticipantKey")
+                    b.HasIndex("ParticipantKey", "ContextKey")
                         .IsUnique()
-                        .HasDatabaseName("ix_conversation_participant_key");
+                        .HasDatabaseName("ix_conversation_participant_key_context_key");
 
                     b.ToTable("conversation", (string)null);
                 });
@@ -1716,12 +1895,14 @@ namespace Api.Migrations
 
             modelBuilder.Entity("CompanyHQ.Services.Appointments.Contracts.Models.Appointment", b =>
                 {
-                    b.HasOne("CompanyHQ.Services.Users.Contracts.Models.User", null)
+                    b.HasOne("CompanyHQ.Services.Users.Contracts.Models.User", "User")
                         .WithMany()
                         .HasForeignKey("UserId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired()
                         .HasConstraintName("fk_appointment_user_user_id");
+
+                    b.Navigation("User");
                 });
 
             modelBuilder.Entity("CompanyHQ.Services.Auth.Contracts.Models.AuthToken", b =>
@@ -1742,6 +1923,16 @@ namespace Api.Migrations
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired()
                         .HasConstraintName("fk_refresh_token_user_user_id");
+                });
+
+            modelBuilder.Entity("CompanyHQ.Services.Inbox.Contracts.Models.InboxReply", b =>
+                {
+                    b.HasOne("CompanyHQ.Services.Inbox.Contracts.Models.InboxConversation", null)
+                        .WithMany()
+                        .HasForeignKey("InboxConversationId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired()
+                        .HasConstraintName("fk_inbox_reply_inbox_conversation_inbox_conversation_id");
                 });
 
             modelBuilder.Entity("CompanyHQ.Services.Mcp.Contracts.Models.AgentKey", b =>

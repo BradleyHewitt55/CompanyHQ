@@ -2,7 +2,6 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
 using CompanyHQ.Services.Appointments.Contracts.Models;
-using CompanyHQ.Services.Users.Contracts.Models;
 
 namespace CompanyHQ.Services.Appointments.Data;
 
@@ -29,7 +28,7 @@ internal sealed class AppointmentConfiguration : IEntityTypeConfiguration<Appoin
             .HasFilter("source_kind IS NOT NULL");
 
         // A diary goes with its account.
-        builder.HasOne<User>()
+        builder.HasOne(appointment => appointment.User)
             .WithMany()
             .HasForeignKey(appointment => appointment.UserId)
             .OnDelete(DeleteBehavior.Cascade);

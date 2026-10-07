@@ -2,7 +2,7 @@
 
 import { revalidatePath } from 'next/cache';
 
-import { requireAdmin } from '../../../../src/api/current-user';
+import { requirePermission } from '../../../../src/api/current-user';
 import { ApiError, requestJson } from '../../../../src/api/client';
 import type {
   AdminEmailTemplateDto,
@@ -26,7 +26,7 @@ export async function saveEmailTemplateAction(
   _previousState: EmailTemplateActionState,
   formData: FormData,
 ): Promise<EmailTemplateActionState> {
-  await requireAdmin();
+  await requirePermission('update_email_template');
   const key = String(formData.get('key') || '').trim();
   const request: UpdateEmailTemplateRequest = { html: String(formData.get('html') || '') };
 
@@ -47,7 +47,7 @@ export async function resetEmailTemplateAction(
   _previousState: EmailTemplateActionState,
   formData: FormData,
 ): Promise<EmailTemplateActionState> {
-  await requireAdmin();
+  await requirePermission('reset_email_template');
   const key = String(formData.get('key') || '').trim();
 
   try {
@@ -64,7 +64,7 @@ export async function resetEmailTemplateAction(
 export async function previewEmailTemplateAction(
   formData: FormData,
 ): Promise<EmailTemplatePreviewState> {
-  await requireAdmin();
+  await requirePermission('preview_email_template');
   const key = String(formData.get('key') || '').trim();
 
   try {

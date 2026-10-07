@@ -19,6 +19,7 @@ public interface IContentReportService
         ReportStatus? status = null,
         string? targetKind = null,
         ReportReason? reason = null,
+        SearchRequest? search = null,
         ResponseAudience audience = ResponseAudience.Client,
         CancellationToken ct = default);
 

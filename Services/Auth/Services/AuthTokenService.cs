@@ -71,6 +71,19 @@ public sealed class AuthTokenService(PostgresDbContext context, AuthTokenOptions
         return stored;
     }
 
+    public async Task<AuthToken?> FindActiveAsync(
+        string token,
+        AuthTokenPurpose purpose,
+        CancellationToken cancellationToken = default)
+    {
+        var hash = Hash(token);
+        var stored = await context.Set<AuthToken>()
+            .AsNoTracking()
+            .FirstOrDefaultAsync(candidate => candidate.TokenHash == hash, cancellationToken);
+
+        return stored is not null && stored.Purpose == purpose && stored.IsActive(clock.GetUtcNow()) ? stored : null;
+    }
+
     public async Task InvalidateAsync(
         Guid userId,
         AuthTokenPurpose purpose,

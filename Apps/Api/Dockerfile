@@ -25,6 +25,12 @@ COPY Services/Faq/Faq.csproj Services/Faq/
 COPY Services/Firebase/Firebase.csproj Services/Firebase/
 COPY Services/Geo/Contracts/Geo.Contracts.csproj Services/Geo/Contracts/
 COPY Services/Geo/Geo.csproj Services/Geo/
+COPY Services/GitHub/Contracts/GitHub.Contracts.csproj Services/GitHub/Contracts/
+COPY Services/GitHub/GitHub.csproj Services/GitHub/
+COPY Services/Inbox/Contracts/Inbox.Contracts.csproj Services/Inbox/Contracts/
+COPY Services/Inbox/Inbox.csproj Services/Inbox/
+COPY Services/Widget/Contracts/Widget.Contracts.csproj Services/Widget/Contracts/
+COPY Services/Widget/Widget.csproj Services/Widget/
 COPY Services/Mcp/Contracts/Mcp.Contracts.csproj Services/Mcp/Contracts/
 COPY Services/Mcp/Mcp.csproj Services/Mcp/
 COPY Services/Media/Contracts/Media.Contracts.csproj Services/Media/Contracts/

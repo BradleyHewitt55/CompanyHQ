@@ -56,32 +56,6 @@ services:
     ports:
       - "${API_PORT:-4002}:8080"
 
-  marketing:
-    build:
-      context: .
-      dockerfile: Apps/Marketing/Dockerfile
-    container_name: companyhq-marketing
-    restart: unless-stopped
-    depends_on:
-      api:
-        condition: service_started
-    environment:
-      # Static generation reaches the API over Compose; browser-side forms use the host URL.
-      API_INTERNAL_URL: http://api:8080
-      PUBLIC_API_URL: ${PUBLIC_API_URL:-http://localhost:4002}
-      PUBLIC_WEB_URL: ${PUBLIC_WEB_URL:?Set PUBLIC_WEB_URL to the browser-reachable Web URL}
-      MARKETING_START_TIMEOUT_SECONDS: ${MARKETING_START_TIMEOUT_SECONDS:-300}
-    volumes:
-      - ./Assets/Logo:/src/Assets/Logo
-    ports:
-      - "${MARKETING_PORT:-3003}:3003"
-    healthcheck:
-      test: ["CMD", "node", "-e", "fetch('http://localhost:3003').then(r=>{if(!r.ok)process.exit(1)}).catch(()=>process.exit(1))"]
-      interval: 5s
-      timeout: 5s
-      retries: 30
-      start_period: 60s
-
   web:
     # One Next.js service serves both the customer routes and /admin on the same published port.
     build:
@@ -99,6 +73,9 @@ services:
       API_INTERNAL_URL: ${WEB_API_INTERNAL_URL:?Set WEB_API_INTERNAL_URL to the Web API URL}
       MARKETING_URL: ${MARKETING_URL:?Set MARKETING_URL to the browser-reachable Marketing URL}
       WEB_REDIS_URL: redis://:${REDIS_PASSWORD}@redis:6379
+      GITHUB_CLIENT_ID: ${GITHUB_CLIENT_ID:-}
+      GITHUB_CLIENT_SECRET: ${GITHUB_CLIENT_SECRET:-}
+      GITHUB_CALLBACK_URL: ${GITHUB_CALLBACK_URL:-}
     volumes:
       - ./Assets/Logo:/app/Assets/Logo
     ports:

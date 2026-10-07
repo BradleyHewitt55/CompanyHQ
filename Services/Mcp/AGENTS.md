@@ -16,10 +16,17 @@ permission, and agent-facing description through `McpActionAttribute`.
 - Tool descriptions come from the marked API action. Parameter descriptions belong on the adapter.
   A description must tell an agent the operation, scope, and relevant paging or side effect.
 - Only Blog, FAQ, email templates, area search, and own notification preference actions are currently
-  marked. `WhoAmI`, user search, message, and moderation have no adapters.
+  marked. `WhoAmI`, user search, message, moderation, inbox, widget, GitHub, appointments and company
+  have no adapters.
 
 ## Decisions
 
+- **There is no agent role.** An agent connection uses a role row like a person does: its owner's,
+  or any other row assigned to it. A role meant for agents is created in the role editor like any
+  other; nothing in code names one.
+- **Keys are API-only.** They are issued, listed and revoked over `api/agent-keys`; the admin
+  console has no screen for them, and every server-side secret a deployment needs comes from the
+  environment.
 - Role rows live in User. An agent key may assign a different row from its owner, but may never gain
   permissions the owner lacks. `PUT /api/agent-keys/{id}/role` changes an assignment, and null resumes
   inheritance. The plaintext key is shown only when issued.

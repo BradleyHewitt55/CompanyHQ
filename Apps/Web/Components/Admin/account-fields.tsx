@@ -34,10 +34,9 @@ const capabilityGroups: readonly {
   },
 ];
 
-export function AccountFields({ values, isNew, isOrganization = false }: {
+export function AccountFields({ values, isNew }: {
   values?: Record<string, EditorValue>;
   isNew: boolean;
-  isOrganization?: boolean;
 }) {
   const initialRoleName = typeof values?.roleName === 'string' && values.roleName
     ? values.roleName : typeof values?.role === 'string' ? values.role : 'Client';
@@ -61,8 +60,8 @@ export function AccountFields({ values, isNew, isOrganization = false }: {
   const enabledCount = available.filter((capability) => enabled.has(capability)).length;
 
   return (<>
-          <TextField label={isOrganization ? 'Organization name' : 'First name'} name="firstName" value={values?.firstName} required={isOrganization} />
-          {!isOrganization && <TextField label="Last name" name="lastName" value={values?.lastName} />}
+          <TextField label="First name" name="firstName" value={values?.firstName} />
+          <TextField label="Last name" name="lastName" value={values?.lastName} />
           <TextField label="Email address" name="email" value={values?.email} required type="email" wide />
           <TextField label={isNew ? 'Temporary password' : 'New password'} name="password" value="" required={isNew} type="password" />
           <label className="form-field" htmlFor="roleName">
@@ -74,7 +73,7 @@ export function AccountFields({ values, isNew, isOrganization = false }: {
             <div className="mcp-access__heading">
               <div>
                 <legend>MCP access</legend>
-                <p id="mcp-access-help">Optional restrictions for this account. Grant shared permissions by editing the saved role.</p>
+                <p id="mcp-access-help">Optional restrictions for this account. Grant shared permissions under Settings, Roles.</p>
               </div>
               <span>{enabledCount} of {available.length} enabled</span>
             </div>

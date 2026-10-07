@@ -13,8 +13,10 @@ public sealed class BlogPost : BaseModel
     /// <summary>The concise search description shown in metadata and cards.</summary>
     public required string Description { get; set; }
 
-    /// <summary>Plain-text paragraphs rendered as crawlable article content by Marketing.</summary>
+    /// <summary>Author-authored HTML. Consumers must sanitize it before rendering.</summary>
     public required string Body { get; set; }
+
+    public Guid? CoverMediaObjectId { get; set; }
 
     public required string Author { get; set; }
 

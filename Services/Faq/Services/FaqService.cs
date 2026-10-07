@@ -18,21 +18,15 @@ public sealed class FaqService(
 {
     public async Task<PagedResult<ClientFaqEntryDto>> ListAsync(
         PageRequest page,
-        string? search = null,
+        SearchRequest? search = null,
         ResponseAudience audience = ResponseAudience.Client,
         Guid? actingUserId = null,
         CancellationToken cancellationToken = default)
     {
         var effectiveAudience = await EffectiveAudienceAsync(audience, actingUserId, McpCapabilityCatalog.ListFaqEntries, cancellationToken);
-        var query = entries.Query();
-        if (!string.IsNullOrWhiteSpace(search))
-        {
-            var pattern = $"%{search.Trim()}%";
-            query = query.Where(entry => EF.Functions.ILike(entry.Question, pattern)
-                                         || EF.Functions.ILike(entry.Answer, pattern)
-                                         || EF.Functions.ILike(entry.Category, pattern)
-                                         || EF.Functions.ILike(entry.Key, pattern));
-        }
+        // The searchable fields are the ones this caller's shape carries, so a reader cannot probe a draft-only field.
+        var query = entries.Query()
+            .Search(search, effectiveAudience is ResponseAudience.Admin ? typeof(AdminFaqEntryDto) : typeof(ClientFaqEntryDto));
 
         if (effectiveAudience is not ResponseAudience.Admin)
         {
@@ -74,7 +68,6 @@ public sealed class FaqService(
 
     public async Task<ClientFaqEntryDto> CreateAsync(
         CreateFaqEntryRequest request,
-        ResponseAudience audience = ResponseAudience.Client,
         Guid? actingUserId = null,
         CancellationToken cancellationToken = default)
     {
@@ -113,7 +106,6 @@ public sealed class FaqService(
     public async Task<ClientFaqEntryDto?> UpdateAsync(
         string key,
         UpdateFaqEntryRequest request,
-        ResponseAudience audience = ResponseAudience.Client,
         Guid? actingUserId = null,
         CancellationToken cancellationToken = default)
     {
@@ -141,7 +133,6 @@ public sealed class FaqService(
 
     public async Task<bool> DeleteAsync(
         string key,
-        ResponseAudience audience = ResponseAudience.Client,
         Guid? actingUserId = null,
         CancellationToken cancellationToken = default)
     {

@@ -10,7 +10,9 @@ public sealed record ClientConversationDto(
     string? LastMessagePreview,
     int UnreadCount,
     bool IsClosed = false,
-    DateTimeOffset? ClosedAt = null);
+    DateTimeOffset? ClosedAt = null,
+    string? ContextKind = null,
+    string? ContextId = null);
 
 /// <summary>Closed conversation history as seen by an administrator.</summary>
 public sealed record AdminConversationDto(
@@ -20,7 +22,9 @@ public sealed record AdminConversationDto(
     string? LastMessagePreview,
     DateTimeOffset ClosedAt,
     Guid? ClosedByUserId,
-    int MessageCount);
+    int MessageCount,
+    string? ContextKind = null,
+    string? ContextId = null);
 
 public sealed record AdminConversationParticipantDto(
     Guid UserId,

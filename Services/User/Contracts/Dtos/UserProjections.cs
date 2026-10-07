@@ -8,6 +8,12 @@ namespace CompanyHQ.Services.Users.Contracts.Dtos;
 /// <summary>SQL projections for each account audience.</summary>
 public static class UserProjections
 {
+    /// <summary>The operator shape's role name, which the account reaches through its role row.</summary>
+    public static IReadOnlyDictionary<string, string> SearchAliases { get; } = new Dictionary<string, string>
+    {
+        [nameof(AdminUserDto.RoleName)] = "AccessRole.Name"
+    };
+
     public static Expression<Func<User, ClientUserDto>> ToClient { get; } =
         user => new ClientUserDto(user.FirstName, user.LastName, user.Bio, user.ProfileImageUrl, user.CreatedAt);
 

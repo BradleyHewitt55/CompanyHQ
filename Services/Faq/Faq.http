@@ -55,3 +55,9 @@ Content-Type: application/json
   "category": "Testing",
   "seoDescription": "An unauthorised FAQ request must not be accepted."
 }
+
+### Match a keyword against one field of the caller's shape; leave field out to match every text field
+GET {{baseUrl}}/api/faqs?field=category&keyword=news
+
+### A field the caller's shape does not carry (isDraft for an anonymous reader): 400
+GET {{baseUrl}}/api/faqs?field=isDraft&keyword=true

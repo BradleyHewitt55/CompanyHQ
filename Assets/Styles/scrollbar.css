@@ -1,0 +1,34 @@
+/* Low specificity preserves intentionally hidden scrollbars. */
+:where(*) {
+  scrollbar-width: thin;
+  scrollbar-color: color-mix(in srgb, var(--primary) 65%, var(--surface)) var(--background);
+}
+
+@supports not (scrollbar-color: auto) {
+  ::-webkit-scrollbar {
+    width: 10px;
+    height: 10px;
+  }
+
+  ::-webkit-scrollbar-track,
+  ::-webkit-scrollbar-corner {
+    background: var(--background);
+  }
+
+  ::-webkit-scrollbar-thumb {
+    border: 2px solid var(--background);
+    border-radius: var(--radius-pill);
+    background: color-mix(in srgb, var(--primary) 65%, var(--surface));
+  }
+
+  ::-webkit-scrollbar-thumb:hover {
+    background: var(--primary);
+  }
+}
+
+@media (forced-colors: active) {
+  :where(*) {
+    scrollbar-width: auto;
+    scrollbar-color: auto;
+  }
+}

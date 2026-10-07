@@ -18,7 +18,7 @@ public static class BlogPostProjections
         post.CoverImageUrl,
         post.PublishedAt,
         post.SortOrder,
-        post.CreatedAt);
+        post.CreatedAt, post.CoverMediaObjectId);
 
     private static Expression<Func<BlogPost, ClientBlogPostDto>> ToAdminDto { get; } =
         post => (ClientBlogPostDto)new AdminBlogPostDto(
@@ -34,7 +34,7 @@ public static class BlogPostProjections
             post.SortOrder,
             post.CreatedAt,
             post.IsDraft,
-            post.UpdatedAt);
+            post.UpdatedAt, post.CoverMediaObjectId);
 
     public static Expression<Func<BlogPost, ClientBlogPostDto>> For(ResponseAudience audience) =>
         audience is ResponseAudience.Admin ? ToAdminDto : ToDto;
@@ -54,7 +54,7 @@ public static class BlogPostProjections
                 post.SortOrder,
                 post.CreatedAt,
                 post.IsDraft,
-                post.UpdatedAt)
+                post.UpdatedAt, post.CoverMediaObjectId)
             : new ClientBlogPostDto(
                 post.Id,
                 post.Slug,
@@ -66,5 +66,5 @@ public static class BlogPostProjections
                 post.CoverImageUrl,
                 post.PublishedAt,
                 post.SortOrder,
-                post.CreatedAt);
+                post.CreatedAt, post.CoverMediaObjectId);
 }

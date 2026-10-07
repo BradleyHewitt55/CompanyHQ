@@ -21,14 +21,15 @@ public sealed class BlogTools(IBlogService blogs, IHttpContextAccessor httpConte
 {
     [McpServerTool(Name = "list_blog_posts")]
     public Task<PagedResult<ClientBlogPostDto>> ListBlogPosts(
-        [Description("Search title, description, author, or category. Omit to browse newest first.")] string? search = null,
+        [Description("Keyword to match, without case. Omit to browse everything.")] string? keyword = null,
+        [Description("The one field to match the keyword against, such as title or category. Omit to match every text field.")] string? field = null,
         [Description("Page number, 1-based. Defaults to 1.")] int page = 1,
         [Description("Items per page, capped at 100. Defaults to 10.")] int pageSize = 10,
         CancellationToken cancellationToken = default)
     {
         return blogs.ListAsync(
             new PageRequest { Page = page, PageSize = pageSize },
-            search,
+            SearchRequest.For(keyword, field),
             ResponseAudience.Admin,
             CurrentUserId(),
             cancellationToken);
@@ -47,7 +48,7 @@ public sealed class BlogTools(IBlogService blogs, IHttpContextAccessor httpConte
         [Description("The blog post fields to create.")] CreateBlogPostRequest request,
         CancellationToken cancellationToken = default)
     {
-        return blogs.CreateAsync(request, ResponseAudience.Admin, CurrentUserId(), cancellationToken);
+        return blogs.CreateAsync(request, CurrentUserId(), cancellationToken);
     }
 
     [McpServerTool(Name = "update_blog_post")]
@@ -56,7 +57,7 @@ public sealed class BlogTools(IBlogService blogs, IHttpContextAccessor httpConte
         [Description("The replacement blog post fields.")] UpdateBlogPostRequest request,
         CancellationToken cancellationToken = default)
     {
-        return blogs.UpdateAsync(slug, request, ResponseAudience.Admin, CurrentUserId(), cancellationToken);
+        return blogs.UpdateAsync(slug, request, CurrentUserId(), cancellationToken);
     }
 
     [McpServerTool(Name = "delete_blog_post")]
@@ -64,7 +65,7 @@ public sealed class BlogTools(IBlogService blogs, IHttpContextAccessor httpConte
         [Description("The stable blog post slug.")] string slug,
         CancellationToken cancellationToken = default)
     {
-        return blogs.DeleteAsync(slug, ResponseAudience.Admin, CurrentUserId(), cancellationToken);
+        return blogs.DeleteAsync(slug, CurrentUserId(), cancellationToken);
     }
 
     // The MCP call filter has already checked this tool's capability and the key's write access

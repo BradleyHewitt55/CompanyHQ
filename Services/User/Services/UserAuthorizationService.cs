@@ -6,7 +6,7 @@ using CompanyHQ.Services.Users.Contracts.Models;
 
 namespace CompanyHQ.Services.Users.Services;
 
-/// <summary>Never treats a cookie or JWT role claim as current authority.</summary>
+/// <summary>Reads the role row on every call; never treats a cookie or JWT claim as current authority.</summary>
 public sealed class UserAuthorizationService(IPostgresService<User> users) : IUserAuthorizationService
 {
     public async Task<bool> HasPermissionAsync(Guid userId, string permission, CancellationToken cancellationToken = default)
@@ -20,12 +20,17 @@ public sealed class UserAuthorizationService(IPostgresService<User> users) : IUs
             ? assignment.Role == UserRole.Admin || AccessPermissions.Client.Contains(permission, StringComparer.Ordinal)
             : assignment.Permissions?.Contains(permission, StringComparer.Ordinal) == true);
     }
-    public Task<bool> IsAdministratorAsync(
-        Guid userId,
-        CancellationToken cancellationToken = default) =>
-        userId != Guid.Empty
-            ? users.Query().AnyAsync(
-                user => user.Id == userId && user.Role == UserRole.Admin,
-                cancellationToken)
-            : Task.FromResult(false);
+
+    public async Task<IReadOnlyList<Guid>> ListUserIdsAsync(string permission, CancellationToken cancellationToken = default)
+    {
+        if (!AccessPermissions.All.Contains(permission, StringComparer.Ordinal)) return [];
+        var grantedToClients = AccessPermissions.Client.Contains(permission, StringComparer.Ordinal);
+        return await users.Query()
+            .Where(user => user.AccessRole != null
+                ? user.AccessRole.Permissions.Contains(permission)
+                : user.Role == UserRole.Admin || grantedToClients)
+            .OrderBy(user => user.CreatedAt)
+            .Select(user => user.Id)
+            .ToListAsync(cancellationToken);
+    }
 }

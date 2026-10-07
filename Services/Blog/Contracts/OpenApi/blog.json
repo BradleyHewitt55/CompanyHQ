@@ -48,9 +48,18 @@
             }
           },
           {
-            "name": "search",
+            "name": "Field",
             "in": "query",
             "schema": {
+              "maxLength": 64,
+              "type": "string"
+            }
+          },
+          {
+            "name": "Keyword",
+            "in": "query",
+            "schema": {
+              "maxLength": 200,
               "type": "string"
             }
           }
@@ -379,6 +388,13 @@
           "createdAt": {
             "type": "string",
             "format": "date-time"
+          },
+          "coverMediaObjectId": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "uuid"
           }
         }
       },
@@ -443,6 +459,13 @@
           "createdAt": {
             "type": "string",
             "format": "date-time"
+          },
+          "coverMediaObjectId": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "uuid"
           }
         }
       },
@@ -500,6 +523,13 @@
           "isDraft": {
             "type": "boolean",
             "default": true
+          },
+          "coverMediaObjectId": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "uuid"
           }
         }
       },
@@ -646,6 +676,13 @@
           "isDraft": {
             "type": "boolean",
             "default": true
+          },
+          "coverMediaObjectId": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "uuid"
           }
         }
       }

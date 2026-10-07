@@ -67,7 +67,7 @@ public sealed class AgentKeysController(IAgentKeyService agentKeys) : Controller
             return Ok(await agentKeys.ListMineAsync(callerId, paging, cancellationToken));
         }
 
-        if (!User.HasClaim("permission", AccessPermissions.ReadPrivateUsers))
+        if (!User.HasPermission(AccessPermissions.ReadPrivateUsers))
         {
             return Forbid();
         }
@@ -87,7 +87,7 @@ public sealed class AgentKeysController(IAgentKeyService agentKeys) : Controller
             return Unauthorized();
         }
 
-        var isAdmin = User.HasClaim("permission", AccessPermissions.ManageUsers);
+        var isAdmin = User.HasPermission(AccessPermissions.ManageUsers);
         var revoked = await agentKeys.RevokeAsync(callerId, isAdmin, id, cancellationToken);
 
         return revoked ? NoContent() : NotFound();
@@ -104,7 +104,7 @@ public sealed class AgentKeysController(IAgentKeyService agentKeys) : Controller
         try
         {
             var updated = await agentKeys.AssignRoleAsync(callerId,
-                User.HasClaim("permission", AccessPermissions.ManageUsers), id,
+                User.HasPermission(AccessPermissions.ManageUsers), id,
                 request.AccessRoleId, cancellationToken);
             return updated ? NoContent() : NotFound();
         }

@@ -6,8 +6,9 @@ not know users, devices, notification rows, or Postgres.
 
 ## Rules
 
-- Keep `CompanyHQ.Services.Firebase` at the bottom of the dependency graph. It references no other
-  CompanyHQ service.
+- Keep `CompanyHQ.Services.Firebase` at the bottom of the dependency graph. Its only service
+  reference is `Notification/Contracts`, for the `IPushSender` port it implements; never reference
+  Notification's implementation or another feature service.
 - The host calls `AddFirebase()` once. Firebase's named app creation throws when a second
   registration uses the same app name, so never call it from another service's registration.
 - Missing credentials log one warning and disable sending; they never prevent the host from

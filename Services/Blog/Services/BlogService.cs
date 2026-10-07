@@ -1,7 +1,9 @@
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Logging;
 using CompanyHQ.Services.Blogs.Contracts.Dtos;
 using CompanyHQ.Services.Blogs.Contracts.Forms;
 using CompanyHQ.Services.Blogs.Contracts.Models;
+using CompanyHQ.Services.Blogs.Contracts.Ports;
 using CompanyHQ.Services.Postgres.Contracts.Dtos;
 using CompanyHQ.Services.Postgres.Contracts;
 using CompanyHQ.Services.Postgres.Contracts.Enums;
@@ -14,25 +16,21 @@ namespace CompanyHQ.Services.Blogs.Services;
 
 public sealed class BlogService(
     IPostgresService<BlogPost> posts,
-    IUserAuthorizationService authorization) : IBlogService
+    IUserAuthorizationService authorization,
+    ILogger<BlogService> logger,
+    IBlogCoverImages? covers = null) : IBlogService
 {
     public async Task<PagedResult<ClientBlogPostDto>> ListAsync(
         PageRequest page,
-        string? search = null,
+        SearchRequest? search = null,
         ResponseAudience audience = ResponseAudience.Client,
         Guid? actingUserId = null,
         CancellationToken cancellationToken = default)
     {
         var effectiveAudience = await EffectiveAudienceAsync(audience, actingUserId, McpCapabilityCatalog.ListBlogPosts, cancellationToken);
-        var query = posts.Query();
-        if (!string.IsNullOrWhiteSpace(search))
-        {
-            var pattern = $"%{search.Trim()}%";
-            query = query.Where(post => EF.Functions.ILike(post.Title, pattern)
-                                        || EF.Functions.ILike(post.Description, pattern)
-                                        || EF.Functions.ILike(post.Author, pattern)
-                                        || EF.Functions.ILike(post.Category, pattern));
-        }
+        // The searchable fields are the ones this caller's shape carries, so a reader cannot probe a draft-only field.
+        var query = posts.Query()
+            .Search(search, effectiveAudience is ResponseAudience.Admin ? typeof(AdminBlogPostDto) : typeof(ClientBlogPostDto));
 
         if (effectiveAudience is not ResponseAudience.Admin)
         {
@@ -74,7 +72,6 @@ public sealed class BlogService(
 
     public async Task<ClientBlogPostDto> CreateAsync(
         CreateBlogPostRequest request,
-        ResponseAudience audience = ResponseAudience.Client,
         Guid? actingUserId = null,
         CancellationToken cancellationToken = default)
     {
@@ -93,7 +90,8 @@ public sealed class BlogService(
             Body = CleanRequired(request.Body, nameof(request.Body)),
             Author = CleanRequired(request.Author, nameof(request.Author)),
             Category = CleanRequired(request.Category, nameof(request.Category)),
-            CoverImageUrl = CleanOptional(request.CoverImageUrl),
+            CoverImageUrl = await CoverUrlAsync(request.CoverMediaObjectId, request.CoverImageUrl, actingUserId!.Value, cancellationToken),
+            CoverMediaObjectId = request.CoverMediaObjectId,
             PublishedAt = request.PublishedAt,
             SortOrder = request.SortOrder,
             IsDraft = request.IsDraft
@@ -115,7 +113,6 @@ public sealed class BlogService(
     public async Task<ClientBlogPostDto?> UpdateAsync(
         string slug,
         UpdateBlogPostRequest request,
-        ResponseAudience audience = ResponseAudience.Client,
         Guid? actingUserId = null,
         CancellationToken cancellationToken = default)
     {
@@ -128,24 +125,31 @@ public sealed class BlogService(
             return null;
         }
 
+        var previousCover = post.CoverMediaObjectId;
+        var coverId = request.CoverMediaObjectId
+            ?? (CleanOptional(request.CoverImageUrl) == post.CoverImageUrl ? previousCover : null);
+        var coverUrl = coverId == previousCover && previousCover is not null
+            ? post.CoverImageUrl
+            : await CoverUrlAsync(coverId, request.CoverImageUrl, actingUserId!.Value, cancellationToken);
         post.Title = CleanRequired(request.Title, nameof(request.Title));
         post.Description = CleanRequired(request.Description, nameof(request.Description));
         post.Body = CleanRequired(request.Body, nameof(request.Body));
         post.Author = CleanRequired(request.Author, nameof(request.Author));
         post.Category = CleanRequired(request.Category, nameof(request.Category));
-        post.CoverImageUrl = CleanOptional(request.CoverImageUrl);
+        post.CoverImageUrl = coverUrl;
+        post.CoverMediaObjectId = coverId;
         post.PublishedAt = request.PublishedAt;
         post.SortOrder = request.SortOrder;
         post.IsDraft = request.IsDraft;
         ValidatePublication(post);
 
         await posts.UpdateAsync(post, cancellationToken);
+        if (previousCover != post.CoverMediaObjectId) await RetireUnusedCoverAsync(previousCover, cancellationToken);
         return post.AsDto(ResponseAudience.Admin);
     }
 
     public async Task<bool> DeleteAsync(
         string slug,
-        ResponseAudience audience = ResponseAudience.Client,
         Guid? actingUserId = null,
         CancellationToken cancellationToken = default)
     {
@@ -153,7 +157,32 @@ public sealed class BlogService(
         var post = await posts.Query().FirstOrDefaultAsync(
             candidate => candidate.Slug == NormaliseSlug(slug),
             cancellationToken);
-        return post is not null && await posts.DeleteAsync(post.Id, cancellationToken);
+        if (post is null || !await posts.DeleteAsync(post.Id, cancellationToken)) return false;
+        await RetireUnusedCoverAsync(post.CoverMediaObjectId, cancellationToken);
+        return true;
+    }
+
+    private async Task<string?> CoverUrlAsync(Guid? id, string? url, Guid author, CancellationToken ct)
+    {
+        if (id is null) return CleanOptional(url);
+        return covers is not null && await covers.GetReadyUrlAsync(id.Value, author, ct) is { } readyUrl
+            ? readyUrl
+            : throw new ArgumentException("The cover must be a ready Content image uploaded by this author.");
+    }
+
+    private async Task RetireUnusedCoverAsync(Guid? id, CancellationToken ct)
+    {
+        if (id is not { } mediaId || covers is null) return;
+        try
+        {
+            if (!await posts.Query().AnyAsync(post => post.CoverMediaObjectId == mediaId, ct))
+                await covers.RetireAsync(mediaId, ct);
+        }
+        catch (Exception exception)
+        {
+            // The post write has committed. Cleanup failure must not report a failed save.
+            logger.LogWarning("Could not retire blog cover {MediaId}: {ErrorType}", mediaId, exception.GetType().Name);
+        }
     }
 
     private async Task EnsurePermissionAsync(Guid? actingUserId, string permission, CancellationToken cancellationToken)

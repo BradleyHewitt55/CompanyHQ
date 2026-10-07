@@ -1,4 +1,5 @@
 using CompanyHQ.Services.Postgres.Contracts.Models;
+using CompanyHQ.Services.Users.Contracts.Models;
 
 namespace CompanyHQ.Services.Appointments.Contracts.Models;
 
@@ -7,6 +8,8 @@ public sealed class Appointment : BaseModel
 {
     /// <summary>The member whose diary this is.</summary>
     public Guid UserId { get; set; }
+
+    public User? User { get; set; }
 
     public required string Title { get; set; }
 

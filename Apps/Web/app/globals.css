@@ -1,6 +1,7 @@
 @import 'tailwindcss';
 @import '../../../Assets/Styles/app.css';
 @import '../../../Assets/Styles/theme.css';
+@import '../../../Assets/Styles/scrollbar.css';
 @import "tw-animate-css";
 @import "shadcn/tailwind.css";
 
@@ -45,6 +46,12 @@ button {
   border: 0;
 }
 
+/* app.css is unlayered, so its `color: inherit` on controls outranks Tailwind's layered utilities and
+   paints shadcn buttons in their own background colour. Hand the colour back to the variant. */
+[data-slot='button'] {
+  color: revert-layer;
+}
+
 button:focus-visible,
 a:focus-visible,
 input:focus-visible,
@@ -84,6 +91,7 @@ textarea:focus-visible {
 .button:disabled,
 .button[aria-disabled='true'] {
   cursor: not-allowed;
+  filter: grayscale(1);
   opacity: 0.55;
   transform: none;
 }

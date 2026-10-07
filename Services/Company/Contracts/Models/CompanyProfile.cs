@@ -1,4 +1,5 @@
 using CompanyHQ.Services.Postgres.Contracts.Models;
+using CompanyHQ.Services.Company.Contracts.Dtos;
 
 namespace CompanyHQ.Services.Company.Contracts.Models;
 
@@ -19,7 +20,15 @@ public sealed class CompanyProfile : BaseModel
 
     public required string InfoEmail { get; set; }
 
+    public ClientCompanyEmailDto[]? PublicEmails { get; set; }
+
     public string? LogoUrl { get; set; }
 
     public required string Description { get; set; }
+
+    public string? FacebookAccount { get; set; }
+
+    public string? InstagramAccount { get; set; }
+
+    public string? WhatsAppNumber { get; set; }
 }

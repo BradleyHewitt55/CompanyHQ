@@ -15,6 +15,7 @@ public interface IAccountFlagService : IAccountFlags
         PageRequest paging,
         AccountFlagStatus? status = null,
         string? kind = null,
+        SearchRequest? search = null,
         ResponseAudience audience = ResponseAudience.Client,
         CancellationToken ct = default);
 

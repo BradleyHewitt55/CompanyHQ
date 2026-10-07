@@ -3,10 +3,11 @@ import { notFound } from 'next/navigation';
 
 import { ResourceList } from '@/app/admin/_resources/list-view';
 import { getAdminResource } from '../../../src/api/admin';
+import { currentUser } from '../../../src/api/current-user';
 
 export async function generateMetadata({ params }: { params: Promise<{ resource: string }> }): Promise<Metadata> {
   const { resource: resourceKey } = await params;
-  const resource = await getAdminResource(resourceKey);
+  const resource = await getAdminResource(resourceKey, (await currentUser()).permissions);
   return { title: resource?.label ?? 'Admin' };
 }
 
@@ -19,7 +20,7 @@ export default async function ResourceListPage({
 }) {
   const { resource: resourceKey } = await params;
   const { page } = await searchParams;
-  const resource = await getAdminResource(resourceKey, parsePage(page));
+  const resource = await getAdminResource(resourceKey, (await currentUser()).permissions, parsePage(page));
 
   if (!resource) {
     notFound();

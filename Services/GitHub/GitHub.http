@@ -1,0 +1,59 @@
+@baseUrl = http://localhost:4002
+@accessToken = replace-with-a-token-whose-role-has-github.manage
+@githubToken = replace-with-a-github-token
+
+### Whether issues can be filed. Anonymous: { "issuesEnabled": false }
+GET {{baseUrl}}/api/github
+
+### The same route with github.manage also names the repository
+GET {{baseUrl}}/api/github
+Authorization: Bearer {{accessToken}}
+
+### Connect a repository the token can read that has Issues enabled (204)
+PUT {{baseUrl}}/api/github
+Authorization: Bearer {{accessToken}}
+Content-Type: application/json
+
+{"repository":"owner/repository","accessToken":"{{githubToken}}"}
+
+### A repository GitHub refuses, or without Issues: 400
+PUT {{baseUrl}}/api/github
+Authorization: Bearer {{accessToken}}
+Content-Type: application/json
+
+{"repository":"owner/does-not-exist","accessToken":"{{githubToken}}"}
+
+### Without github.manage: 401 anonymous, 403 signed in
+PUT {{baseUrl}}/api/github
+Content-Type: application/json
+
+{"repository":"owner/repository","accessToken":"{{githubToken}}"}
+
+### With no GitHub:TokenEncryptionKey configured: 503
+
+### The repository's issues, most recently updated first. 503 while nothing is connected
+GET {{baseUrl}}/api/github/issues?page=1&pageSize=10
+Authorization: Bearer {{accessToken}}
+
+### The same list narrowed by GitHub's own search
+GET {{baseUrl}}/api/github/issues?keyword=checkout
+Authorization: Bearer {{accessToken}}
+
+### One issue with its comments. A pull request number is 404
+GET {{baseUrl}}/api/github/issues/1
+Authorization: Bearer {{accessToken}}
+
+### Comment as the connected token's account (201)
+POST {{baseUrl}}/api/github/issues/1/comments
+Authorization: Bearer {{accessToken}}
+Content-Type: application/json
+
+{"body":"Thanks, this is fixed in the next release."}
+
+### Close the issue (204)
+POST {{baseUrl}}/api/github/issues/1/close
+Authorization: Bearer {{accessToken}}
+
+### Disconnect (204). The issue routes answer 503 afterwards
+DELETE {{baseUrl}}/api/github
+Authorization: Bearer {{accessToken}}

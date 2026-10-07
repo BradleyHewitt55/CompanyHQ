@@ -9,6 +9,9 @@ internal sealed class ConversationConfiguration : IEntityTypeConfiguration<Conve
     public void Configure(EntityTypeBuilder<Conversation> builder)
     {
         builder.Property(conversation => conversation.ParticipantKey).HasMaxLength(73).IsRequired();
-        builder.HasIndex(conversation => conversation.ParticipantKey).IsUnique();
+        builder.Property(conversation => conversation.ContextKey).HasMaxLength(225).HasDefaultValue(string.Empty).IsRequired();
+        builder.Property(conversation => conversation.ContextKind).HasMaxLength(64);
+        builder.Property(conversation => conversation.ContextId).HasMaxLength(160);
+        builder.HasIndex(conversation => new { conversation.ParticipantKey, conversation.ContextKey }).IsUnique();
     }
 }

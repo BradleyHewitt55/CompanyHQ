@@ -52,6 +52,11 @@ public interface IMessageService
         Guid conversationId,
         CancellationToken cancellationToken = default);
 
+    Task<MessageOperationResult<bool>> DeleteAsync(
+        Guid userId,
+        Guid conversationId,
+        CancellationToken cancellationToken = default);
+
     Task<PagedResult<AdminConversationDto>> ListClosedConversationsAsync(
         Guid administratorId,
         PageRequest paging,

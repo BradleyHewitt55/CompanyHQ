@@ -51,7 +51,8 @@ discovers every registered source through its scoped registry and owns only the 
 - Hidden, block, flag, and restriction reads use a five-minute cache and invalidate the exact affected
   keys after committed writes. Postgres reports remain authoritative.
 - DTOs are audience-specific. Read methods take an explicit `ResponseAudience`, default to the
-  client shape, and never use audience as a substitute for authorization. Admin details compute the
+  client shape, and never use audience as a substitute for authorization: the flag queue, the report
+  queue and every decision need `moderation.manage`, rechecked in the service. Admin details compute the
   target report total and return every linked report with its `ReporterUserId`, reason, details,
   status, and creation time. Client DTOs do not expose report details, reporters, evidence,
   snapshots, decision history, or inbound block relationships.

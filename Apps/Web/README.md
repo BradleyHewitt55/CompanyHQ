@@ -37,9 +37,11 @@ Keep page markup and page CSS in `app`. `Components` holds reusable controls, ca
 Admin lists all use `Components/Admin/resource-table.tsx`. Preserve the Main and Services sections in
 `app/admin/shell.tsx`.
 
-Both areas import canonical design tokens through `app/globals.css`. Admin session and role checks
-execute on the server in `middleware.ts` and `app/admin/layout.tsx`; navigation is not an
-authorization boundary.
+Both areas import canonical design tokens through `app/globals.css`. The console is permission-based:
+`/api/auth/me` returns the signed-in role's permissions, `middleware.ts` and `app/admin/layout.tsx`
+admit anyone whose role holds at least one console permission, and each list, page and action checks
+the specific one (`Components/admin-data.ts`, `src/api/access.ts`). Those checks only decide what
+the console offers; the API enforces every call, so navigation is not an authorization boundary.
 
 ## Local checks
 

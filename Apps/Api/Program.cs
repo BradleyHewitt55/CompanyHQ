@@ -15,6 +15,8 @@ using CompanyHQ.Services.Email.Extensions;
 using CompanyHQ.Services.Faqs.Extensions;
 using CompanyHQ.Services.Firebase.Extensions;
 using CompanyHQ.Services.Geo.Extensions;
+using CompanyHQ.Services.GitHub.Extensions;
+using CompanyHQ.Services.Inbox.Extensions;
 using CompanyHQ.Services.Mcp.Extensions;
 using CompanyHQ.Services.Media.Extensions;
 using CompanyHQ.Services.Messages.Extensions;
@@ -23,6 +25,7 @@ using CompanyHQ.Services.Notifications.Extensions;
 using CompanyHQ.Services.Postgres.Extensions;
 using CompanyHQ.Services.Resend.Extensions;
 using CompanyHQ.Services.Users.Extensions;
+using CompanyHQ.Services.Widget.Extensions;
 
 // Before the host builds, so the .env values are visible to configuration binding.
 EnvironmentFile.Load();
@@ -30,7 +33,7 @@ EnvironmentFile.Load();
 var builder = WebApplication.CreateBuilder(args);
 
 // Every service's constructor dependencies are checked when the host builds, in every
-// environment — so a port with no adapter (Email without Resend, Media without Cloudflare) stops
+// environment â€” so a port with no adapter (Email without Resend, Media without Cloudflare) stops
 // startup instead of failing the first request that needs it.
 builder.Host.UseDefaultServiceProvider((context, provider) =>
 {
@@ -38,7 +41,11 @@ builder.Host.UseDefaultServiceProvider((context, provider) =>
     provider.ValidateScopes = context.HostingEnvironment.IsDevelopment();
 });
 
-var mvc = builder.Services.AddControllers(options => options.Filters.Add<DefinedEnumQueryFilter>())
+var mvc = builder.Services.AddControllers(options =>
+    {
+        options.Filters.Add<DefinedEnumQueryFilter>();
+        options.Filters.Add<SearchFieldExceptionFilter>();
+    })
     .AddJsonOptions(options =>
         options.JsonSerializerOptions.Converters.Add(
             new JsonStringEnumConverter(namingPolicy: null, allowIntegerValues: false)));
@@ -77,10 +84,13 @@ builder.Services.AddContact();
 builder.Services.AddBlogs();
 builder.Services.AddFaqs();
 builder.Services.AddGeo(builder.Configuration);
+builder.Services.AddGitHub(builder.Configuration);
+builder.Services.AddInbox();
 builder.Services.AddModeration();
 builder.Services.AddFirebase(builder.Configuration);
 builder.Services.AddNotifications();
 builder.Services.AddMessages(builder.Configuration);
+builder.Services.AddWidget(builder.Configuration);
 
 // Feature services never reference each other; the host plugs their ports together here.
 builder.Services.AddIntegrations();

@@ -14,7 +14,8 @@ boolean opt-out preferences. It accepts opaque `NotificationRequest` values thro
   notification.
 - A missing preference row means both channels are enabled. Write a row only when a user opts out.
 - The own-preferences HTTP action is marked for MCP; both paths call `GetPreferencesAsync` with the
-  authenticated user's id. The MCP path also requires its explicit role permission.
+  authenticated user's id. Over HTTP any signed-in account reads and writes its own preferences; only
+  the MCP tool additionally needs `get_my_notification_preferences` on the role.
 - The worker claims small Postgres batches with `FOR UPDATE SKIP LOCKED`, retries transient provider
   failures only, and abandons a row after five attempts. It commits a one-hour `NextAttemptAt`
   claim lease before any provider call; delivery and the result save happen after that transaction,

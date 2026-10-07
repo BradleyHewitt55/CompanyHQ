@@ -14,9 +14,16 @@ if (!output) {
   process.exit(1);
 }
 
+const documents = committedDocuments();
+if (process.argv[3]) {
+  for (const [name, document] of Object.entries(committedDocuments(resolve(process.argv[3])))) {
+    if (name in documents) throw new Error(`Company service ${name} collides with a generic service document.`);
+    documents[name] = document;
+  }
+}
 const merged = { openapi: '3.1.1', info: { title: 'CompanyHQ', version: '1.0.0' }, paths: {}, components: { schemas: {} } };
 
-for (const [name, json] of Object.entries(committedDocuments()).sort(([a], [b]) => a.localeCompare(b))) {
+for (const [name, json] of Object.entries(documents).sort(([a], [b]) => a.localeCompare(b))) {
   const document = JSON.parse(json);
   for (const [path, item] of Object.entries(document.paths ?? {})) {
     if (path in merged.paths) throw new Error(`Route ${path} is published by more than one service (${name}).`);

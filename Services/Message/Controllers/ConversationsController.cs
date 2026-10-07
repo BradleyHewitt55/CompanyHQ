@@ -8,9 +8,9 @@ using CompanyHQ.Services.Messages.Contracts.Dtos;
 using CompanyHQ.Services.Messages.Contracts.Forms;
 using CompanyHQ.Services.Messages.Extensions;
 using CompanyHQ.Services.Messages.Services;
+using CompanyHQ.Services.Postgres.Contracts;
 using CompanyHQ.Services.Postgres.Contracts.Dtos;
 using CompanyHQ.Services.Postgres.Contracts.Forms;
-using CompanyHQ.Services.Users.Contracts.Enums;
 using CompanyHQ.Services.Auth.Contracts.Identity;
 
 namespace CompanyHQ.Services.Messages.Controllers;
@@ -54,6 +54,7 @@ public sealed class ConversationsController(IMessageService messages) : Controll
                 new { id = result.Value!.Id },
                 result.Value),
             MessageOperationStatus.Invalid => BadRequest(),
+            MessageOperationStatus.Forbidden => Forbid(),
             _ => NotFound()
         };
     }
@@ -63,7 +64,7 @@ public sealed class ConversationsController(IMessageService messages) : Controll
     public async Task<ActionResult<MessagePageDto>> GetMessages(
         Guid id,
         [FromQuery] string? cursor = null,
-        [FromQuery(Name = "q")] string? search = null,
+        [FromQuery] string? keyword = null,
         CancellationToken cancellationToken = default)
     {
         if (!TryGetUserId(out var userId))
@@ -71,7 +72,7 @@ public sealed class ConversationsController(IMessageService messages) : Controll
             return Unauthorized();
         }
 
-        var result = await messages.GetMessagesAsync(userId, id, cursor, search, cancellationToken);
+        var result = await messages.GetMessagesAsync(userId, id, cursor, keyword, cancellationToken);
         return result.Status switch
         {
             MessageOperationStatus.Success => Ok(result.Value),
@@ -81,7 +82,6 @@ public sealed class ConversationsController(IMessageService messages) : Controll
     }
 
     [HttpPost("{id:guid}/messages")]
-    [Authorize(Policy = AuthPolicies.RequireVerifiedEmail)]
     [EnableRateLimiting(MessageServiceCollectionExtensions.SendRateLimitPolicyName)]
     [ProducesResponseType<ClientMessageDto>(StatusCodes.Status201Created)]
     public async Task<ActionResult<ClientMessageDto>> Send(
@@ -103,6 +103,7 @@ public sealed class ConversationsController(IMessageService messages) : Controll
                 result.Value!.Message),
             MessageOperationStatus.Invalid => BadRequest(),
             MessageOperationStatus.Conflict => Conflict(),
+            MessageOperationStatus.Forbidden => Forbid(),
             _ => NotFound()
         };
     }
@@ -149,6 +150,8 @@ public sealed class ConversationsController(IMessageService messages) : Controll
 
     [HttpPost("{id:guid}/close")]
     [ProducesResponseType(StatusCodes.Status204NoContent)]
+    [ProducesResponseType(StatusCodes.Status403Forbidden)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<IActionResult> Close(Guid id, CancellationToken cancellationToken = default)
     {
         if (!TryGetUserId(out var userId))
@@ -161,6 +164,28 @@ public sealed class ConversationsController(IMessageService messages) : Controll
         {
             MessageOperationStatus.Success => NoContent(),
             MessageOperationStatus.Invalid => BadRequest(),
+            MessageOperationStatus.Forbidden => Forbid(),
+            _ => NotFound()
+        };
+    }
+
+    /// <summary>Permanently removes the conversation and its messages for everyone.</summary>
+    [HttpDelete("{id:guid}")]
+    [ProducesResponseType(StatusCodes.Status204NoContent)]
+    [ProducesResponseType(StatusCodes.Status403Forbidden)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    public async Task<IActionResult> Delete(Guid id, CancellationToken cancellationToken = default)
+    {
+        if (!TryGetUserId(out var userId))
+        {
+            return Unauthorized();
+        }
+
+        var result = await messages.DeleteAsync(userId, id, cancellationToken);
+        return result.Status switch
+        {
+            MessageOperationStatus.Success => NoContent(),
+            MessageOperationStatus.Forbidden => Forbid(),
             _ => NotFound()
         };
     }
@@ -178,11 +203,11 @@ public sealed class ConversationsController(IMessageService messages) : Controll
     }
 
     [HttpGet("admin/closed")]
-    [Authorize(Roles = nameof(UserRole.Admin))]
+    [Authorize(Policy = AccessPermissions.ManageConversations)]
     [ProducesResponseType<PagedResult<AdminConversationDto>>(StatusCodes.Status200OK)]
     public async Task<ActionResult<PagedResult<AdminConversationDto>>> ListClosed(
         [FromQuery] PageRequest paging,
-        [FromQuery] string? search = null,
+        [FromQuery] string? keyword = null,
         CancellationToken cancellationToken = default)
     {
         if (!TryGetUserId(out var administratorId))
@@ -193,17 +218,17 @@ public sealed class ConversationsController(IMessageService messages) : Controll
         return Ok(await messages.ListClosedConversationsAsync(
             administratorId,
             paging,
-            search,
+            keyword,
             cancellationToken));
     }
 
     [HttpGet("admin/closed/{id:guid}/messages")]
-    [Authorize(Roles = nameof(UserRole.Admin))]
+    [Authorize(Policy = AccessPermissions.ManageConversations)]
     [ProducesResponseType<MessagePageDto>(StatusCodes.Status200OK)]
     public async Task<ActionResult<MessagePageDto>> GetClosedMessages(
         Guid id,
         [FromQuery] string? cursor = null,
-        [FromQuery(Name = "q")] string? search = null,
+        [FromQuery] string? keyword = null,
         CancellationToken cancellationToken = default)
     {
         if (!TryGetUserId(out var administratorId))
@@ -215,7 +240,7 @@ public sealed class ConversationsController(IMessageService messages) : Controll
             administratorId,
             id,
             cursor,
-            search,
+            keyword,
             cancellationToken);
         return result.Status switch
         {
@@ -226,7 +251,7 @@ public sealed class ConversationsController(IMessageService messages) : Controll
     }
 
     [HttpPost("with/{userId:guid}")]
-    [Authorize(Roles = nameof(UserRole.Admin))]
+    [Authorize(Policy = AccessPermissions.ManageConversations)]
     [ProducesResponseType<ClientConversationDto>(StatusCodes.Status201Created)]
     public async Task<ActionResult<ClientConversationDto>> StartOperatorConversation(
         Guid userId,

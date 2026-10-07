@@ -7,11 +7,11 @@ trusts, and owns every entity that makes a credential revocable or single-use: `
 It owns **no account data** — `Services/User` owns the `User` record, the password hasher, and the
 deletion path — so it reads users through `PostgresDbContext`, never through a `User`-shaped API of
 its own, but it **does** write two columns on that row: `EmailVerified` and `SessionsRevokedAt` (see
-`Services/User/AGENTS.md` for which flow stamps which). It owns **no authorization policy** beyond
-the one it explicitly hands out (`AuthPolicies.RequireVerifiedEmail`): it configures the bearer
-scheme, hands other controllers `[Authorize]` / `User.GetUserId()` / `User.Audience()`, and stays out
-of the way otherwise. It references `Services/Email` to choose a controlled template and supply the
-token or account data; Email renders and delivers the message through the active provider.
+`Services/User/AGENTS.md` for which flow stamps which). It decides **no
+access rule**: it registers one authorization policy per name in `AccessPermissions.All`, plus
+`AuthPolicies.RequireVerifiedEmail`, configures the bearer scheme, hands other controllers
+`[Authorize]` / `User.GetUserId()` / `User.HasPermission()`, and stays out of the way otherwise.
+Its mail goes through its own `IAuthEmailSender` port.
 
 ## Two tokens, on purpose
 
@@ -38,17 +38,28 @@ possible (see Traps). `RefreshToken` and `AuthToken` both have no navigation pro
 FK is `HasOne<User>()` with cascade delete, so deleting an account kills every session and every
 outstanding link.
 
-## `AuthToken` — one table, three purposes
+## `AuthToken` — one table, four purposes
 
-Password reset, email verification, and email change are the same mechanism three times: a
+Password reset, email verification, email change, and account deletion are the same mechanism: a
 single-use, short-lived, high-entropy secret mailed to an address. `AuthTokenPurpose` discriminates
-one table instead of three near-identical ones. `IssueAsync` **consumes every other open token of the
+one table instead of near-identical ones. `IssueAsync` **consumes every other open token of the
 same purpose for that user before minting the new one** — one live link per purpose, always the
 newest. `ConsumeAsync` stamps `ConsumedAt` rather than deleting the row, so a second click on the same
 link reads as "already used" (400 `InvalidToken`), not a mystery 404. `PendingEmail` (email-change)
 is the one payload field a purpose carries forward.
 
-Lifetimes: password reset 1 hour, email verification 24 hours, email change 1 hour — a live
+**Deleting your own account is two steps and there is no one-step route.**
+`POST /api/auth/delete-account` takes the account holder's full name, typed out, and refuses anything
+else (an account with no name confirms with its address). It deletes nothing: it mails a link.
+`POST /api/auth/confirm-account-deletion` redeems that link, anonymously, and only then runs
+`IAccountDeletionCoordinator`. The token is looked up with `FindActiveAsync`, not consumed: the row
+goes with the account through its cascading key, and when a deletion guard refuses (409) the same
+link still works once the holder has resolved it. Every row with a cascading key to the account
+goes too, sessions included. The page the link opens must redeem it from the browser, never while
+rendering: a mail scanner that only fetches the link must not delete the account.
+
+Lifetimes: password reset 1 hour, email verification 24 hours, email change 1 hour, account
+deletion 1 hour — a live
 credential to a live account gets the short fuse. `Auth:WebBaseAddress` (`Auth__WebBaseAddress`
 in the environment) is the origin every token-carrying email links to, always `Apps/Web`, never
 a mobile deep link, so the link works in whatever mail client the person is standing in.
@@ -87,7 +98,7 @@ to widen. `GetUserAsync` projects straight to `AuthUserDto` in SQL; `PasswordHas
 | `GET /api/auth/sessions?page=1&pageSize=10` | bearer | Active sessions only, newest first, in `PagedResult<AuthSessionSummaryDto>`. `?currentSessionId=` (from `AuthSessionDto.SessionId`) flags the caller's own row — never a refresh token, sent for that purpose. |
 | `DELETE /api/auth/sessions/{id}` | bearer | 204/404. 404 when not the caller's own — never confirms another user's session id exists. Does **not** stamp `SessionsRevokedAt`. |
 | `POST /api/auth/sessions/revoke-all` | bearer | 204. Sign out everywhere, including the caller's own live access token — stamps `SessionsRevokedAt`. |
-| `GET /api/auth/me` | bearer | Read from the database, not the token's claims, so a renamed, demoted, or newly-verified account is visible before the token expires. |
+| `GET /api/auth/me` | bearer | Read from the database, not the token's claims, so a renamed, re-roled, or newly-verified account is visible before the token expires. Includes the role name and its permissions. |
 | `DELETE /api/auth/me` | bearer | Routes through the User service's `AccountDeletionCoordinator`, the same path `DELETE /api/users/{id}` uses, so neither can skip a guard. Its **409 is a generic guard veto**. |
 
 **There is exactly one place a `User` row is constructed and its password hashed**
@@ -99,15 +110,10 @@ and change-email. That, not a collation, is what makes the unique index case-ins
 
 ## Traps
 
-- **A throwing `IRegistrationHook` no longer touches registration at all** — it fires from
-  `VerifyEmailAsync`, which swallows `RegistrationRejectedException`. Hooks still must be cheap and
-  idempotent; they just no longer gate account creation.
-- **`NameClaimType` is `AuthClaims.Subject`, so `User.Identity.Name` is the user id** — while
-  `Apps/Web/Services/WebAuthentication.cs` builds its cookie principal from the account's names.
-  The two hosts disagree about what `Identity.Name` means. Read ids through `GetUserId()`, never
-  `Identity.Name`.
-- **`MapInboundClaims` is off.** `[Authorize(Roles = …)]` works off the short `role` claim; reaching
-  for `ClaimTypes.*` fails because unmapped tokens carry no WS-Federation URIs.
+- **`NameClaimType` is `AuthClaims.Subject`, so `User.Identity.Name` is the user id.** Read ids
+  through `GetUserId()`, never `Identity.Name`.
+- **`MapInboundClaims` is off.** Claims keep their short names (`sub`, `role`, `permission`);
+  reaching for `ClaimTypes.*` fails because unmapped tokens carry no WS-Federation URIs.
 - **Order matters twice.** `AddAuth` after `AddUsers` and `AddEmail` (password hasher, deletion
   coordinator, and `IEmailTemplateService`), and `UseAuthentication` before `UseAuthorization` or every
   `[Authorize]` endpoint sees an anonymous caller.
@@ -188,7 +194,7 @@ decisions, not deployment knobs, so they are not configurable the way `LoginRate
 - **Auth references only foundation (`User`, `Postgres`, `Cache`) and no feature service.** Its mail
   goes through its own `IAuthEmailSender` port; `Apps/Api/Integrations/AuthEmailSender.cs` fills it
   with Email's templates. The port is required, so a host without that bridge fails at startup.
-- `User.Audience()` stays in `Services/User/Extensions/`. Moving it here would be a cycle.
+- `User.Audience(permission)` stays in `Services/User/Extensions/`. Moving it here would be a cycle.
 - **A mailed link or notice is never a precondition for the write that triggered it.** The `IAuthEmailSender`
   bridge only queues the email in the Email outbox; delivery and its retries happen later in the Email
   worker, so a provider outage never reaches an auth flow. A failed queue result is logged, and
@@ -217,14 +223,32 @@ decisions, not deployment knobs, so they are not configurable the way `LoginRate
 - **No OAuth/social sign-in, no 2FA/TOTP, no magic links, no passkeys, no login-history table, no
   breached-password lookup, no "this wasn't me" link in a notice mail, no auth audit log, no
   admin-initiated password reset, no password history/forced rotation.** Each was considered and
-  explicitly deferred rather than overlooked — see `.plans/auth.md`'s "Deliberately not built" for the
-  reasoning behind each.
+  explicitly deferred rather than overlooked.
 - A password hash never appears in a DTO.
 - **Names are stored and sent split.** `RegisterRequest` and `AuthUserDto` carry
   `FirstName` and `LastName`; the token carries `given_name` and `family_name`. A
   client joins them for display. There is no combined name column or field to fall back to.
-# Saved role permissions
+
+## Shared authorization contract
+
+Feature services may reference `Auth/Contracts` for claims and `User.HasPermission`; they must not
+reference the Auth implementation for these helpers. Restricted controllers use
+`[Authorize(Policy = AccessPermissions.X)]`, backed by one policy per entry in
+`AccessPermissions.All`. Services still check the acting account's current permission themselves.
+Self-service actions on the caller's own rows need `[Authorize]` and ownership checks rather than
+an operator permission.
+
+Never authorize with `[Authorize(Roles = ...)]`, `IsInRole`, or a `UserRole` comparison. The `role`
+claim is a display label, and custom roles carry `Client` there; permission claims and the saved
+role row determine access.
+
+## Saved role permissions
 
 JWT validation reads the assigned role and current permission array from Postgres on every request,
 then replaces permission claims alongside the existing role and profile claims. Signup assigns the
 seeded Client role row. A role edit therefore takes effect on the next authenticated HTTP request.
+
+`AuthUserDto` carries `RoleName` and `Permissions`, read from the same row, on `GET /api/auth/me` and
+in every issued session. A client uses them to show only what the account may do; they authorize
+nothing. The `role` claim and `AuthUserDto.Role` are the legacy two-value label and are `Client` for
+every custom role.

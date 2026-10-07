@@ -1,0 +1,43 @@
+.admin-content:has(> .admin-message-thread) { width: 100%; min-height: 0; padding: 0; }
+
+/* A full-height chat: header, a stream that scrolls, and the composer pinned to the bottom. */
+.admin-message-thread { display: flex; height: calc(100dvh - var(--layout-admin-topbar-height)); flex-direction: column; }
+
+.admin-message-thread__header { display: flex; flex: 0 0 auto; align-items: center; gap: var(--gap-sm); padding: var(--gap-sm) var(--gap-xl); border-bottom: 1px solid var(--border); background: var(--surface-raised); }
+.admin-message-thread__back { display: none; color: var(--primary); }
+.admin-message-thread__avatar { display: grid; width: 2.5rem; height: 2.5rem; flex: 0 0 auto; place-items: center; border-radius: 50%; background: var(--primary); color: var(--on-primary); font-weight: 700; }
+.admin-message-thread__who { display: grid; min-width: 0; flex: 1; }
+.admin-message-thread__who a { overflow: hidden; color: var(--muted); text-decoration: none; text-overflow: ellipsis; white-space: nowrap; }
+.admin-message-thread__who a:hover { color: var(--primary); text-decoration: underline; }
+.admin-message-thread__badge { padding: .2rem .7rem; border-radius: 999px; background: var(--surface); color: var(--muted); font-size: var(--font-size-caption); font-weight: 700; white-space: nowrap; }
+.admin-message-thread__badge--open { background: color-mix(in srgb, var(--primary) 18%, transparent); color: var(--primary); }
+
+.admin-message-thread__history { flex: 1 1 auto; min-height: 0; overflow-y: auto; padding: var(--gap-lg) var(--gap-xl); }
+/* Short threads sit at the bottom next to the composer, like any messenger. */
+.admin-message-thread__stream { display: flex; min-height: 100%; max-width: 56rem; flex-direction: column; justify-content: flex-end; gap: var(--gap-xs); margin: 0 auto; }
+
+.admin-message-thread__entry { display: grid; align-self: flex-start; max-width: min(70%, 34rem); gap: .2rem; }
+.admin-message-thread__entry p { margin: 0; padding: .6rem .9rem; border-radius: 1.1rem 1.1rem 1.1rem .3rem; background: var(--surface); color: var(--text); overflow-wrap: anywhere; white-space: pre-wrap; }
+.admin-message-thread__entry footer { padding: 0 .4rem var(--gap-xs); color: var(--muted); font-size: var(--font-size-caption); }
+.admin-message-thread__entry--reply { align-self: flex-end; justify-items: end; }
+.admin-message-thread__entry--reply p { border-radius: 1.1rem 1.1rem .3rem 1.1rem; background: var(--primary); color: var(--on-primary); }
+
+.admin-message-thread__composer { flex: 0 0 auto; padding: var(--gap-sm) var(--gap-xl) var(--gap-md); border-top: 1px solid var(--border); background: var(--surface-raised); }
+.admin-message-thread__composer [role='alert'] { max-width: 56rem; margin: 0 auto var(--gap-xs); color: var(--accent-danger); }
+.admin-message-thread__input { display: flex; max-width: 56rem; align-items: flex-end; gap: var(--gap-sm); margin: 0 auto; }
+.admin-message-thread__input textarea { min-height: 2.75rem; max-height: 10rem; flex: 1; resize: none; padding: .6rem 1rem; border-radius: 1.4rem; field-sizing: content; }
+.admin-message-thread__input [data-slot='button'] { width: 2.75rem; height: 2.75rem; flex: 0 0 auto; border-radius: 50%; }
+.admin-message-thread__retention { flex: 0 0 auto; margin: 0; padding: var(--gap-md) var(--gap-xl); border-top: 1px solid var(--border); color: var(--muted); font-size: var(--font-size-caption); text-align: center; }
+
+/* Desktop names the conversation in the top bar breadcrumb, so the heading is only for assistive tech. */
+@media (min-width: 821px) {
+  .admin-message-thread__title { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0, 0, 0, 0); white-space: nowrap; }
+}
+
+@media (max-width: 820px) {
+  .admin-message-thread__back { display: inline-flex; }
+  .admin-message-thread__header,
+  .admin-message-thread__history,
+  .admin-message-thread__composer { padding-inline: var(--gap-md); }
+  .admin-message-thread__entry { max-width: 85%; }
+}

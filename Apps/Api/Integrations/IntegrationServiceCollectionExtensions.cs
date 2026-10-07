@@ -1,9 +1,12 @@
 using CompanyHQ.Services.Auth.Services;
+using CompanyHQ.Services.Blogs.Contracts.Ports;
 using CompanyHQ.Services.Contact.Contracts.Ports;
+using CompanyHQ.Services.Inbox.Contracts.Ports;
 using CompanyHQ.Services.Media.Contracts.Ports;
 using CompanyHQ.Services.Messages.Contracts.Ports;
 using CompanyHQ.Services.Moderation.Contracts.Ports;
 using CompanyHQ.Services.Notifications.Contracts.Ports;
+using CompanyHQ.Services.Widget.Contracts.Ports;
 
 namespace Api.Integrations;
 
@@ -12,7 +15,7 @@ namespace Api.Integrations;
 /// assembly and never references another feature service; this host decides which ones are plugged
 /// together. Drop a service from the host and delete its lines here — nothing else changes.
 /// </summary>
-internal static class IntegrationServiceCollectionExtensions
+public static class IntegrationServiceCollectionExtensions
 {
     public static IServiceCollection AddIntegrations(this IServiceCollection services)
     {
@@ -21,8 +24,18 @@ internal static class IntegrationServiceCollectionExtensions
         services.AddScoped<IContactAddressBook, CompanyContactAddressBook>();
         services.AddScoped<IContactMailer, EmailContactMailer>();
 
+        services.AddScoped<IBlogCoverImages, BlogCoverImages>();
+
         // Optional channels: each service still runs when the line is removed.
         services.AddScoped<INotificationEmailSender, NotificationEmailSender>();
+        services.AddScoped<IInboxReplyMailer, InboxReplyMailer>();
+
+        // What the public widget feeds, and which other services show up as channels in the staff
+        // inbox. A social account plugs in the same way: one more IInboxChannel line.
+        services.AddScoped<IWidgetConversations, InboxWidgetConversations>();
+        services.AddScoped<IWidgetIssueTracker, GitHubWidgetIssueTracker>();
+        services.AddScoped<IInboxChannel, GitHubInboxChannel>();
+        services.AddScoped<IInboxChannel, ConversationInboxChannel>();
 
         services.AddScoped<ModerationMessageSafety>();
         services.AddScoped<IMessageBlocks>(provider => provider.GetRequiredService<ModerationMessageSafety>());
@@ -32,9 +45,8 @@ internal static class IntegrationServiceCollectionExtensions
         services.AddScoped<IReportHistoryClearer, MessageReportHistoryClearer>();
         services.AddScoped<IReportHistoryClearer, UserReportMessageHistoryClearer>();
 
-        services.AddScoped<MessageMedia>();
-        services.AddScoped<IMediaAccessPolicy>(provider => provider.GetRequiredService<MessageMedia>());
-        services.AddScoped<IMessageAttachments>(provider => provider.GetRequiredService<MessageMedia>());
+        services.AddScoped<IMediaAccessPolicy, MessageMediaAccessPolicy>();
+        services.AddScoped<IMessageAttachments, MessageAttachments>();
 
         services.AddScoped<IMessageNotifier, MessagePushNotifier>();
 

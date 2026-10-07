@@ -21,14 +21,15 @@ public sealed class FaqTools(IFaqService faqs, IHttpContextAccessor httpContextA
 {
     [McpServerTool(Name = "list_faq_entries")]
     public Task<PagedResult<ClientFaqEntryDto>> ListFaqEntries(
-        [Description("Search questions, answers, or categories. Omit to browse by sort order.")] string? search = null,
+        [Description("Keyword to match, without case. Omit to browse everything.")] string? keyword = null,
+        [Description("The one field to match the keyword against, such as title or category. Omit to match every text field.")] string? field = null,
         [Description("Page number, 1-based. Defaults to 1.")] int page = 1,
         [Description("Items per page, capped at 100. Defaults to 10.")] int pageSize = 10,
         CancellationToken cancellationToken = default)
     {
         return faqs.ListAsync(
             new PageRequest { Page = page, PageSize = pageSize },
-            search,
+            SearchRequest.For(keyword, field),
             ResponseAudience.Admin,
             CurrentUserId(),
             cancellationToken);
@@ -47,7 +48,7 @@ public sealed class FaqTools(IFaqService faqs, IHttpContextAccessor httpContextA
         [Description("The FAQ fields to create.")] CreateFaqEntryRequest request,
         CancellationToken cancellationToken = default)
     {
-        return faqs.CreateAsync(request, ResponseAudience.Admin, CurrentUserId(), cancellationToken);
+        return faqs.CreateAsync(request, CurrentUserId(), cancellationToken);
     }
 
     [McpServerTool(Name = "update_faq_entry")]
@@ -56,7 +57,7 @@ public sealed class FaqTools(IFaqService faqs, IHttpContextAccessor httpContextA
         [Description("The replacement FAQ fields.")] UpdateFaqEntryRequest request,
         CancellationToken cancellationToken = default)
     {
-        return faqs.UpdateAsync(key, request, ResponseAudience.Admin, CurrentUserId(), cancellationToken);
+        return faqs.UpdateAsync(key, request, CurrentUserId(), cancellationToken);
     }
 
     [McpServerTool(Name = "delete_faq_entry")]
@@ -64,7 +65,7 @@ public sealed class FaqTools(IFaqService faqs, IHttpContextAccessor httpContextA
         [Description("The stable FAQ key.")] string key,
         CancellationToken cancellationToken = default)
     {
-        return faqs.DeleteAsync(key, ResponseAudience.Admin, CurrentUserId(), cancellationToken);
+        return faqs.DeleteAsync(key, CurrentUserId(), cancellationToken);
     }
 
     // The MCP call filter has already checked this tool's capability and the key's write access

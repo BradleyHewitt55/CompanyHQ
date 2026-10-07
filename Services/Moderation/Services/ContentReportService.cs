@@ -11,6 +11,7 @@ using CompanyHQ.Services.Moderation.Contracts.Dtos;
 using CompanyHQ.Services.Moderation.Contracts.Enums;
 using CompanyHQ.Services.Moderation.Contracts.Forms;
 using CompanyHQ.Services.Moderation.Contracts.Models;
+using CompanyHQ.Services.Postgres.Contracts;
 using CompanyHQ.Services.Postgres.Contracts.Dtos;
 using CompanyHQ.Services.Postgres.Contracts.Enums;
 using CompanyHQ.Services.Postgres.Contracts.Forms;
@@ -189,6 +190,7 @@ public sealed class ContentReportService(
         ReportStatus? status = null,
         string? targetKind = null,
         ReportReason? reason = null,
+        SearchRequest? search = null,
         ResponseAudience audience = ResponseAudience.Client,
         CancellationToken ct = default)
     {
@@ -210,6 +212,8 @@ public sealed class ContentReportService(
         {
             query = query.Where(report => report.Reason == reportReason);
         }
+
+        query = query.Search(search, audience is ResponseAudience.Admin ? typeof(AdminContentReportDto) : typeof(ClientContentReportDto));
 
         return await query.ToPagedResultAsync(
             paging,
@@ -368,7 +372,7 @@ public sealed class ContentReportService(
         ReportDecisionRequest request,
         CancellationToken ct = default)
     {
-        await EnsureAdministratorAsync(actingAdministratorId, ct);
+        await EnsureModeratorAsync(actingAdministratorId, ct);
         ArgumentNullException.ThrowIfNull(request);
 
         if (request.Status is ReportStatus.Pending || !Enum.IsDefined(request.Status))
@@ -638,9 +642,9 @@ public sealed class ContentReportService(
             report.Status,
             report.CreatedAt);
 
-    private async Task EnsureAdministratorAsync(Guid userId, CancellationToken ct)
+    private async Task EnsureModeratorAsync(Guid userId, CancellationToken ct)
     {
-        if (!await authorization.IsAdministratorAsync(userId, ct))
+        if (!await authorization.HasPermissionAsync(userId, AccessPermissions.ManageModeration, ct))
         {
             throw new UnauthorizedAccessException();
         }

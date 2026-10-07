@@ -6,8 +6,9 @@ and draft state. The key is the route identity and the seed natural key.
 
 Anonymous reads expose only entries that are published and not drafts, ordered by editorial order,
 category, and key. List paging is one-based with `pageSize` clamped to 1 to 100 server-side. A single
-key read returns the published entry or `404`. `GET /api/faqs?search=` matches question,
-answer, category, and key case-insensitively in SQL, alongside the publication filter. Each write
+key read returns the published entry or `404`. `GET /api/faqs?field=&keyword=` is the shared
+search (`Postgres/AGENTS.md`) over the fields of the caller's shape, in SQL, alongside the
+publication filter. Each write
 requires its saved role permission in both the HTTP policy and `FaqService`; draft reads require the
 matching list or get permission. A published entry must
 carry `PublishedAt`, invalid content is `400` and a duplicate key is `409`. The service projects

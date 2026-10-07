@@ -8,8 +8,6 @@ using CompanyHQ.Services.Auth.Contracts.Forms;
 using CompanyHQ.Services.Auth.Services;
 using CompanyHQ.Services.Postgres.Contracts.Dtos;
 using CompanyHQ.Services.Postgres.Contracts.Forms;
-using CompanyHQ.Services.Users.Contracts.Enums;
-using CompanyHQ.Services.Users.Services;
 using CompanyHQ.Services.Auth.Contracts.Identity;
 
 namespace CompanyHQ.Services.Auth.Controllers;
@@ -20,9 +18,7 @@ namespace CompanyHQ.Services.Auth.Controllers;
 [ApiController]
 [Route("api/auth")]
 [Produces("application/json")]
-public sealed class AuthController(
-    IAuthService auth,
-    IAccountDeletionCoordinator accountDeletion) : ControllerBase
+public sealed class AuthController(IAuthService auth) : ControllerBase
 {
     [HttpPost("register")]
     [AllowAnonymous]
@@ -171,32 +167,47 @@ public sealed class AuthController(
     }
 
     /// <summary>
-    /// Deletes the caller's own account. Refused with 409 when a plugged-in service's deletion guard
-    /// objects; the reason says what the caller still has to resolve.
+    /// Starts deleting the caller's own account: the typed name must be the account's, and a
+    /// confirmation link is mailed. Nothing is deleted until that link is redeemed.
     /// </summary>
-    [HttpDelete("me")]
+    [HttpPost("delete-account")]
     [Authorize]
-    [ProducesResponseType(StatusCodes.Status204NoContent)]
+    [ProducesResponseType(StatusCodes.Status202Accepted)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
     [ProducesResponseType(StatusCodes.Status401Unauthorized)]
-    [ProducesResponseType(StatusCodes.Status409Conflict)]
-    public async Task<IActionResult> DeleteMe(CancellationToken cancellationToken = default)
+    public async Task<IActionResult> RequestAccountDeletion(
+        RequestAccountDeletionRequest request,
+        CancellationToken cancellationToken = default)
     {
         if (User.GetUserId() is not { } id)
         {
             return Unauthorized();
         }
 
-        var (outcome, reason) = await accountDeletion.DeleteAsync(id, cancellationToken);
+        var outcome = await auth.RequestAccountDeletionAsync(id, request.FullName, cancellationToken);
+        return outcome.Succeeded ? Accepted() : Failed(outcome.Error);
+    }
 
-        return outcome switch
-        {
-            // Refresh tokens cascade from the account, so every session dies with it.
-            AccountDeletionOutcome.Deleted => NoContent(),
-            AccountDeletionOutcome.Blocked =>
-                Problem(statusCode: StatusCodes.Status409Conflict, detail: reason),
-            // The token is valid but the account is already gone.
-            _ => Unauthorized()
-        };
+    /// <summary>
+    /// Anonymous: the link is clicked from the mailbox. Deletes the account, or answers 409 with what
+    /// the account holder still has to resolve when a plugged-in service's deletion guard objects.
+    /// </summary>
+    [HttpPost("confirm-account-deletion")]
+    [AllowAnonymous]
+    [ProducesResponseType(StatusCodes.Status204NoContent)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status409Conflict)]
+    public async Task<IActionResult> ConfirmAccountDeletion(
+        ConfirmAccountDeletionRequest request,
+        CancellationToken cancellationToken = default)
+    {
+        var (outcome, reason) = await auth.ConfirmAccountDeletionAsync(request.Token, cancellationToken);
+
+        return outcome.Succeeded
+            ? NoContent()
+            : reason is not null
+                ? Problem(statusCode: StatusCodes.Status409Conflict, detail: reason)
+                : Failed(outcome.Error);
     }
 
     /// <summary>
@@ -334,6 +345,9 @@ public sealed class AuthController(
             statusCode: StatusCodes.Status429TooManyRequests),
         AuthError.InvalidToken => Problem(
             detail: "That link is invalid, expired, or already used.",
+            statusCode: StatusCodes.Status400BadRequest),
+        AuthError.NameMismatch => Problem(
+            detail: "That is not the name on this account.",
             statusCode: StatusCodes.Status400BadRequest),
         AuthError.WeakPassword => Problem(
             detail: "The new password must be different from the current one.",

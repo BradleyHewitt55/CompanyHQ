@@ -1,4 +1,6 @@
 using System.Data;
+using System.ComponentModel.DataAnnotations;
+using CompanyHQ.Services.Messages.Contracts.Enums;
 
 using Microsoft.EntityFrameworkCore;
 
@@ -7,12 +9,12 @@ using CompanyHQ.Services.Messages.Contracts.Dtos;
 using CompanyHQ.Services.Messages.Contracts.Forms;
 using CompanyHQ.Services.Messages.Contracts.Models;
 using CompanyHQ.Services.Messages.Contracts.Ports;
+using CompanyHQ.Services.Postgres.Contracts;
 using CompanyHQ.Services.Postgres.Contracts.Dtos;
 using CompanyHQ.Services.Postgres.Contracts.Forms;
 using CompanyHQ.Services.Postgres.Data;
 using CompanyHQ.Services.Postgres.Extensions;
 using CompanyHQ.Services.Users.Contracts.Models;
-using CompanyHQ.Services.Users.Contracts.Enums;
 using CompanyHQ.Services.Users.Services;
 
 namespace CompanyHQ.Services.Messages.Services;
@@ -30,6 +32,8 @@ internal sealed class MessageService(
     MessageSpamDetector spamDetector,
     MessageContextReader contextReader,
     IUserAuthorizationService authorization,
+    MessageAccessOptions access,
+    MessageConversationRules rules,
     IMessageBlocks? blocks = null,
     IMessageAccountFlags? accountFlags = null,
     IMessageRestrictions? restrictions = null,
@@ -47,7 +51,7 @@ internal sealed class MessageService(
     {
         var blocked = await BlockedForAsync(userId, cancellationToken);
         var restricted = await RestrictedMessagesAsync(userId, cancellationToken);
-        var participants = ConversationListQuery(userId);
+        var participants = await ConversationListQueryAsync(userId, cancellationToken);
         var total = await participants.CountAsync(cancellationToken);
         var page = participants
             .OrderByDescending(participant => participant.LastMessageAt)
@@ -65,7 +69,9 @@ internal sealed class MessageService(
         StartConversationRequest request,
         CancellationToken cancellationToken = default)
     {
-        if (request.ParticipantId == Guid.Empty || userId == request.ParticipantId)
+        ArgumentNullException.ThrowIfNull(request);
+        if (userId == Guid.Empty || request.ParticipantId == Guid.Empty || userId == request.ParticipantId
+            || !Validator.TryValidateObject(request, new ValidationContext(request), [], validateAllProperties: true))
         {
             return MessageOperationResult<ClientConversationDto>.Invalid();
         }
@@ -77,10 +83,17 @@ internal sealed class MessageService(
             return MessageOperationResult<ClientConversationDto>.NotFound();
         }
 
+        var kind = request.ContextKind?.Trim().ToLowerInvariant();
+        var contextId = request.ContextId?.Trim();
+        if (!await context.Set<User>().AnyAsync(candidate => candidate.Id == userId, cancellationToken))
+            return MessageOperationResult<ClientConversationDto>.NotFound();
+        if (!await rules.CanStartAsync(userId, request.ParticipantId, kind, contextId, cancellationToken))
+            return MessageOperationResult<ClientConversationDto>.Forbidden();
+
         var conversation = await GetOrCreateConversationAsync(
             userId,
             request.ParticipantId,
-            cancellationToken);
+            kind, contextId, cancellationToken);
 
         return await ProjectStartedConversationAsync(userId, conversation, cancellationToken);
     }
@@ -92,6 +105,8 @@ internal sealed class MessageService(
         string? search = null,
         CancellationToken cancellationToken = default)
     {
+        if (!await rules.AllowsAsync(userId, conversationId, ConversationAction.Read, cancellationToken))
+            return MessageOperationResult<MessagePageDto>.NotFound();
         var participant = await context.Set<ConversationParticipant>()
             .AsNoTracking()
             .SingleOrDefaultAsync(
@@ -164,6 +179,9 @@ internal sealed class MessageService(
         SendMessageRequest request,
         CancellationToken cancellationToken = default)
     {
+        if (!await rules.AllowsAsync(userId, conversationId, ConversationAction.Send, cancellationToken)
+            || !await rules.AllowsAsync(userId, conversationId, ConversationAction.Read, cancellationToken))
+            return MessageOperationResult<SendMessageResult>.NotFound();
         var participants = await context.Set<ConversationParticipant>()
             .Where(row => row.ConversationId == conversationId)
             .ToListAsync(cancellationToken);
@@ -184,6 +202,13 @@ internal sealed class MessageService(
         {
             return MessageOperationResult<SendMessageResult>.NotFound();
         }
+
+        if (access.RequireVerifiedEmail && !await context.Set<User>().AnyAsync(
+                account => account.Id == userId && account.EmailVerified, cancellationToken))
+            return MessageOperationResult<SendMessageResult>.Forbidden();
+
+        if (!await rules.AllowsAsync(recipient.UserId, conversationId, ConversationAction.Read, cancellationToken))
+            return MessageOperationResult<SendMessageResult>.Forbidden();
 
         var existing = await context.Set<Message>()
             .AsNoTracking()
@@ -235,12 +260,9 @@ internal sealed class MessageService(
             && await accountFlags.IsFlaggedAsync(userId, SpamKind, cancellationToken);
         var recipientFlagged = accountFlags is not null
             && await accountFlags.IsFlaggedAsync(recipient.UserId, SpamKind, cancellationToken);
-        var recipientRole = await context.Set<User>()
-            .AsNoTracking()
-            .Where(user => user.Id == recipient.UserId)
-            .Select(user => user.Role)
-            .SingleAsync(cancellationToken);
-        var spamSuppressed = recipientRole is not UserRole.Admin
+        var recipientIsOperator = await authorization.HasPermissionAsync(
+            recipient.UserId, AccessPermissions.ManageConversations, cancellationToken);
+        var spamSuppressed = !recipientIsOperator
             && !recipientFlagged
             && (!spamDecision.IsAvailable || senderFlagged || spamDecision.ShouldFlag);
         var blocked = blocks is not null
@@ -306,6 +328,8 @@ internal sealed class MessageService(
         Guid conversationId,
         CancellationToken cancellationToken = default)
     {
+        if (!await rules.AllowsAsync(userId, conversationId, ConversationAction.Read, cancellationToken))
+            return MessageOperationResult<DateTimeOffset>.NotFound();
         var participant = await context.Set<ConversationParticipant>()
             .SingleOrDefaultAsync(
                 row => row.ConversationId == conversationId && row.UserId == userId,
@@ -326,7 +350,8 @@ internal sealed class MessageService(
             .Select(row => row.UserId)
             .SingleAsync(cancellationToken);
 
-        await broadcaster.BroadcastReadAsync(
+        if (await rules.AllowsAsync(otherParticipantId, conversationId, ConversationAction.Read, cancellationToken))
+            await broadcaster.BroadcastReadAsync(
             conversationId,
             readAt,
             userId,
@@ -342,6 +367,8 @@ internal sealed class MessageService(
         bool muted,
         CancellationToken cancellationToken = default)
     {
+        if (!await rules.AllowsAsync(userId, conversationId, ConversationAction.Read, cancellationToken))
+            return MessageOperationResult<bool>.NotFound();
         var participant = await context.Set<ConversationParticipant>()
             .SingleOrDefaultAsync(
                 row => row.ConversationId == conversationId && row.UserId == userId,
@@ -362,6 +389,8 @@ internal sealed class MessageService(
         Guid conversationId,
         CancellationToken cancellationToken = default)
     {
+        if (!await rules.AllowsAsync(userId, conversationId, ConversationAction.Read, cancellationToken))
+            return MessageOperationResult<bool>.NotFound();
         var participant = await context.Set<ConversationParticipant>()
             .SingleOrDefaultAsync(
                 row => row.ConversationId == conversationId && row.UserId == userId,
@@ -385,16 +414,25 @@ internal sealed class MessageService(
         Guid conversationId,
         CancellationToken cancellationToken = default)
     {
+        if (!await rules.AllowsAsync(userId, conversationId, ConversationAction.Close, cancellationToken))
+            return MessageOperationResult<bool>.NotFound();
         var conversation = await context.Set<Conversation>()
             .SingleOrDefaultAsync(candidate => candidate.Id == conversationId, cancellationToken);
         var participants = await context.Set<ConversationParticipant>()
             .Where(row => row.ConversationId == conversationId)
             .ToListAsync(cancellationToken);
-        var closer = participants.SingleOrDefault(row => row.UserId == userId);
+        var isManager = await authorization.HasPermissionAsync(
+            userId, AccessPermissions.ManageConversations, cancellationToken);
 
-        if (conversation is null || closer is null)
+        // A manager may act on a conversation they are not in; anyone else still gets the 404.
+        if (conversation is null || (!isManager && participants.All(row => row.UserId != userId)))
         {
             return MessageOperationResult<bool>.NotFound();
+        }
+
+        if (!MessageAccessOptions.Allows(access.Close, isManager))
+        {
+            return MessageOperationResult<bool>.Forbidden();
         }
 
         if (conversation.ClosedAt is not null)
@@ -402,36 +440,26 @@ internal sealed class MessageService(
             return MessageOperationResult<bool>.Success(true);
         }
 
-        var other = participants.SingleOrDefault(row => row.UserId != userId);
-        if (other is null)
-        {
-            return MessageOperationResult<bool>.NotFound();
-        }
-
         var now = timeProvider.GetUtcNow();
         conversation.ClosedAt = now;
         conversation.ClosedByUserId = userId;
         await context.SaveChangesAsync(cancellationToken);
 
-        var administratorIds = await context.Set<User>()
-            .AsNoTracking()
-            .Where(user => user.Role == UserRole.Admin)
-            .Select(user => user.Id)
-            .ToListAsync(cancellationToken);
+        var administratorIds = await authorization.ListUserIdsAsync(
+            AccessPermissions.ManageConversations, cancellationToken);
 
-        var notificationsToQueue = new List<MessageNotification>();
-        if (!administratorIds.Contains(other.UserId))
-        {
-            notificationsToQueue.Add(new MessageNotification(
-                other.UserId,
+        var notificationsToQueue = participants
+            .Where(row => row.UserId != userId && !administratorIds.Contains(row.UserId))
+            .Select(row => new MessageNotification(
+                row.UserId,
                 "message.closed",
                 "Conversation closed",
                 "Your conversation has been closed.",
                 new Dictionary<string, string>
                 {
                     ["conversationId"] = conversationId.ToString("D")
-                }));
-        }
+                }))
+            .ToList();
 
         notificationsToQueue.AddRange(
             administratorIds
@@ -455,20 +483,65 @@ internal sealed class MessageService(
         return MessageOperationResult<bool>.Success(true);
     }
 
+    public async Task<MessageOperationResult<bool>> DeleteAsync(
+        Guid userId,
+        Guid conversationId,
+        CancellationToken cancellationToken = default)
+    {
+        if (!await rules.AllowsAsync(userId, conversationId, ConversationAction.Delete, cancellationToken))
+            return MessageOperationResult<bool>.NotFound();
+        var conversation = await context.Set<Conversation>()
+            .SingleOrDefaultAsync(candidate => candidate.Id == conversationId, cancellationToken);
+        var isManager = await authorization.HasPermissionAsync(
+            userId, AccessPermissions.ManageConversations, cancellationToken);
+
+        if (conversation is null
+            || (!isManager && !await context.Set<ConversationParticipant>().AnyAsync(
+                row => row.ConversationId == conversationId && row.UserId == userId,
+                cancellationToken)))
+        {
+            return MessageOperationResult<bool>.NotFound();
+        }
+
+        if (!MessageAccessOptions.Allows(access.Delete, isManager))
+        {
+            return MessageOperationResult<bool>.Forbidden();
+        }
+
+        var attached = await context.Set<Message>()
+            .Where(message => message.ConversationId == conversationId && message.MediaObjectId != null)
+            .Select(message => message.MediaObjectId!.Value)
+            .Distinct()
+            .ToListAsync(cancellationToken);
+
+        // Participant and message rows go with it through their cascading foreign keys.
+        context.Set<Conversation>().Remove(conversation);
+        await context.SaveChangesAsync(cancellationToken);
+
+        // After the rows are gone, so a failed save never strands a message pointing at a deleted file.
+        if (attachments is not null && attached.Count > 0)
+        {
+            await attachments.DeleteAsync(attached, userId, cancellationToken);
+        }
+
+        return MessageOperationResult<bool>.Success(true);
+    }
+
     public async Task<PagedResult<AdminConversationDto>> ListClosedConversationsAsync(
         Guid administratorId,
         PageRequest paging,
         string? search = null,
         CancellationToken cancellationToken = default)
     {
-        if (!await authorization.IsAdministratorAsync(administratorId, cancellationToken))
+        if (!await authorization.HasPermissionAsync(administratorId, AccessPermissions.ManageConversations, cancellationToken))
         {
             return PagedResult<AdminConversationDto>.Empty(paging);
         }
 
+        var denied = await rules.RestrictedAsync(administratorId, ConversationAction.Read, cancellationToken);
         var query = context.Set<Conversation>()
             .AsNoTracking()
-            .Where(conversation => conversation.ClosedAt != null);
+            .Where(conversation => conversation.ClosedAt != null && !denied.Contains(conversation.Id));
         if (!string.IsNullOrWhiteSpace(search))
         {
             // Matched in SQL against the two things the admin list actually shows: who was talking
@@ -495,7 +568,9 @@ internal sealed class MessageService(
             {
                 conversation.Id,
                 conversation.ClosedAt,
-                conversation.ClosedByUserId
+                conversation.ClosedByUserId,
+                conversation.ContextKind,
+                conversation.ContextId
             })
             .ToListAsync(cancellationToken);
 
@@ -555,7 +630,7 @@ internal sealed class MessageService(
                 lastMessage?.Body,
                 row.ClosedAt!.Value,
                 row.ClosedByUserId,
-                countsByConversation.GetValueOrDefault(row.Id));
+                countsByConversation.GetValueOrDefault(row.Id), row.ContextKind, row.ContextId);
         }).ToList();
 
         return new PagedResult<AdminConversationDto>(items, paging.Page, paging.PageSize, total);
@@ -568,7 +643,8 @@ internal sealed class MessageService(
         string? search = null,
         CancellationToken cancellationToken = default)
     {
-        if (!await authorization.IsAdministratorAsync(administratorId, cancellationToken)
+        if (!await rules.AllowsAsync(administratorId, conversationId, ConversationAction.Read, cancellationToken)
+            || !await authorization.HasPermissionAsync(administratorId, AccessPermissions.ManageConversations, cancellationToken)
             || !await context.Set<Conversation>()
                 .AsNoTracking()
                 .AnyAsync(
@@ -638,7 +714,7 @@ internal sealed class MessageService(
         Guid userId,
         CancellationToken cancellationToken = default)
     {
-        if (!await authorization.IsAdministratorAsync(administratorId, cancellationToken))
+        if (!await authorization.HasPermissionAsync(administratorId, AccessPermissions.ManageConversations, cancellationToken))
         {
             return MessageOperationResult<ClientConversationDto>.Invalid();
         }
@@ -655,11 +731,7 @@ internal sealed class MessageService(
             return MessageOperationResult<ClientConversationDto>.NotFound();
         }
 
-        var conversation = await GetOrCreateConversationAsync(
-            administratorId,
-            userId,
-            cancellationToken);
-        return await ProjectStartedConversationAsync(administratorId, conversation, cancellationToken);
+        return await StartConversationAsync(administratorId, new StartConversationRequest(userId), cancellationToken);
     }
 
     private async Task<MessageOperationResult<ClientConversationDto>> ProjectStartedConversationAsync(
@@ -670,7 +742,7 @@ internal sealed class MessageService(
         var blocked = await BlockedForAsync(userId, cancellationToken);
         var restricted = await RestrictedMessagesAsync(userId, cancellationToken);
         var result = await ProjectConversationList(
-                ConversationListQuery(userId).Where(row => row.ConversationId == conversation.Id),
+                (await ConversationListQueryAsync(userId, cancellationToken)).Where(row => row.ConversationId == conversation.Id),
                 userId,
                 blocked,
                 restricted)
@@ -694,9 +766,7 @@ internal sealed class MessageService(
         var restricted = await RestrictedMessagesAsync(userId, cancellationToken);
         var visibleMessages = VisibleMessages(userId, blocked, restricted);
 
-        return await context.Set<ConversationParticipant>()
-            .AsNoTracking()
-            .Where(participant => participant.UserId == userId)
+        return await (await ConversationListQueryAsync(userId, cancellationToken))
             .SelectMany(participant => visibleMessages.Where(message =>
                 message.ConversationId == participant.ConversationId
                 && message.SenderUserId != userId
@@ -705,11 +775,12 @@ internal sealed class MessageService(
             .CountAsync(cancellationToken);
     }
 
-    private IQueryable<ConversationParticipant> ConversationListQuery(Guid userId)
+    private async Task<IQueryable<ConversationParticipant>> ConversationListQueryAsync(Guid userId, CancellationToken ct)
     {
+        var denied = await rules.RestrictedAsync(userId, ConversationAction.Read, ct);
         return context.Set<ConversationParticipant>()
             .AsNoTracking()
-            .Where(participant => participant.UserId == userId);
+            .Where(participant => participant.UserId == userId && !denied.Contains(participant.ConversationId));
     }
 
     private IQueryable<ClientConversationDto> ProjectConversationList(
@@ -764,7 +835,11 @@ internal sealed class MessageService(
                 context.Set<Conversation>()
                     .Where(conversation => conversation.Id == participant.ConversationId)
                     .Select(conversation => conversation.ClosedAt)
-                    .FirstOrDefault());
+                    .FirstOrDefault(),
+                context.Set<Conversation>().Where(conversation => conversation.Id == participant.ConversationId)
+                    .Select(conversation => conversation.ContextKind).FirstOrDefault(),
+                context.Set<Conversation>().Where(conversation => conversation.Id == participant.ConversationId)
+                    .Select(conversation => conversation.ContextId).FirstOrDefault());
     }
 
     /// <summary>
@@ -804,7 +879,7 @@ internal sealed class MessageService(
         CancellationToken cancellationToken)
     {
         if (restrictions is null
-            || await authorization.IsAdministratorAsync(userId, cancellationToken))
+            || await authorization.HasPermissionAsync(userId, AccessPermissions.ManageConversations, cancellationToken))
         {
             return new HashSet<Guid>();
         }
@@ -817,17 +892,15 @@ internal sealed class MessageService(
         MessageSpamDecision decision,
         CancellationToken cancellationToken)
     {
-        var administratorId = await context.Set<User>()
-            .AsNoTracking()
-            .Where(user => user.Role == UserRole.Admin)
-            .OrderBy(user => user.CreatedAt)
-            .Select(user => (Guid?)user.Id)
-            .FirstOrDefaultAsync(cancellationToken);
+        var operatorIds = await authorization.ListUserIdsAsync(
+            AccessPermissions.ManageConversations, cancellationToken);
 
-        if (administratorId is not { } adminId || notifications is null)
+        if (operatorIds.Count == 0 || notifications is null)
         {
             return;
         }
+
+        var adminId = operatorIds[0];
 
         await notifications.EnqueueAsync(
             new MessageNotification(
@@ -852,11 +925,14 @@ internal sealed class MessageService(
     private async Task<Conversation> GetOrCreateConversationAsync(
         Guid userId,
         Guid otherUserId,
+        string? contextKind,
+        string? contextId,
         CancellationToken cancellationToken)
     {
+        var contextKey = contextKind is null ? string.Empty : $"{contextKind}:{contextId}";
         var participantKey = BuildParticipantKey(userId, otherUserId);
         var existing = await context.Set<Conversation>()
-            .SingleOrDefaultAsync(conversation => conversation.ParticipantKey == participantKey, cancellationToken);
+            .SingleOrDefaultAsync(conversation => conversation.ParticipantKey == participantKey && conversation.ContextKey == contextKey, cancellationToken);
 
         if (existing is not null)
         {
@@ -868,13 +944,16 @@ internal sealed class MessageService(
         // read below is repeated on a retry, which is what makes the second lookup safe.
         var strategy = context.Database.CreateExecutionStrategy();
         return await strategy.ExecuteAsync(async () =>
-            await CreateConversationAsync(userId, otherUserId, participantKey, cancellationToken));
+            await CreateConversationAsync(userId, otherUserId, participantKey, contextKey, contextKind, contextId, cancellationToken));
     }
 
     private async Task<Conversation> CreateConversationAsync(
         Guid userId,
         Guid otherUserId,
         string participantKey,
+        string contextKey,
+        string? contextKind,
+        string? contextId,
         CancellationToken cancellationToken)
     {
         // A retry must not reuse entities tracked by the failed attempt.
@@ -887,7 +966,7 @@ internal sealed class MessageService(
             cancellationToken);
 
         existing = await context.Set<Conversation>()
-            .SingleOrDefaultAsync(conversation => conversation.ParticipantKey == participantKey, cancellationToken);
+            .SingleOrDefaultAsync(conversation => conversation.ParticipantKey == participantKey && conversation.ContextKey == contextKey, cancellationToken);
 
         if (existing is not null)
         {
@@ -897,7 +976,10 @@ internal sealed class MessageService(
 
         var conversation = new Conversation
         {
-            ParticipantKey = participantKey
+            ParticipantKey = participantKey,
+            ContextKey = contextKey,
+            ContextKind = contextKind,
+            ContextId = contextId
         };
 
         context.Add(conversation);
@@ -917,7 +999,7 @@ internal sealed class MessageService(
             context.ChangeTracker.Clear();
 
             var racedConversation = await context.Set<Conversation>()
-                .SingleOrDefaultAsync(candidate => candidate.ParticipantKey == participantKey, cancellationToken);
+                .SingleOrDefaultAsync(candidate => candidate.ParticipantKey == participantKey && candidate.ContextKey == contextKey, cancellationToken);
 
             if (racedConversation is null)
             {

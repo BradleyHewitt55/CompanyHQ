@@ -1,0 +1,23 @@
+name: Publish packages
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+permissions:
+  contents: read
+  packages: write
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: 10.0.x
+      - name: Pack the generic services and the host library
+        run: |
+          find Services Apps/Api -name '*.csproj' -not -path '*/bin/*' -not -path '*/obj/*' -print0 |
+            xargs -0 -n1 dotnet pack -c Release -o packages
+      # An unchanged version is skipped, so only a raised version publishes.
+      - name: Publish to GitHub Packages
+        run: dotnet nuget push 'packages/*.nupkg' --source "https://nuget.pkg.github.com/${{ github.repository_owner }}/index.json" --api-key "${{ secrets.GITHUB_TOKEN }}" --skip-duplicate

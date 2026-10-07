@@ -94,6 +94,27 @@
   },
   "components": {
     "schemas": {
+      "ClientCompanyEmailDto": {
+        "required": [
+          "title",
+          "address"
+        ],
+        "type": "object",
+        "properties": {
+          "title": {
+            "type": "string"
+          },
+          "address": {
+            "type": "string"
+          },
+          "description": {
+            "type": [
+              "null",
+              "string"
+            ]
+          }
+        }
+      },
       "ClientCompanyProfileDto": {
         "required": [
           "name",
@@ -102,7 +123,10 @@
           "infoEmail",
           "logoUrl",
           "description",
-          "updatedAt"
+          "updatedAt",
+          "facebookAccount",
+          "instagramAccount",
+          "whatsAppNumber"
         ],
         "type": "object",
         "properties": {
@@ -130,6 +154,33 @@
           "updatedAt": {
             "type": "string",
             "format": "date-time"
+          },
+          "facebookAccount": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "instagramAccount": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "whatsAppNumber": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "publicEmails": {
+            "type": [
+              "null",
+              "array"
+            ],
+            "items": {
+              "$ref": "#/components/schemas/ClientCompanyEmailDto"
+            }
           }
         }
       },
@@ -201,6 +252,33 @@
               "null",
               "string"
             ]
+          },
+          "facebookAccount": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "instagramAccount": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "whatsAppNumber": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "publicEmails": {
+            "type": [
+              "null",
+              "array"
+            ],
+            "items": {
+              "$ref": "#/components/schemas/ClientCompanyEmailDto"
+            }
           }
         }
       }

@@ -122,7 +122,7 @@
             }
           },
           {
-            "name": "q",
+            "name": "keyword",
             "in": "query",
             "schema": {
               "type": "string"
@@ -317,6 +317,72 @@
             "content": {
               "application/json": { }
             }
+          },
+          "403": {
+            "description": "Forbidden",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/conversations/{id}": {
+      "delete": {
+        "tags": [
+          "Conversations"
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "No Content",
+            "content": {
+              "application/json": { }
+            }
+          },
+          "403": {
+            "description": "Forbidden",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
           }
         }
       }
@@ -383,7 +449,7 @@
             }
           },
           {
-            "name": "search",
+            "name": "keyword",
             "in": "query",
             "schema": {
               "type": "string"
@@ -427,7 +493,7 @@
             }
           },
           {
-            "name": "q",
+            "name": "keyword",
             "in": "query",
             "schema": {
               "type": "string"
@@ -534,6 +600,18 @@
               "string"
             ],
             "format": "int32"
+          },
+          "contextKind": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "contextId": {
+            "type": [
+              "null",
+              "string"
+            ]
           }
         }
       },
@@ -626,6 +704,18 @@
               "string"
             ],
             "format": "date-time"
+          },
+          "contextKind": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "contextId": {
+            "type": [
+              "null",
+              "string"
+            ]
           }
         }
       },
@@ -810,6 +900,44 @@
           }
         }
       },
+      "ProblemDetails": {
+        "type": "object",
+        "properties": {
+          "type": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "title": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "status": {
+            "pattern": "^-?(?:0|[1-9]\\d*)$",
+            "type": [
+              "null",
+              "integer",
+              "string"
+            ],
+            "format": "int32"
+          },
+          "detail": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "instance": {
+            "type": [
+              "null",
+              "string"
+            ]
+          }
+        }
+      },
       "SendMessageRequest": {
         "required": [
           "clientMessageId",
@@ -842,6 +970,18 @@
           "participantId": {
             "type": "string",
             "format": "uuid"
+          },
+          "contextKind": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "contextId": {
+            "type": [
+              "null",
+              "string"
+            ]
           }
         }
       },

@@ -109,8 +109,6 @@ function consentPage(params: URLSearchParams) {
       button { width: 100%; min-height: 3rem; border: 0; border-radius: 999px; background: #8ce0cf; color: #08211d; cursor: pointer; font: inherit; font-weight: 800; transition: transform 160ms ease, background 160ms ease; }
       button:hover { background: #a6ecdd; transform: translateY(-1px); }
       button:focus-visible, a:focus-visible { outline: 3px solid #effaf6; outline-offset: 3px; }
-      .manage { display: block; margin-top: 1.1rem; color: #8ce0cf; font-size: 0.86rem; text-align: center; text-decoration: none; }
-      .manage:hover { text-decoration: underline; }
       @media (max-width: 30rem) { .consent-header, .consent-body { padding-right: 1.25rem; padding-left: 1.25rem; } .consent-card { border-radius: 1.1rem; } }
       @media (prefers-reduced-motion: reduce) { button { transition: none; } button:hover { transform: none; } }
     </style>
@@ -128,11 +126,10 @@ function consentPage(params: URLSearchParams) {
           <div class="access-box" aria-label="Connection details">
             <div class="access-row"><span class="access-icon" aria-hidden="true">✓</span><span>Use the tools available to your account</span></div>
             <div class="access-row"><span class="access-icon" aria-hidden="true">✓</span><span>Follow the permissions and ownership rules on your account</span></div>
-            <div class="access-row"><span class="access-icon" aria-hidden="true">✓</span><span>Be disconnected at any time from Agent connections</span></div>
+            <div class="access-row"><span class="access-icon" aria-hidden="true">✓</span><span>Be disconnected at any time by revoking its key</span></div>
           </div>
           <p class="note">Only approve this connection if you started it from an agent you trust. Your account permissions still control which tools are available.</p>
           <form method="post">${hidden}<button type="submit">Allow connection</button></form>
-          <a class="manage" href="/settings/agent-keys">Manage agent connections</a>
         </div>
       </section>
     </main>

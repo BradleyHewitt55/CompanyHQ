@@ -85,6 +85,24 @@ public interface IAuthService
     /// <summary>Moves the account's email, revokes every session, and stamps <c>SessionsRevokedAt</c>.</summary>
     Task<AuthActionOutcome> ConfirmEmailChangeAsync(string token, CancellationToken cancellationToken = default);
 
+    /// <summary>
+    /// First half of deleting the caller's own account: checks the typed name against the account
+    /// and mails a single-use confirmation link. Nothing is deleted yet.
+    /// </summary>
+    Task<AuthActionOutcome> RequestAccountDeletionAsync(
+        Guid userId,
+        string fullName,
+        CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// Second half: redeems the mailed link and deletes the account with everything that cascades
+    /// from it. <c>Reason</c> is set when a plugged-in service's deletion guard refuses; the link
+    /// then stays usable until it expires.
+    /// </summary>
+    Task<(AuthActionOutcome Outcome, string? Reason)> ConfirmAccountDeletionAsync(
+        string token,
+        CancellationToken cancellationToken = default);
+
     /// <summary>Active sessions only, newest first. <paramref name="currentSessionId"/> flags one as current.</summary>
     Task<PagedResult<AuthSessionSummaryDto>> GetSessionsAsync(
         Guid userId,

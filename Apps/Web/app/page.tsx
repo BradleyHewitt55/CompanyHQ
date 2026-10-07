@@ -2,11 +2,16 @@ import Link from 'next/link';
 
 import './home.css';
 import { CompanyLogo } from '../Components/company-logo';
+import { ContactWidget } from '../Components/contact-widget';
+import { requestJson } from '../src/api/client';
 import { getCompanyProfile } from '../src/api/company';
+import type { ClientWidgetDto } from '../src/api/types';
 
 /** The company's default public website: who they are and how to reach them. */
 export default async function HomePage() {
   const company = await getCompanyProfile();
+  // The form is left out, not broken, when the API has no widget plugged in or cannot be reached.
+  const widget = await requestJson<ClientWidgetDto>('/api/widget').catch(() => undefined);
   const name = company?.name || 'Our company';
   const year = new Date().getFullYear();
 
@@ -48,18 +53,18 @@ export default async function HomePage() {
           <h2>Contact</h2>
           {company ? (
             <dl className="site-contact">
-              <div>
-                <dt>General enquiries</dt>
-                <dd><a href={`mailto:${company.infoEmail}`}>{company.infoEmail}</a></dd>
-              </div>
-              <div>
-                <dt>Support</dt>
-                <dd><a href={`mailto:${company.supportEmail}`}>{company.supportEmail}</a></dd>
-              </div>
+              {(company.publicEmails ?? [
+                { title: 'General enquiries', address: company.infoEmail, description: null },
+                { title: 'Support', address: company.supportEmail, description: null },
+              ]).map((email, index) => <div key={`${email.address}-${index}`}>
+                <dt>{email.title}</dt>
+                <dd><a href={`mailto:${email.address}`}>{email.address}</a>{email.description && <p>{email.description}</p>}</dd>
+              </div>)}
             </dl>
           ) : (
             <p>Contact details will appear here once they are published.</p>
           )}
+          {widget && (widget.messages || widget.issues) && <ContactWidget widget={widget} />}
         </section>
       </main>
 

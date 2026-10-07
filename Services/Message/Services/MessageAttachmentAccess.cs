@@ -1,7 +1,9 @@
 using Microsoft.EntityFrameworkCore;
 
 using CompanyHQ.Services.Messages.Contracts.Models;
+using CompanyHQ.Services.Messages.Contracts.Enums;
 using CompanyHQ.Services.Messages.Contracts.Ports;
+using CompanyHQ.Services.Postgres.Contracts;
 using CompanyHQ.Services.Postgres.Services;
 using CompanyHQ.Services.Users.Services;
 
@@ -17,6 +19,7 @@ public sealed class MessageAttachmentAccess(
     IPostgresService<ConversationParticipant> participants,
     IPostgresService<Conversation> conversations,
     IUserAuthorizationService authorization,
+    MessageConversationRules rules,
     IMessageRestrictions? restrictions = null)
 {
     public async Task<bool> CanReadAsync(
@@ -29,14 +32,17 @@ public sealed class MessageAttachmentAccess(
             return false;
         }
 
+        var denied = await rules.RestrictedAsync(viewerUserId, ConversationAction.Read, cancellationToken);
+
         // Operators review closed conversations in full and never see a live one, so an attachment
         // follows exactly that rule rather than a blanket admin bypass.
-        if (await authorization.IsAdministratorAsync(viewerUserId, cancellationToken)
+        if (await authorization.HasPermissionAsync(viewerUserId, AccessPermissions.ManageConversations, cancellationToken)
             && await (
                 from message in messages.Query()
                 join conversation in conversations.Query()
                     on message.ConversationId equals conversation.Id
                 where message.MediaObjectId == mediaObjectId && conversation.ClosedAt != null
+                    && !denied.Contains(conversation.Id)
                 select message.Id).AnyAsync(cancellationToken))
         {
             return true;
@@ -53,6 +59,7 @@ public sealed class MessageAttachmentAccess(
             join participant in participants.Query()
                 on message.ConversationId equals participant.ConversationId
             where message.MediaObjectId == mediaObjectId
+                && !denied.Contains(message.ConversationId)
                 && participant.UserId == viewerUserId
                 && (message.SuppressedAt == null || message.SenderUserId == viewerUserId)
             select message.Id;

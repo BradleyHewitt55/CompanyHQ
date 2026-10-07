@@ -43,7 +43,7 @@ Content-Type: application/json
 }
 
 ### Thread page, newest first, with optional in-thread search
-GET {{baseUrl}}/api/conversations/{{conversationId}}/messages?q=hello
+GET {{baseUrl}}/api/conversations/{{conversationId}}/messages?keyword=hello
 Authorization: Bearer {{accessToken}}
 
 ### Older thread page using the response's nextCursor
@@ -136,6 +136,13 @@ Authorization: Bearer {{accessToken}}
 POST {{baseUrl}}/api/conversations/{{conversationId}}/close
 Authorization: Bearer {{accessToken}}
 
+### Close is refused with 403 when Message:Access:Close excludes the caller (Users or Admins only)
+
+### Delete for everyone (204; rows are removed). 403 when Message:Access:Delete excludes the caller,
+### 404 for a non-participant without conversations.manage
+DELETE {{baseUrl}}/api/conversations/{{conversationId}}
+Authorization: Bearer {{accessToken}}
+
 ### Unread badge total
 GET {{baseUrl}}/api/conversations/unread-count
 Authorization: Bearer {{accessToken}}
@@ -152,3 +159,24 @@ Authorization: Bearer replace-with-client-token
 ### wss://host/hubs/messages?access_token={{accessToken}}
 ### Events: MessageReceived(ClientMessageDto), ConversationRead(conversationId, readAt).
 ### The hub has no send method; refetch after reconnect.
+
+### A separate contextual conversation; host policies may reject with 403
+POST {{baseUrl}}/api/conversations
+Authorization: Bearer {{accessToken}}
+Content-Type: application/json
+
+{"participantId":"{{otherUserId}}","contextKind":"sos","contextId":"alert-123"}
+
+### Invalid partial context: 400
+POST {{baseUrl}}/api/conversations
+Authorization: Bearer {{accessToken}}
+Content-Type: application/json
+
+{"participantId":"{{otherUserId}}","contextKind":"sos"}
+
+### Revoked host-policy access: 404; excluded from lists and unread counts
+GET {{baseUrl}}/api/conversations/{{conversationId}}/messages
+Authorization: Bearer {{accessToken}}
+
+### Account deletion is 409 until this account's conversations have been explicitly deleted.
+### Closing or clearing a conversation does not satisfy that requirement.

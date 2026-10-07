@@ -129,6 +129,47 @@
   color: var(--heading-strong);
 }
 
+.site-widget {
+  display: grid;
+  gap: 1rem;
+  max-width: 32rem;
+  margin-top: 2rem;
+}
+
+.site-widget label {
+  display: grid;
+  gap: 0.35rem;
+  color: var(--muted);
+  font-size: 0.875rem;
+}
+
+.site-widget__kinds {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.site-widget__kinds [aria-pressed='true'] {
+  border-color: var(--heading-strong);
+}
+
+.site-widget__select {
+  padding: 0.5rem 0.75rem;
+  border: 1px solid var(--border);
+  border-radius: 0.5rem;
+  background: transparent;
+  color: var(--text);
+  font: inherit;
+}
+
+.site-widget__error {
+  color: var(--danger, #b42318);
+}
+
+.site-widget__done {
+  margin-top: 2rem;
+}
+
 .site-footer {
   margin-top: auto;
   padding: 1.5rem clamp(1rem, 5vw, 3rem);

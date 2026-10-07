@@ -8,6 +8,7 @@ using CompanyHQ.Services.Messages.Hubs;
 using CompanyHQ.Services.Messages.Services;
 using CompanyHQ.Services.Messages.Contracts.Models;
 using CompanyHQ.Services.Auth.Contracts.Identity;
+using CompanyHQ.Services.Users.Contracts.Ports;
 
 namespace CompanyHQ.Services.Messages.Extensions;
 
@@ -24,18 +25,23 @@ public static class MessageServiceCollectionExtensions
 
         var spamOptions = configuration.GetSection(MessageSpamOptions.SectionName).Get<MessageSpamOptions>() ?? new();
         spamOptions.Validate();
+        var accessOptions = configuration.GetSection(MessageAccessOptions.SectionName).Get<MessageAccessOptions>() ?? new();
+        accessOptions.Validate();
 
         services.AddControllers()
             .AddApplicationPart(typeof(MessageServiceCollectionExtensions).Assembly);
 
         services.AddScoped<IMessageService, MessageService>();
+        services.AddScoped<IAccountDeletionGuard, MessageAccountDeletionGuard>();
         services.AddSignalR();
         services.AddScoped<IMessageBroadcaster, SignalRMessageBroadcaster>();
         services.AddSingleton(spamOptions);
+        services.AddSingleton(accessOptions);
         services.AddScoped<MessageSpamDetector>();
         // Public so the host can bridge them to a reporting or media service without Message
         // referencing either.
         services.AddScoped<MessageContextReader>();
+        services.AddScoped<MessageConversationRules>();
         services.AddScoped<MessageHistoryClearer>();
         services.AddScoped<MessageAttachmentAccess>();
 

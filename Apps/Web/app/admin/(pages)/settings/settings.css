@@ -1,12 +1,22 @@
 
 
-.settings-heading {
-  margin-bottom: var(--gap-xl);
+.settings-form-card {
+  margin-top: var(--gap-xl);
 }
 
-.settings-form-card {
-  max-width: 960px;
+.github-link-setting,
+.github-repositories__navigation {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: var(--gap-sm);
 }
+
+.github-link-setting p { margin: var(--gap-xs) 0 0; color: var(--muted); }
+.github-repositories { display: grid; gap: var(--gap-sm); margin-block: var(--gap-md); }
+.github-repositories button { width: 100%; justify-content: flex-start; }
+
 
 .company-identity {
   display: grid;
@@ -151,3 +161,5 @@
     grid-template-columns: 1fr;
   }
 }
+
+.role-list { display: grid; gap: var(--gap-md); }

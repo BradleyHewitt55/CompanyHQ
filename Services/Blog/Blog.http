@@ -18,7 +18,7 @@ Content-Type: application/json
   "slug": "example-draft",
   "title": "Example draft",
   "description": "A sufficiently descriptive search summary for the example draft.",
-  "body": "This is the first paragraph of the example draft.\n\nThis is its second paragraph.",
+  "body": "<p>This is the first paragraph of the example draft.</p><p>This is its second paragraph.</p>",
   "author": "CompanyHQ team",
   "isDraft": true
 }
@@ -31,7 +31,7 @@ Content-Type: application/json
 {
   "title": "Updated example draft",
   "description": "An updated search summary with enough detail for the request body.",
-  "body": "The updated first paragraph contains enough content for this example request.",
+  "body": "<p>The updated first paragraph contains enough content for this example request.</p>",
   "author": "CompanyHQ team",
   "isDraft": true
 }
@@ -54,4 +54,23 @@ Content-Type: application/json
   "description": "This request should never reach the authoring service.",
   "body": "This request should be rejected before a blog row is written.",
   "author": "CompanyHQ team"
+}
+
+### Match a keyword against one field of the caller's shape; leave field out to match every text field
+GET {{baseUrl}}/api/blog?field=category&keyword=news
+
+### A field the caller's shape does not carry (isDraft for an anonymous reader): 400
+GET {{baseUrl}}/api/blog?field=isDraft&keyword=true
+
+### Save a ready, owned Content image as the managed cover; invalid owner/scope/state: 400
+PUT {{baseUrl}}/api/blog/example-draft
+Authorization: Bearer {{adminToken}}
+Content-Type: application/json
+
+{
+  "title":"Article with uploaded cover",
+  "description":"A description of the article with its uploaded cover image.",
+  "body":"<h2>Heading</h2><p>Article <strong>HTML</strong> is passed through.</p>",
+  "author":"CompanyHQ team","category":"Updates","isDraft":true,
+  "coverMediaObjectId":"replace-with-ready-content-image-id"
 }

@@ -70,3 +70,38 @@ Content-Type: application/json
 ### Delete an appointment (204; a source-linked or someone else's row is 404)
 DELETE {{Appointment_HostAddress}}/api/appointments/{{appointmentId}}
 Authorization: Bearer {{accessToken}}
+
+### Staff (appointments.manage): every diary, in the staff shape, or one with userId
+GET {{Appointment_HostAddress}}/api/appointments?userId=00000000-0000-0000-0000-000000000000
+Authorization: Bearer {{accessToken}}
+Accept: application/json
+
+### Search by one field of the caller's shape. userEmail is staff only: 400 for a member
+GET {{Appointment_HostAddress}}/api/appointments?field=userEmail&keyword=example.com
+Authorization: Bearer {{accessToken}}
+Accept: application/json
+
+### Staff book in another account's diary (201). 403 for a member naming anyone else
+POST {{Appointment_HostAddress}}/api/appointments
+Authorization: Bearer {{accessToken}}
+Content-Type: application/json
+
+{
+  "title": "Onboarding call",
+  "scheduledAt": "2026-10-20T09:30:00+02:00",
+  "userId": "00000000-0000-0000-0000-000000000000"
+}
+
+### Create three independently editable monthly appointments (January 31, February 28, March 31)
+POST {{Appointment_HostAddress}}/api/appointments
+Authorization: Bearer {{accessToken}}
+Content-Type: application/json
+
+{"title":"Monthly review","scheduledAt":"2030-01-31T09:00:00Z","repeat":"Monthly","occurrences":3}
+
+### Invalid repeat bounds: 400, no appointments created
+POST {{Appointment_HostAddress}}/api/appointments
+Authorization: Bearer {{accessToken}}
+Content-Type: application/json
+
+{"title":"Too many","scheduledAt":"2030-01-31T09:00:00Z","repeat":"Daily","occurrences":101}

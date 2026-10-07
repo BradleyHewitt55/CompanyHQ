@@ -10,6 +10,8 @@ surface is the `cache` entry in `GET /health`.
 
 ## Rules
 
+- Cache is a shared foundation dependency: feature services may reference it for `ICacheService`.
+
 - No `IConnectionMultiplexer` or `StackExchange.Redis` outside this project.
 - No cache entry without a TTL. There is no never-expires overload, on purpose.
 - **No entity in the cache.** DTOs only — Redis is the wire in all but name.

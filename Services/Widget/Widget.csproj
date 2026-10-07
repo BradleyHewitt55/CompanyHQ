@@ -1,0 +1,22 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <AssemblyName>CompanyHQ.Services.Widget</AssemblyName>
+    <RootNamespace>CompanyHQ.Services.Widget</RootNamespace>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <FrameworkReference Include="Microsoft.AspNetCore.App" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <!-- Contracts/ is its own client-shippable assembly. Only the options under it compile into this one. -->
+    <Compile Remove="Contracts/**" />
+    <Compile Include="Contracts/Models/**/*.cs" />
+    <ProjectReference Include="Contracts/Widget.Contracts.csproj" />
+  </ItemGroup>
+
+</Project>

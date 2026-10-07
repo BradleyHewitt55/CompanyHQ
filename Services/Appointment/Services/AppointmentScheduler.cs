@@ -4,6 +4,7 @@ using CompanyHQ.Services.Appointments.Contracts.Dtos;
 using CompanyHQ.Services.Appointments.Contracts.Forms;
 using CompanyHQ.Services.Appointments.Contracts.Models;
 using CompanyHQ.Services.Appointments.Contracts.Ports;
+using CompanyHQ.Services.Postgres.Contracts.Enums;
 using CompanyHQ.Services.Postgres.Services;
 
 namespace CompanyHQ.Services.Appointments.Services;
@@ -49,7 +50,7 @@ public sealed class AppointmentScheduler(IPostgresService<Appointment> appointme
 
         return await appointments.Query()
             .Where(candidate => candidate.Id == appointment.Id)
-            .Select(AppointmentProjections.ToDto)
+            .Select(AppointmentProjections.For(ResponseAudience.Owner))
             .FirstAsync(cancellationToken);
     }
 

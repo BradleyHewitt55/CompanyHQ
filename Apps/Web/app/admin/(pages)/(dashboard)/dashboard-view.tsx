@@ -4,7 +4,7 @@ import Link from 'next/link';
 import { quickLinks, type DashboardData } from '@/Components/admin-data';
 import { Icon } from '@/Components/icons';
 
-export function DashboardContent({ data }: { data: DashboardData }) {
+export function DashboardContent({ data, permissions }: { data: DashboardData; permissions: readonly string[] }) {
   return (
     <section aria-labelledby="dashboard-title" className="dashboard-page">
       <h1 className="visually-hidden" id="dashboard-title">Overview</h1>
@@ -32,7 +32,6 @@ export function DashboardContent({ data }: { data: DashboardData }) {
         <section aria-labelledby="activity-title" className="dashboard-panel">
           <div className="card-header">
             <h2 className="card-title" id="activity-title">Recent activity</h2>
-            <Link className="button button-small button-secondary" href="/admin/social-media-posts">View all</Link>
           </div>
           <div className="card-body">
             {data.recentActivity.length > 0 ? (
@@ -62,7 +61,7 @@ export function DashboardContent({ data }: { data: DashboardData }) {
           </div>
           <div className="card-body">
             <div className="quick-links">
-              {quickLinks.map((link) => (
+              {quickLinks.filter((link) => permissions.includes(link.permission)).map((link) => (
                 <Link className="quick-link" href={link.href} key={link.href}>
                   <span className="quick-link-icon"><Icon name={link.icon} size={18} /></span>
                   <span>{link.label}</span>

@@ -36,11 +36,14 @@ public sealed class PostgresModelRegistry
             ?? throw new InvalidOperationException(
                 $"{hostAssembly.GetName().Name} has no deps.json, so its model assemblies cannot be discovered.");
 
+        // A company host consumes the same services as packages, so both library kinds are scanned;
+        // a package's assembly need not share its id, hence the names come from the library itself.
         var modelTypes = dependencies.RuntimeLibraries
-            .Where(library => library.Type == "project"
+            .Where(library => library.Type is "project" or "package"
                 && (library.Name == postgres
                     || library.Dependencies.Any(dependency => dependency.Name == postgres)))
-            .Select(library => Assembly.Load(new AssemblyName(library.Name)))
+            .SelectMany(library => library.GetDefaultAssemblyNames(dependencies))
+            .Select(Assembly.Load)
             .Append(hostAssembly)
             .Distinct()
             .SelectMany(GetLoadableTypes)

@@ -48,9 +48,18 @@
             }
           },
           {
-            "name": "search",
+            "name": "Field",
             "in": "query",
             "schema": {
+              "maxLength": 64,
+              "type": "string"
+            }
+          },
+          {
+            "name": "Keyword",
+            "in": "query",
+            "schema": {
+              "maxLength": 200,
               "type": "string"
             }
           }

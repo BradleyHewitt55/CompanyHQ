@@ -198,6 +198,23 @@ Accept: application/json
 GET {{Auth_HostAddress}}/api/auth/me
 Accept: application/json
 
-### Delete the signed-in account
-DELETE {{Auth_HostAddress}}/api/auth/me
+### Start deleting the signed-in account: the typed name must match (202, a link is mailed)
+POST {{Auth_HostAddress}}/api/auth/delete-account
 Authorization: Bearer {{accessToken}}
+Content-Type: application/json
+
+{"fullName":"Jordan Ellis"}
+
+### A name that is not the account's (400)
+POST {{Auth_HostAddress}}/api/auth/delete-account
+Authorization: Bearer {{accessToken}}
+Content-Type: application/json
+
+{"fullName":"Someone Else"}
+
+### Redeem the mailed link: deletes the account (204). Anonymous; 400 for a bad or used token,
+### 409 with the reason when a plugged-in service's deletion guard objects
+POST {{Auth_HostAddress}}/api/auth/confirm-account-deletion
+Content-Type: application/json
+
+{"token":"replace-with-the-token-from-the-email"}

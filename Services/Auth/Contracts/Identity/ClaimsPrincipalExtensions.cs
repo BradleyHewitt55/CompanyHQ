@@ -1,7 +1,5 @@
 using System.Security.Claims;
 
-using CompanyHQ.Services.Users.Contracts.Enums;
-
 namespace CompanyHQ.Services.Auth.Contracts.Identity;
 
 /// <summary>
@@ -15,12 +13,7 @@ public static class ClaimsPrincipalExtensions
     public static Guid? GetUserId(this ClaimsPrincipal principal) =>
         Guid.TryParse(principal.FindFirst(AuthClaims.Subject)?.Value, out var id) ? id : null;
 
-    public static string? GetEmail(this ClaimsPrincipal principal) =>
-        principal.FindFirst(AuthClaims.Email)?.Value;
-
-    public static UserRole? GetRole(this ClaimsPrincipal principal) =>
-        Enum.TryParse<UserRole>(principal.FindFirst(AuthClaims.Role)?.Value, out var role) ? role : null;
-
-    public static bool GetEmailVerified(this ClaimsPrincipal principal) =>
-        bool.TryParse(principal.FindFirst(AuthClaims.EmailVerified)?.Value, out var verified) && verified;
+    /// <summary>Whether the caller's current role grants <paramref name="permission"/>.</summary>
+    public static bool HasPermission(this ClaimsPrincipal principal, string permission) =>
+        principal.HasClaim(AuthClaims.Permission, permission);
 }

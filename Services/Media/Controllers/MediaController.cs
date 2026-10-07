@@ -7,7 +7,7 @@ using Microsoft.AspNetCore.Mvc;
 using CompanyHQ.Services.Media.Contracts.Dtos;
 using CompanyHQ.Services.Media.Contracts.Forms;
 using CompanyHQ.Services.Media.Services;
-using CompanyHQ.Services.Users.Contracts.Enums;
+using CompanyHQ.Services.Postgres.Contracts;
 using CompanyHQ.Services.Users.Extensions;
 using CompanyHQ.Services.Auth.Contracts.Identity;
 
@@ -110,7 +110,7 @@ public sealed class MediaController(IMediaService media) : ControllerBase
     public async Task<ActionResult<ClientMediaObjectDto>> Get(Guid id, CancellationToken cancellationToken = default)
     {
         if (User.GetUserId() is not { } viewerUserId) return Unauthorized();
-        var result = await media.GetAsync(id, viewerUserId, User.Audience(), cancellationToken);
+        var result = await media.GetAsync(id, viewerUserId, User.Audience(AccessPermissions.ManageMedia), cancellationToken);
         return result is null ? NotFound() : result;
     }
 
@@ -145,7 +145,7 @@ public sealed class MediaController(IMediaService media) : ControllerBase
     public async Task<IActionResult> Delete(Guid id, CancellationToken cancellationToken = default)
     {
         if (User.GetUserId() is not { } actingUserId) return Unauthorized();
-        var outcome = await media.DeleteAsync(id, actingUserId, User.IsInRole(nameof(UserRole.Admin)), cancellationToken);
+        var outcome = await media.DeleteAsync(id, actingUserId, User.HasPermission(AccessPermissions.ManageMedia), cancellationToken);
         return outcome.Error switch
         {
             Contracts.Enums.MediaOperationError.None => NoContent(),

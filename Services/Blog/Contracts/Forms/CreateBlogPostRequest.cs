@@ -13,4 +13,5 @@ public sealed record CreateBlogPostRequest(
     [Url, StringLength(2048)] string? CoverImageUrl = null,
     DateTimeOffset? PublishedAt = null,
     [Range(0, 1_000_000)] int SortOrder = 0,
-    bool IsDraft = true);
+    bool IsDraft = true,
+    Guid? CoverMediaObjectId = null);

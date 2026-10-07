@@ -2,7 +2,7 @@ using System.Text.Json.Serialization;
 
 namespace CompanyHQ.Services.Blogs.Contracts.Dtos;
 
-/// <summary>Published blog content safe for anonymous readers.</summary>
+/// <summary>Published blog content for anonymous readers. Body is HTML and must be sanitized before rendering.</summary>
 [JsonDerivedType(typeof(AdminBlogPostDto))]
 public record ClientBlogPostDto(
     Guid Id,
@@ -15,7 +15,8 @@ public record ClientBlogPostDto(
     string? CoverImageUrl,
     DateTimeOffset? PublishedAt,
     int SortOrder,
-    DateTimeOffset CreatedAt);
+    DateTimeOffset CreatedAt,
+    Guid? CoverMediaObjectId = null);
 
 /// <summary>Published content plus draft and audit fields for administrators.</summary>
 public sealed record AdminBlogPostDto(
@@ -31,7 +32,8 @@ public sealed record AdminBlogPostDto(
     int SortOrder,
     DateTimeOffset CreatedAt,
     bool IsDraft,
-    DateTimeOffset UpdatedAt)
+    DateTimeOffset UpdatedAt,
+    Guid? CoverMediaObjectId = null)
     : ClientBlogPostDto(
         Id,
         Slug,
@@ -43,4 +45,5 @@ public sealed record AdminBlogPostDto(
         CoverImageUrl,
         PublishedAt,
         SortOrder,
-        CreatedAt);
+        CreatedAt,
+        CoverMediaObjectId);

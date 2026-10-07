@@ -11,4 +11,8 @@ public sealed record ClientCompanyProfileDto(
     string InfoEmail,
     string? LogoUrl,
     string Description,
-    DateTimeOffset UpdatedAt);
+    DateTimeOffset UpdatedAt,
+    string? FacebookAccount,
+    string? InstagramAccount,
+    string? WhatsAppNumber,
+    IReadOnlyList<ClientCompanyEmailDto>? PublicEmails = null);

@@ -9,6 +9,7 @@ import { redirect } from 'next/navigation';
 import AdminShell from './shell';
 import { ApiError, requestJson } from '../../src/api/client';
 import { readAccessToken } from '../../src/api/session';
+import { canOpenAdmin } from '../../src/api/access';
 import { getCompanyProfile } from '../../src/api/company';
 import type { AuthUserDto, PagedResultOfAdminConversationDto } from '../../src/api/types';
 
@@ -35,19 +36,21 @@ async function AdminLayoutContent({
     throw error;
   }
 
-  if (currentUser.role !== 'Admin') {
+  if (!canOpenAdmin(currentUser.permissions)) {
     redirect('/');
   }
 
   let latestClosedConversation: PagedResultOfAdminConversationDto['items'][number] | null = null;
-  try {
-    const closed = await requestJson<PagedResultOfAdminConversationDto>(
-      '/api/conversations/admin/closed?page=1&pageSize=1',
-    );
-    latestClosedConversation = closed.items[0] ?? null;
-  } catch (error) {
-    if (!(error instanceof ApiError) || error.status >= 500) {
-      throw error;
+  if (currentUser.permissions.includes('conversations.manage')) {
+    try {
+      const closed = await requestJson<PagedResultOfAdminConversationDto>(
+        '/api/conversations/admin/closed?page=1&pageSize=1',
+      );
+      latestClosedConversation = closed.items[0] ?? null;
+    } catch (error) {
+      if (!(error instanceof ApiError) || error.status >= 500) {
+        throw error;
+      }
     }
   }
 

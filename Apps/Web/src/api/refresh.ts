@@ -18,6 +18,15 @@ function getRedisClient() {
   return redisClient;
 }
 
+export async function getConnectedRedis() {
+  const redis = getRedisClient();
+  if (!redis.isReady) {
+    connecting ??= redis.connect().finally(() => { connecting = undefined; });
+    await connecting;
+  }
+  return redis;
+}
+
 export async function coordinatedRefresh(api: string, refreshToken: string): Promise<AuthSessionDto | null> {
   const redis = getRedisClient();
   if (!redis.isReady) {
@@ -50,4 +59,3 @@ export async function coordinatedRefresh(api: string, refreshToken: string): Pro
   }
   throw new Error('Refresh unavailable');
 }
-

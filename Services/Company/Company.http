@@ -44,3 +44,31 @@ Content-Type: application/json
   "logoUrl": "https://cdn.example.test/companyhq.svg",
   "description": "Consulting and operations support for growing teams."
 }
+
+### Publish titled company contact addresses (first two match support/info)
+PUT {{host}}/api/company
+Authorization: Bearer {{adminToken}}
+Content-Type: application/json
+
+{
+  "name":"CompanyHQ","website":"https://companyhq.app",
+  "supportEmail":"support@companyhq.app","infoEmail":"info@companyhq.app",
+  "description":"Consulting and operations support for growing teams.",
+  "publicEmails":[
+    {"title":"Support","address":"support@companyhq.app","description":"Help with your account"},
+    {"title":"Information","address":"info@companyhq.app"},
+    {"title":"Sales","address":"sales@companyhq.app","description":"Discuss your requirements"}
+  ]
+}
+
+### Invalid public address: 400, existing profile unchanged
+PUT {{host}}/api/company
+Authorization: Bearer {{adminToken}}
+Content-Type: application/json
+
+{
+  "name":"CompanyHQ","website":"https://companyhq.app",
+  "supportEmail":"support@companyhq.app","infoEmail":"info@companyhq.app",
+  "description":"Consulting and operations support for growing teams.",
+  "publicEmails":[{"title":"Support","address":"support@companyhq.app"},{"title":"Information","address":"info@companyhq.app"},{"title":"Sales","address":"invalid"}]
+}

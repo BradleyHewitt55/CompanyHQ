@@ -40,16 +40,16 @@ Content-Type: application/json
 }
 
 ### 403: user search needs an admin (anonymous and non-admin alike)
-GET {{baseUrl}}/api/users?search=member
+GET {{baseUrl}}/api/users?keyword=member
 Accept: application/json
 
 ### Lookup matches an exact email, not a fragment
-GET {{baseUrl}}/api/users/lookup?search=member@companyhq.test
+GET {{baseUrl}}/api/users/lookup?keyword=member@companyhq.test
 Authorization: Bearer {{token}}
 Accept: application/json
 
 ### Lookup by a domain fragment finds nothing
-GET {{baseUrl}}/api/users/lookup?search=companyhq.test
+GET {{baseUrl}}/api/users/lookup?keyword=companyhq.test
 Authorization: Bearer {{token}}
 Accept: application/json
 
@@ -96,3 +96,19 @@ Content-Type: application/json
 ### 403: caller without roles.manage cannot edit shared roles
 GET {{baseUrl}}/api/access-roles
 Authorization: Bearer replace-with-a-client-token
+
+### Search accounts by one field of the operator shape. A field outside it is 400
+GET {{baseUrl}}/api/users?field=roleName&keyword=Sales
+Authorization: Bearer {{token}}
+
+### Roles, paged, matching a keyword
+GET {{baseUrl}}/api/access-roles?field=name&keyword=Sales&page=1&pageSize=10
+Authorization: Bearer {{token}}
+
+### One role (404 when unknown)
+GET {{baseUrl}}/api/access-roles/{{roleId}}
+Authorization: Bearer {{token}}
+
+### Delete a role (204). 409 while an account or agent connection uses it, 400 for Client or Admin
+DELETE {{baseUrl}}/api/access-roles/{{roleId}}
+Authorization: Bearer {{token}}

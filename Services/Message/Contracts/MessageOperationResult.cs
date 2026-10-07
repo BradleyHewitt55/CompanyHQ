@@ -5,7 +5,8 @@ public enum MessageOperationStatus
     Success,
     NotFound,
     Invalid,
-    Conflict
+    Conflict,
+    Forbidden
 }
 
 public sealed record MessageOperationResult<T>(
@@ -25,4 +26,7 @@ public sealed record MessageOperationResult<T>(
 
     public static MessageOperationResult<T> Conflict() =>
         new(MessageOperationStatus.Conflict);
+
+    public static MessageOperationResult<T> Forbidden() =>
+        new(MessageOperationStatus.Forbidden);
 }

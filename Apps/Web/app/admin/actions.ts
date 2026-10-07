@@ -2,10 +2,12 @@
 
 import { revalidatePath } from 'next/cache';
 import { redirect } from 'next/navigation';
-import { requireAdmin } from '../../src/api/current-user';
+import { currentUser, requirePermission } from '../../src/api/current-user';
+import { areaPermissions } from '../../src/api/access';
 
-import { getResource, type EditorValue } from '../../Components/admin-data';
+import { resourceFor, type EditorValue, type ResourceKey } from '../../Components/admin-data';
 import { ApiError, requestJson } from '../../src/api/client';
+import { inboxThreadPath } from '../../src/api/inbox';
 import { removeCompanyLogoFiles, rollbackCompanyLogo, saveCompanyLogo, type SavedCompanyLogo } from '../../lib/company-logo';
 import {
   allMcpCapabilities,
@@ -13,12 +15,17 @@ import {
 } from '../../src/api/mcp-capabilities';
 import type {
   AdminUserDto,
+  AdminInboxThreadDto,
   ApiProblem,
   ClientBlogPostDto,
   ClientFaqEntryDto,
   CreateBlogPostRequest,
+  CreateMediaUploadRequest,
+  MediaUploadTicketDto,
   CreateFaqEntryRequest,
   CreateUserRequest,
+  ReplyInboxRequest,
+  SaveAccessRoleRequest,
   UpdateBlogPostRequest,
   UpdateFaqEntryRequest,
   UpdateCompanyProfileRequest,
@@ -36,18 +43,55 @@ export async function saveResourceAction(
   _previousState: AdminActionState,
   formData: FormData,
 ): Promise<AdminActionState> {
-  await requireAdmin();
-  const resource = getResource(String(formData.get('resource') || ''));
+  const { permissions } = await currentUser();
+  const resource = resourceFor(String(formData.get('resource') || ''), permissions);
   const recordId = String(formData.get('recordId') || 'new');
 
   if (!resource) return failure('That admin resource does not exist.', formData);
-  if (recordId === 'new' && !resource.canCreate) return failure(`The API does not support creating ${resource.label.toLowerCase()}.`, formData);
-  if (recordId !== 'new' && !resource.canEdit) return failure(`The API does not support editing ${resource.label.toLowerCase()}.`, formData);
+  if (recordId === 'new' && !resource.canCreate) return failure(`Your role cannot create ${resource.label.toLowerCase()}.`, formData);
+  if (recordId !== 'new' && !resource.canEdit) return failure(`Your role cannot edit ${resource.label.toLowerCase()}.`, formData);
 
   let routeId: string;
+  let uploadedMediaId: string | undefined;
+  let saveAttempted = false;
+  const previousCoverUrl = optionalValue(formData, 'coverImageUrl');
+  const previousCoverId = optionalValue(formData, 'coverMediaObjectId');
   try {
+    if (resource.key === 'blog') {
+      optionalUtcDateTimeValue(formData, 'publishedAt');
+      const file = formData.get('coverImage');
+      if (optionalValue(formData, 'coverImageUrl') !== optionalValue(formData, 'originalCoverImageUrl')) {
+        formData.set('coverMediaObjectId', '');
+      }
+      if (file instanceof File && file.size > 0) {
+        if (!['image/jpeg', 'image/png', 'image/webp'].includes(file.type)) throw new Error('Choose a JPEG, PNG, or WebP image.');
+        if (file.size > 5 * 1024 * 1024) throw new Error('Choose an image up to 5 MB.');
+        const upload: CreateMediaUploadRequest = { scope: 'Content', contentType: file.type, sizeBytes: file.size };
+        const ticket = await requestJson<MediaUploadTicketDto>('/api/media', jsonPost(upload));
+        uploadedMediaId = ticket.mediaObjectId;
+        await requestJson(`/api/media/${uploadedMediaId}/upload`, {
+          method: 'PUT',
+          headers: { 'Content-Type': file.type, 'Content-Length': String(file.size) },
+          body: file,
+        });
+        await requestJson(`/api/media/${uploadedMediaId}/complete`, { method: 'POST' });
+        if (!ticket.url) throw new Error('The image is not ready. Please try again.');
+        formData.set('coverImageUrl', ticket.url);
+        formData.set('coverMediaObjectId', uploadedMediaId);
+      }
+    }
+    saveAttempted = true;
     routeId = await saveResource(resource.key, recordId, formData);
   } catch (error) {
+    if (uploadedMediaId) {
+      // A lost response or server error can follow a committed write. Keep the image
+      // until a definite rejection proves the blog did not attach it.
+      if (!saveAttempted || (error instanceof ApiError && error.status >= 400 && error.status < 500)) {
+        await requestJson(`/api/media/${uploadedMediaId}`, { method: 'DELETE' }).catch(() => {});
+      }
+      formData.set('coverImageUrl', previousCoverUrl || '');
+      formData.set('coverMediaObjectId', previousCoverId || '');
+    }
     return failure(apiErrorMessage(error), formData);
   }
 
@@ -61,11 +105,67 @@ export async function saveResourceAction(
   return { error: '', success: 'Changes saved to the API.' };
 }
 
+// Route ids are what each API deletes by: blog posts by slug, FAQ entries by key, the rest by id.
+const deletePaths: Partial<Record<ResourceKey, string>> = {
+  users: '/api/users',
+  blog: '/api/blog',
+  faqs: '/api/faqs',
+};
+
+export async function deleteResourceAction(resourceKey: string, recordId: string): Promise<{ error: string }> {
+  const resource = resourceFor(resourceKey, (await currentUser()).permissions);
+  const path = resource?.canDelete ? deletePaths[resource.key] : undefined;
+  if (!resource || !path) return { error: 'This record cannot be deleted.' };
+
+  try {
+    await requestJson(`${path}/${encodeURIComponent(recordId)}`, { method: 'DELETE' });
+  } catch (error) {
+    return { error: apiErrorMessage(error) };
+  }
+
+  revalidatePath(`/admin/${resource.key}`);
+  revalidatePath('/admin');
+  return { error: '' };
+}
+
+/** Re-reads one inbox thread, after replying to it or resolving it when a change is given. */
+export async function inboxThreadAction(
+  channel: string,
+  threadId: string,
+  change?: { reply: string } | { resolve: true },
+): Promise<{ error: string; thread?: AdminInboxThreadDto }> {
+  await requirePermission('inbox.manage');
+  const path = inboxThreadPath(channel, threadId);
+  try {
+    if (change && 'reply' in change) {
+      const request: ReplyInboxRequest = { body: change.reply.trim() };
+      await requestJson(`${path}/replies`, jsonPost(request));
+    } else if (change) {
+      await requestJson(`${path}/resolve`, jsonPost({}));
+    }
+    return { error: '', thread: await requestJson<AdminInboxThreadDto>(path) };
+  } catch (error) {
+    return { error: apiErrorMessage(error) };
+  }
+}
+
+/** Permanently removes a thread from a channel that allows it. The API applies the channel's own rule. */
+export async function deleteInboxThreadAction(channel: string, threadId: string): Promise<{ error: string }> {
+  await requirePermission('inbox.manage');
+  try {
+    await requestJson(inboxThreadPath(channel, threadId), { method: 'DELETE' });
+  } catch (error) {
+    return { error: apiErrorMessage(error) };
+  }
+
+  revalidatePath('/admin/inbox');
+  return { error: '' };
+}
+
 export async function updateProfileAction(
   _previousState: AdminActionState,
   formData: FormData,
 ): Promise<AdminActionState> {
-  await requireAdmin();
   const request: UpdateProfileRequest = {
     firstName: value(formData, 'firstName'),
     lastName: value(formData, 'lastName'),
@@ -91,7 +191,7 @@ export async function updateCompanyProfileAction(
   _previousState: AdminActionState,
   formData: FormData,
 ): Promise<AdminActionState> {
-  await requireAdmin();
+  await requirePermission(areaPermissions.company);
   const uploadedLogo = formData.get('logo');
   const removeLogo = formData.get('removeLogo') === 'on';
   if (removeLogo && uploadedLogo instanceof File && uploadedLogo.size > 0) {
@@ -101,10 +201,18 @@ export async function updateCompanyProfileAction(
   const request: UpdateCompanyProfileRequest = {
     name: value(formData, 'name'),
     website: value(formData, 'website'),
-    supportEmail: value(formData, 'supportEmail'),
-    infoEmail: value(formData, 'infoEmail'),
+    supportEmail: value(formData, 'publicEmailAddress_0'),
+    infoEmail: value(formData, 'publicEmailAddress_1'),
+    publicEmails: Array.from({ length: Math.min(20, Math.max(2, integerValue(formData, 'publicEmailCount'))) }, (_, index) => ({
+      title: value(formData, `publicEmailTitle_${index}`),
+      address: value(formData, `publicEmailAddress_${index}`),
+      description: optionalValue(formData, `publicEmailDescription_${index}`),
+    })),
     description: value(formData, 'description'),
     logoUrl: removeLogo ? null : optionalValue(formData, 'logoUrl'),
+    facebookAccount: optionalValue(formData, 'facebookAccount'),
+    instagramAccount: optionalValue(formData, 'instagramAccount'),
+    whatsAppNumber: optionalValue(formData, 'whatsAppNumber'),
   };
 
   let savedLogo: SavedCompanyLogo | undefined;
@@ -128,8 +236,46 @@ export async function updateCompanyProfileAction(
   }
 }
 
+/** Creates a role, or renames one and replaces its permissions. The API decides what the editor may grant. */
+export async function saveRoleAction(
+  _previousState: AdminActionState,
+  formData: FormData,
+): Promise<AdminActionState> {
+  await requirePermission(areaPermissions.roles);
+  const roleId = value(formData, 'roleId');
+  const request: SaveAccessRoleRequest = {
+    name: value(formData, 'name'),
+    permissions: formData.getAll('permission').map(String),
+  };
+
+  try {
+    await requestJson(
+      roleId ? `/api/access-roles/${encodeURIComponent(roleId)}` : '/api/access-roles',
+      roleId ? jsonPut(request) : jsonPost(request),
+    );
+  } catch (error) {
+    return failure(apiErrorMessage(error));
+  }
+
+  revalidatePath('/admin/settings/roles');
+  return { error: '', success: roleId ? 'Role saved.' : 'Role created.' };
+}
+
+/** Removes a role no account or agent connection still uses. */
+export async function deleteRoleAction(roleId: string): Promise<{ error: string }> {
+  await requirePermission(areaPermissions.roles);
+  try {
+    await requestJson(`/api/access-roles/${encodeURIComponent(roleId)}`, { method: 'DELETE' });
+  } catch (error) {
+    return { error: apiErrorMessage(error) };
+  }
+
+  revalidatePath('/admin/settings/roles');
+  return { error: '' };
+}
+
 async function saveResource(
-  resource: Exclude<ReturnType<typeof getResource>, undefined>['key'],
+  resource: ResourceKey,
   recordId: string,
   formData: FormData,
 ) {
@@ -175,6 +321,7 @@ async function saveResource(
           author: value(formData, 'author'),
           category: value(formData, 'category'),
           coverImageUrl: optionalValue(formData, 'coverImageUrl'),
+          coverMediaObjectId: optionalValue(formData, 'coverMediaObjectId'),
           publishedAt: optionalUtcDateTimeValue(formData, 'publishedAt'),
           sortOrder: integerValue(formData, 'sortOrder'),
           isDraft: booleanValue(formData, 'isDraft'),
@@ -190,6 +337,7 @@ async function saveResource(
         author: value(formData, 'author'),
         category: value(formData, 'category'),
         coverImageUrl: optionalValue(formData, 'coverImageUrl'),
+        coverMediaObjectId: optionalValue(formData, 'coverMediaObjectId'),
         publishedAt: optionalUtcDateTimeValue(formData, 'publishedAt'),
         sortOrder: integerValue(formData, 'sortOrder'),
         isDraft: booleanValue(formData, 'isDraft'),
@@ -225,7 +373,7 @@ async function saveResource(
       await requestJson<ClientFaqEntryDto>(`/api/faqs/${encodeURIComponent(recordId)}`, jsonPut(request));
       return recordId;
     }
-    case 'messages':
+    case 'inbox':
       throw new Error('This resource is read-only in the current API contract.');
   }
 }

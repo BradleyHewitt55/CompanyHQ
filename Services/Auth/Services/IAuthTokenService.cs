@@ -32,5 +32,15 @@ public interface IAuthTokenService
         CancellationToken cancellationToken = default);
 
     /// <summary>Consumes every open token of <paramref name="purpose"/> for a user without minting a new one.</summary>
+    /// <summary>
+    /// The open token for <paramref name="purpose"/>, left unconsumed. For an action that deletes
+    /// the token's own account: the row goes with the account, and a refused action can be retried
+    /// from the same link.
+    /// </summary>
+    Task<AuthToken?> FindActiveAsync(
+        string token,
+        AuthTokenPurpose purpose,
+        CancellationToken cancellationToken = default);
+
     Task InvalidateAsync(Guid userId, AuthTokenPurpose purpose, CancellationToken cancellationToken = default);
 }

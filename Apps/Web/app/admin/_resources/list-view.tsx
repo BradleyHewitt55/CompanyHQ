@@ -7,6 +7,7 @@ import type { AdminResource, ResourceSort } from '@/Components/admin-data';
 import type { SortDirection } from '@/src/api/types';
 import { Icon } from '@/Components/icons';
 import { ResourceTable } from '@/Components/Admin/resource-table';
+import { DeleteResourceButton } from '@/app/admin/_resources/delete-button';
 import { InfiniteScroll } from '@/Components/Admin/infinite-scroll';
 import { Input } from '@/Components/ui/input';
 import { NativeSelect, NativeSelectOption } from '@/Components/ui/native-select';
@@ -71,6 +72,31 @@ export function ResourceList({ resource }: { resource: AdminResource }) {
     }
   }, [direction, query, resource.key, sort]);
 
+  useEffect(() => {
+    if (resource.key !== 'inbox') return;
+    const refresh = async () => {
+      if (document.visibilityState !== 'visible' || loading) return;
+      const parameters = new URLSearchParams({ page: '1' });
+      if (query.trim()) parameters.set('search', query.trim());
+      try {
+        const response = await fetch(`/api/admin/resources/inbox?${parameters}`, { cache: 'no-store' });
+        if (!response.ok) return;
+        const latest = await response.json() as AdminResource;
+        setRecords(current => loadedPage === 1 ? latest.records : [
+          ...latest.records,
+          ...current.filter(record => !latest.records.some(newer => newer.id === record.id)),
+        ]);
+        setTotal(latest.total);
+        setTotalPages(latest.totalPages);
+      } catch {
+        // Existing rows remain visible while the connection is unavailable.
+      }
+    };
+    const timer = window.setInterval(() => void refresh(), 5000);
+    document.addEventListener('visibilitychange', refresh);
+    return () => { window.clearInterval(timer); document.removeEventListener('visibilitychange', refresh); };
+  }, [loadedPage, loading, query, resource.key]);
+
   const isFirstRender = useRef(true);
   useEffect(() => {
     if (isFirstRender.current) {
@@ -133,7 +159,22 @@ export function ResourceList({ resource }: { resource: AdminResource }) {
 
       <Card className="table-card">
         {records.length > 0 ? (
-          <ResourceTable resource={resource} records={records} />
+          <ResourceTable
+            actions={resource.canDelete ? (record) => (
+              <DeleteResourceButton
+                compact
+                label={record.title}
+                onDeleted={() => {
+                  setRecords((current) => current.filter((candidate) => candidate.id !== record.id));
+                  setTotal((current) => current - 1);
+                }}
+                recordId={record.id}
+                resource={resource}
+              />
+            ) : undefined}
+            resource={resource}
+            records={records}
+          />
         ) : (
           <div className="empty-state">
             <span className="empty-state-icon"><Icon name="search" size={22} /></span>

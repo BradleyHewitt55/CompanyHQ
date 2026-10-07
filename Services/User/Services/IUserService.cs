@@ -12,12 +12,13 @@ public interface IUserService
 {
     /// <summary>
     /// One page of accounts in <paramref name="audience"/>'s shape. Null when a non-administrator
-    /// supplies <paramref name="search"/>: only an operator may search the directory by text.
+    /// supplies <paramref name="search"/>: only an operator may search the directory by text. With
+    /// no field named the keyword matches the address exactly or any part of the name.
     /// </summary>
     Task<PagedResult<ClientUserDto>?> ListAsync(
         ResponseAudience audience,
         PageRequest paging,
-        string? search,
+        SearchRequest? search,
         UserRole? role,
         UserSort sort,
         SortDirection direction,

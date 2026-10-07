@@ -10,7 +10,7 @@ public interface IFaqService
 {
     Task<PagedResult<ClientFaqEntryDto>> ListAsync(
         PageRequest page,
-        string? search = null,
+        SearchRequest? search = null,
         ResponseAudience audience = ResponseAudience.Client,
         Guid? actingUserId = null,
         CancellationToken cancellationToken = default);
@@ -23,20 +23,17 @@ public interface IFaqService
 
     Task<ClientFaqEntryDto> CreateAsync(
         CreateFaqEntryRequest request,
-        ResponseAudience audience = ResponseAudience.Client,
         Guid? actingUserId = null,
         CancellationToken cancellationToken = default);
 
     Task<ClientFaqEntryDto?> UpdateAsync(
         string key,
         UpdateFaqEntryRequest request,
-        ResponseAudience audience = ResponseAudience.Client,
         Guid? actingUserId = null,
         CancellationToken cancellationToken = default);
 
     Task<bool> DeleteAsync(
         string key,
-        ResponseAudience audience = ResponseAudience.Client,
         Guid? actingUserId = null,
         CancellationToken cancellationToken = default);
 }

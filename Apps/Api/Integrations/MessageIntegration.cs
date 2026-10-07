@@ -1,5 +1,6 @@
 using CompanyHQ.Services.Media.Contracts.Enums;
 using CompanyHQ.Services.Media.Contracts.Ports;
+using CompanyHQ.Services.Media.Services;
 using CompanyHQ.Services.Messages.Contracts.Ports;
 using CompanyHQ.Services.Messages.Services;
 using CompanyHQ.Services.Moderation.Contracts.Captures;
@@ -86,18 +87,35 @@ internal sealed class UserReportMessageHistoryClearer(MessageHistoryClearer clea
         clearer.ClearWithUserAsync(reporterUserId, targetId, ct);
 }
 
-/// <summary>Media's read policy for message attachments, and Message's check before attaching one.</summary>
-internal sealed class MessageMedia(
-    MessageAttachmentAccess access,
-    IMediaAttachmentVerifier verifier) : IMediaAccessPolicy, IMessageAttachments
+/// <summary>Media's read policy for message attachments.</summary>
+internal sealed class MessageMediaAccessPolicy(MessageAttachmentAccess access) : IMediaAccessPolicy
 {
     public MediaScope Scope => MediaScope.Message;
 
     public Task<bool> CanReadAsync(Guid mediaObjectId, Guid viewerUserId, CancellationToken cancellationToken = default) =>
         access.CanReadAsync(mediaObjectId, viewerUserId, cancellationToken);
+}
 
+/// <summary>
+/// Message's check before attaching an upload, and the removal of a deleted conversation's files.
+/// Kept apart from the read policy above: Media resolves every read policy to build itself, so a
+/// policy that needed Media back would be a dependency cycle.
+/// </summary>
+internal sealed class MessageAttachments(
+    IMediaAttachmentVerifier verifier,
+    IMediaService media) : IMessageAttachments
+{
     public Task<bool> IsReadyAsync(Guid mediaObjectId, Guid ownerUserId, CancellationToken cancellationToken = default) =>
         verifier.IsReadyAsync(mediaObjectId, ownerUserId, MediaScope.Message, cancellationToken);
+
+    // Message has already authorised the delete, so the files go whoever uploaded them.
+    public async Task DeleteAsync(IReadOnlyCollection<Guid> mediaObjectIds, Guid actingUserId, CancellationToken cancellationToken = default)
+    {
+        foreach (var id in mediaObjectIds)
+        {
+            await media.DeleteAsync(id, actingUserId, administrator: true, cancellationToken);
+        }
+    }
 }
 
 /// <summary>Queues Message's conversation alerts as push notifications.</summary>

@@ -48,11 +48,35 @@
             }
           },
           {
+            "name": "Field",
+            "in": "query",
+            "schema": {
+              "maxLength": 64,
+              "type": "string"
+            }
+          },
+          {
+            "name": "Keyword",
+            "in": "query",
+            "schema": {
+              "maxLength": 200,
+              "type": "string"
+            }
+          },
+          {
             "name": "upcoming",
             "in": "query",
             "schema": {
               "type": "boolean",
               "default": true
+            }
+          },
+          {
+            "name": "userId",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "format": "uuid"
             }
           }
         ],
@@ -126,6 +150,16 @@
           },
           "401": {
             "description": "Unauthorized",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Forbidden",
             "content": {
               "application/json": {
                 "schema": {
@@ -312,7 +346,113 @@
   },
   "components": {
     "schemas": {
+      "AppointmentRepeat": {
+        "enum": [
+          "None",
+          "Daily",
+          "Weekly",
+          "Monthly"
+        ],
+        "default": "None"
+      },
       "ClientAppointmentDto": {
+        "type": "object",
+        "anyOf": [
+          {
+            "$ref": "#/components/schemas/ClientAppointmentDtoAdminAppointmentDto"
+          },
+          {
+            "$ref": "#/components/schemas/ClientAppointmentDtoBase"
+          }
+        ]
+      },
+      "ClientAppointmentDtoAdminAppointmentDto": {
+        "required": [
+          "userId",
+          "userFirstName",
+          "userLastName",
+          "userEmail",
+          "id",
+          "title",
+          "scheduledAt",
+          "location",
+          "notes",
+          "sourceKind",
+          "sourceId",
+          "createdAt",
+          "updatedAt",
+          "canManage"
+        ],
+        "properties": {
+          "userId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "userFirstName": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "userLastName": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "userEmail": {
+            "type": "string"
+          },
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "title": {
+            "type": "string"
+          },
+          "scheduledAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "location": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "notes": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "sourceKind": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "sourceId": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "uuid"
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "updatedAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "canManage": {
+            "type": "boolean"
+          }
+        }
+      },
+      "ClientAppointmentDtoBase": {
         "required": [
           "id",
           "title",
@@ -325,7 +465,6 @@
           "updatedAt",
           "canManage"
         ],
-        "type": "object",
         "properties": {
           "id": {
             "type": "string",
@@ -401,6 +540,25 @@
               "null",
               "string"
             ]
+          },
+          "userId": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "uuid"
+          },
+          "repeat": {
+            "$ref": "#/components/schemas/AppointmentRepeat"
+          },
+          "occurrences": {
+            "pattern": "^-?(?:0|[1-9]\\d*)$",
+            "type": [
+              "integer",
+              "string"
+            ],
+            "format": "int32",
+            "default": 1
           }
         }
       },

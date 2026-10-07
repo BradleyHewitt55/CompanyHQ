@@ -8,6 +8,7 @@ using CompanyHQ.Services.Moderation.Contracts.Dtos;
 using CompanyHQ.Services.Moderation.Contracts.Enums;
 using CompanyHQ.Services.Moderation.Contracts.Forms;
 using CompanyHQ.Services.Moderation.Services;
+using CompanyHQ.Services.Postgres.Contracts;
 using CompanyHQ.Services.Postgres.Contracts.Dtos;
 using CompanyHQ.Services.Postgres.Contracts.Enums;
 using CompanyHQ.Services.Postgres.Contracts.Forms;
@@ -16,10 +17,10 @@ using CompanyHQ.Services.Auth.Contracts.Identity;
 
 namespace CompanyHQ.Services.Moderation.Controllers;
 
-/// <summary>The administrator queue for standing account flags.</summary>
+/// <summary>The moderation queue for standing account flags.</summary>
 [ApiController]
 [Route("api/flags")]
-[Authorize(Roles = "Admin")]
+[Authorize(Policy = AccessPermissions.ManageModeration)]
 [Produces("application/json")]
 public sealed class FlagsController(IAccountFlagService flags) : ControllerBase
 {
@@ -29,6 +30,7 @@ public sealed class FlagsController(IAccountFlagService flags) : ControllerBase
     [ProducesResponseType(StatusCodes.Status403Forbidden)]
     public async Task<ActionResult<PagedResult<ClientAccountFlagDto>>> List(
         [FromQuery] PageRequest paging,
+        [FromQuery] SearchRequest search,
         [FromQuery] AccountFlagStatus? status = null,
         [FromQuery] string? kind = null,
         CancellationToken cancellationToken = default)
@@ -39,7 +41,8 @@ public sealed class FlagsController(IAccountFlagService flags) : ControllerBase
                 paging,
                 status,
                 kind,
-                User.Audience(),
+                search,
+                User.Audience(AccessPermissions.ManageModeration),
                 cancellationToken));
         }
         catch (UnauthorizedAccessException)

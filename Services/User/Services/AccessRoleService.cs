@@ -1,4 +1,6 @@
 using CompanyHQ.Services.Postgres.Contracts;
+using CompanyHQ.Services.Postgres.Contracts.Dtos;
+using CompanyHQ.Services.Postgres.Contracts.Forms;
 using CompanyHQ.Services.Postgres.Data;
 using CompanyHQ.Services.Postgres.Extensions;
 using CompanyHQ.Services.Users.Contracts.Dtos;
@@ -16,10 +18,19 @@ namespace CompanyHQ.Services.Users.Services;
 /// </remarks>
 public sealed class AccessRoleService(PostgresDbContext context) : IAccessRoleService
 {
-    public async Task<IReadOnlyList<AdminAccessRoleDto>> ListAsync(CancellationToken cancellationToken) =>
-        await context.Set<AccessRole>().AsNoTracking().OrderBy(role => role.Name)
+    public Task<PagedResult<AdminAccessRoleDto>> ListAsync(PageRequest paging, SearchRequest? search, CancellationToken cancellationToken) =>
+        context.Set<AccessRole>().AsNoTracking()
+            .Search<AccessRole, AdminAccessRoleDto>(search)
+            .ToPagedResultAsync(
+                paging,
+                role => new AdminAccessRoleDto(role.Id, role.Name, role.Permissions),
+                roles => roles.OrderBy(role => role.Name).ThenBy(role => role.Id),
+                cancellationToken);
+
+    public Task<AdminAccessRoleDto?> GetAsync(Guid id, CancellationToken cancellationToken) =>
+        context.Set<AccessRole>().AsNoTracking().Where(role => role.Id == id)
             .Select(role => new AdminAccessRoleDto(role.Id, role.Name, role.Permissions))
-            .ToListAsync(cancellationToken);
+            .FirstOrDefaultAsync(cancellationToken);
 
     public Task<AdminAccessRoleDto> CreateAsync(Guid actorId, SaveAccessRoleRequest request, CancellationToken cancellationToken)
     {
@@ -57,6 +68,30 @@ public sealed class AccessRoleService(PostgresDbContext context) : IAccessRoleSe
             return new AdminAccessRoleDto(role.Id, role.Name, role.Permissions);
         }, cancellationToken);
     }
+
+    public Task<bool?> DeleteAsync(Guid actorId, Guid id, CancellationToken cancellationToken) =>
+        InEditTransactionAsync<bool?>(actorId, async permissions =>
+        {
+            var role = await context.Set<AccessRole>().FirstOrDefaultAsync(candidate => candidate.Id == id, cancellationToken);
+            if (role is null) return null;
+            if (role.Name is "Client" or "Admin")
+                throw new ArgumentException("Built-in roles cannot be deleted.");
+            RequireSubset(role.Permissions, permissions);
+            if (await context.Set<User>().AnyAsync(user => user.AccessRoleId == id, cancellationToken))
+                return false;
+            context.Set<AccessRole>().Remove(role);
+            try
+            {
+                await context.SaveChangesAsync(cancellationToken);
+            }
+            catch (DbUpdateException)
+            {
+                // Another service's row (an agent connection) still points at the role.
+                return false;
+            }
+
+            return true;
+        }, cancellationToken);
 
     private async Task<T> InEditTransactionAsync<T>(Guid actorId,
         Func<IReadOnlyList<string>, Task<T>> edit, CancellationToken cancellationToken)

@@ -68,6 +68,17 @@ internal sealed class AuthEmailSender(
             $"auth:email-changing:{userId}:{requestedAt:O}",
             cancellationToken);
 
+    public Task SendAccountDeletionConfirmationAsync(
+        string email,
+        IssuedAuthToken token,
+        CancellationToken cancellationToken = default) =>
+        SendAsync(
+            email,
+            EmailTemplateKeys.AccountDeletion,
+            new Dictionary<string, string?> { ["link"] = Link("confirm-account-deletion", token.Value) },
+            $"auth:account-deletion:{token.TokenId}",
+            cancellationToken);
+
     // Best-effort by IAuthEmailSender's contract: a failed queue is logged, never thrown.
     private async Task SendAsync(
         string recipient,

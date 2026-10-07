@@ -100,3 +100,38 @@
     margin-left: 0;
   }
 }
+
+.row-actions {
+  width: 1%;
+  text-align: right;
+  white-space: nowrap;
+}
+
+.row-delete-button {
+  display: inline-flex;
+  width: 32px;
+  height: 32px;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid transparent;
+  border-radius: var(--radius-sm);
+  background: transparent;
+  color: var(--muted);
+  cursor: pointer;
+}
+
+.row-delete-button:hover:not(:disabled) {
+  border-color: var(--accent-danger);
+  background: var(--accent-danger-soft);
+  color: var(--accent-danger);
+}
+
+.row-delete-button:disabled {
+  cursor: progress;
+  opacity: 0.55;
+}
+
+.row-actions .delete-error {
+  margin: var(--gap-xs) 0 0;
+  white-space: normal;
+}

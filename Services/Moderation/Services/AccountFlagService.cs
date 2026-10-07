@@ -5,6 +5,7 @@ using CompanyHQ.Services.Moderation.Contracts.Dtos;
 using CompanyHQ.Services.Moderation.Contracts.Enums;
 using CompanyHQ.Services.Moderation.Contracts.Forms;
 using CompanyHQ.Services.Moderation.Contracts.Models;
+using CompanyHQ.Services.Postgres.Contracts;
 using CompanyHQ.Services.Postgres.Contracts.Dtos;
 using CompanyHQ.Services.Postgres.Contracts.Enums;
 using CompanyHQ.Services.Postgres.Contracts.Forms;
@@ -84,6 +85,7 @@ public sealed class AccountFlagService(
         PageRequest paging,
         AccountFlagStatus? status = null,
         string? kind = null,
+        SearchRequest? search = null,
         ResponseAudience audience = ResponseAudience.Client,
         CancellationToken ct = default)
     {
@@ -94,6 +96,8 @@ public sealed class AccountFlagService(
             var normalizedKind = NormalizeKind(kind);
             query = query.Where(flag => flag.Kind == normalizedKind);
         }
+
+        query = query.Search(search, audience is ResponseAudience.Admin ? typeof(AdminAccountFlagDto) : typeof(ClientAccountFlagDto));
 
         return await query.ToPagedResultAsync(
             paging,
@@ -108,7 +112,7 @@ public sealed class AccountFlagService(
         FlagDecisionRequest request,
         CancellationToken ct = default)
     {
-        await EnsureAdministratorAsync(actingAdministratorId, ct);
+        await EnsureModeratorAsync(actingAdministratorId, ct);
         ArgumentNullException.ThrowIfNull(request);
 
         if (request.Status is not (AccountFlagStatus.Cleared or AccountFlagStatus.Upheld))
@@ -158,9 +162,9 @@ public sealed class AccountFlagService(
                 ct);
     }
 
-    private async Task EnsureAdministratorAsync(Guid userId, CancellationToken ct)
+    private async Task EnsureModeratorAsync(Guid userId, CancellationToken ct)
     {
-        if (!await authorization.IsAdministratorAsync(userId, ct))
+        if (!await authorization.HasPermissionAsync(userId, AccessPermissions.ManageModeration, ct))
         {
             throw new UnauthorizedAccessException();
         }

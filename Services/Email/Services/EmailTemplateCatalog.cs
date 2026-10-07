@@ -58,6 +58,15 @@ internal static class EmailTemplateCatalog
             ["newEmail"],
             ["newEmail"]),
         new(
+            EmailTemplateKeys.AccountDeletion,
+            "Confirm account deletion",
+            "Templates.Auth.account-deletion.html",
+            "Confirm deleting your account",
+            "Confirm deleting your account\n\nYou asked to delete your CompanyHQ account. Confirm here to delete it and everything stored with it:\n\n{{link}}\n\nThis link expires in 1 hour and cannot be undone once used.\n\nDidn't ask for this? Ignore this email and your account stays as it is. Consider changing your password.",
+            ["link"],
+            ["link"],
+            IsPriority: true),
+        new(
             EmailTemplateKeys.ContactMessage,
             "Contact message",
             "Templates.Contact.message.html",
@@ -80,7 +89,15 @@ internal static class EmailTemplateCatalog
             "{{title}}",
             "{{title}}\n\n{{body}}\n\nOpen the CompanyHQ app for the full details.",
             ["title", "body"],
-            ["title", "body"])
+            ["title", "body"]),
+        new(
+            EmailTemplateKeys.InboxReply,
+            "Inbox reply",
+            "Templates.Inbox.reply.html",
+            "A reply to your message",
+            "A reply to your message\n\n{{body}}\n\nOpen the chat where you wrote to us to continue the conversation.",
+            ["body"],
+            ["body"])
     ];
 
     private static readonly IReadOnlyDictionary<string, EmailTemplateDefinition> byKey =

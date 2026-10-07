@@ -1,9 +1,9 @@
 'use server';
 import { redirect } from 'next/navigation';
-import { getApiUrl, requestJson } from '../src/api/client';
+import { ApiError, getApiUrl, requestJson } from '../src/api/client';
 import { saveSession, readRefreshToken, clearSession } from '../src/api/session';
 import { currentUser } from '../src/api/current-user';
-import type { RegisterRequest, AuthSessionDto, ChangePasswordRequest, ChangeEmailRequest, ForgotPasswordRequest, ResetPasswordRequest, VerifyEmailRequest, ConfirmEmailChangeRequest, ApiProblem } from '../src/api/types';
+import type { RegisterRequest, AuthSessionDto, ChangePasswordRequest, ChangeEmailRequest, ForgotPasswordRequest, ResetPasswordRequest, VerifyEmailRequest, ConfirmEmailChangeRequest, RequestAccountDeletionRequest, ConfirmAccountDeletionRequest, ApiProblem } from '../src/api/types';
 
 export type AccountState = { error: string; success: string };
 export async function accountAction(kind: string, _state: AccountState, form: FormData): Promise<AccountState> {
@@ -47,11 +47,28 @@ export async function accountAction(kind: string, _state: AccountState, form: Fo
   if (kind === 'verify-email') redirect('/');
   return { error: '', success: kind === 'forgot-password' ? 'If an account exists for this email, a password reset link is on its way.' : kind === 'change-email' ? 'Check your new email address to confirm the change.' : 'Your account has been updated.' };
 }
-export async function deleteAccount(_state: AccountState, form: FormData): Promise<AccountState> {
+/** First half of deleting the signed-in account: the typed name is checked and a confirmation link is mailed. */
+export async function requestAccountDeletion(_state: AccountState, form: FormData): Promise<AccountState> {
   await currentUser();
-  if (form.get('confirmation') !== 'DELETE') return { error: 'Type DELETE to confirm account deletion.', success: '' };
-  try { await requestJson('/api/auth/me', { method: 'DELETE' }); }
-  catch { return { error: 'Your account could not be deleted. Try again, or contact support if it keeps failing.', success: '' }; }
+  const body: RequestAccountDeletionRequest = { fullName: String(form.get('fullName') ?? '').trim() };
+  try {
+    await requestJson('/api/auth/delete-account', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) });
+  } catch (error) {
+    return { error: error instanceof ApiError && error.status === 400 ? 'That is not the name on this account.' : 'The request could not be sent. Try again.', success: '' };
+  }
+  return { error: '', success: 'Check your email and open the link we sent to finish deleting your account.' };
+}
+
+/** Second half, run when the mailed link is opened: redeems the token, which deletes the account. */
+export async function confirmAccountDeletion(token: string): Promise<AccountState> {
+  const body: ConfirmAccountDeletionRequest = { token };
+  try {
+    const response = await fetch(getApiUrl() + '/api/auth/confirm-account-deletion', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body), cache: 'no-store', signal: AbortSignal.timeout(20000) });
+    if (!response.ok) {
+      const problem: ApiProblem | null = await response.json().catch(() => null);
+      return { error: problem?.detail || problem?.title || 'This link could not be used.', success: '' };
+    }
+  } catch { return { error: 'We could not reach the server. Open the link again in a moment.', success: '' }; }
   await clearSession();
-  redirect('/auth/login');
+  return { error: '', success: 'Your account has been deleted.' };
 }

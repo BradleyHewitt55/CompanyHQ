@@ -51,7 +51,7 @@ export function TextAreaField({
   );
 }
 
-// Generic over the option type so a caller passes the API's own union (UserRole, PetStatus, ...)
+// Generic over the option type so a caller passes the API's own union (UserRole, SortDirection, ...)
 // and a contract change becomes a compile error here instead of a broken select at runtime.
 export function SelectField<TOption extends string>({
   label,

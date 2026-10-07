@@ -1,0 +1,48 @@
+@baseUrl = http://localhost:4002
+@conversationId = replace-with-the-id-from-start
+@visitorToken = replace-with-the-token-from-start
+
+### What the widget can offer, and the sources it accepts
+GET {{baseUrl}}/api/widget
+
+### Open a conversation (201 with id and token). Five per 15 minutes per address, then 429
+POST {{baseUrl}}/api/widget/conversations
+Content-Type: application/json
+
+{"name":"Sam Visitor","email":"sam@example.com","message":"I have a question about pricing.","source":"Website","origin":"https://example.com/pricing"}
+
+### A source outside Widget:Sources: 400
+POST {{baseUrl}}/api/widget/conversations
+Content-Type: application/json
+
+{"name":"Sam Visitor","email":"sam@example.com","message":"I have a question about pricing.","source":"Elsewhere"}
+
+### A message under 10 characters: 400
+POST {{baseUrl}}/api/widget/conversations
+Content-Type: application/json
+
+{"name":"Sam","email":"sam@example.com","message":"Hi"}
+
+### The visitor reads their own thread (200). A wrong token is 404
+POST {{baseUrl}}/api/widget/conversations/{{conversationId}}/session
+Content-Type: application/json
+
+{"token":"{{visitorToken}}"}
+
+### The visitor writes again (201). 409 once staff resolved it
+POST {{baseUrl}}/api/widget/conversations/{{conversationId}}/messages
+Content-Type: application/json
+
+{"token":"{{visitorToken}}","body":"Any update?"}
+
+### File a bug report (201). 503 while no repository is connected
+POST {{baseUrl}}/api/widget/issues
+Content-Type: application/json
+
+{"category":"Bug","title":"Example issue","message":"A reproducible problem.","email":"visitor@example.com","source":"Website","origin":"https://example.com/checkout"}
+
+### An unknown category or a short title: 400
+POST {{baseUrl}}/api/widget/issues
+Content-Type: application/json
+
+{"category":"Question","title":"Hi","message":"Too short."}

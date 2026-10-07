@@ -10,6 +10,7 @@ using CompanyHQ.Services.Moderation.Contracts.Enums;
 using CompanyHQ.Services.Moderation.Contracts.Forms;
 using CompanyHQ.Services.Moderation.Extensions;
 using CompanyHQ.Services.Moderation.Services;
+using CompanyHQ.Services.Postgres.Contracts;
 using CompanyHQ.Services.Postgres.Contracts.Dtos;
 using CompanyHQ.Services.Postgres.Contracts.Enums;
 using CompanyHQ.Services.Postgres.Contracts.Forms;
@@ -137,12 +138,13 @@ public sealed class ReportsController(
     }
 
     [HttpGet]
-    [Authorize(Roles = "Admin")]
+    [Authorize(Policy = AccessPermissions.ManageModeration)]
     [ProducesResponseType<PagedResult<ClientContentReportDto>>(StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status401Unauthorized)]
     [ProducesResponseType(StatusCodes.Status403Forbidden)]
     public async Task<ActionResult<PagedResult<ClientContentReportDto>>> List(
         [FromQuery] PageRequest paging,
+        [FromQuery] SearchRequest search,
         [FromQuery] ReportStatus? status = null,
         [FromQuery] string? targetKind = null,
         [FromQuery] ReportReason? reason = null,
@@ -155,7 +157,8 @@ public sealed class ReportsController(
                 status,
                 targetKind,
                 reason,
-                User.Audience(),
+                search,
+                User.Audience(AccessPermissions.ManageModeration),
                 cancellationToken));
         }
         catch (UnauthorizedAccessException)
@@ -169,7 +172,7 @@ public sealed class ReportsController(
     }
 
     [HttpPost("{id:guid}/decision")]
-    [Authorize(Roles = "Admin")]
+    [Authorize(Policy = AccessPermissions.ManageModeration)]
     [ProducesResponseType(StatusCodes.Status204NoContent)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
     [ProducesResponseType(StatusCodes.Status401Unauthorized)]

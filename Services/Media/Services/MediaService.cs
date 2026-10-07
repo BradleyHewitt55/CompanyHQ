@@ -159,7 +159,7 @@ public sealed class MediaService(
     }
 
     private static bool IsPublicScope(MediaScope scope) =>
-        scope is MediaScope.User;
+        scope is MediaScope.User or MediaScope.Content;
 
     public async Task<MediaOperationResult> DeleteAsync(
         Guid mediaObjectId,

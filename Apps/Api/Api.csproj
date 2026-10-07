@@ -7,7 +7,15 @@
     <!-- Emitting the document boots the real host, so it is opt-in: a routine build must not start
          failing because a service gained a required setting. The OpenAPI helper scripts turn it on. -->
     <OpenApiGenerateDocumentsOnBuild Condition=" '$(OpenApiGenerateDocumentsOnBuild)' == '' ">false</OpenApiGenerateDocumentsOnBuild>
+    <!-- Published so a company host gets the bridges, filters and every generic service from one
+         reference. HQ's own settings and launch profile stay out of the consumer's output. -->
+    <IsPackable>true</IsPackable>
+    <PackageId>CompanyHQ.Api</PackageId>
   </PropertyGroup>
+
+  <ItemGroup>
+    <Content Update="appsettings*.json;Properties/**" Pack="false" />
+  </ItemGroup>
 
   <ItemGroup>
     <PackageReference Include="Microsoft.AspNetCore.OpenApi" Version="10.0.10" />
@@ -41,6 +49,9 @@
     <ProjectReference Include="..\..\Services\Resend\Resend.csproj" />
     <ProjectReference Include="..\..\Services\Firebase\Firebase.csproj" />
     <ProjectReference Include="..\..\Services\Geo\Geo.csproj" />
+    <ProjectReference Include="..\..\Services\GitHub\GitHub.csproj" />
+    <ProjectReference Include="..\..\Services\Inbox\Inbox.csproj" />
+    <ProjectReference Include="..\..\Services\Widget\Widget.csproj" />
     <ProjectReference Include="..\..\Services\Notification\Notification.csproj" />
     <ProjectReference Include="..\..\Services\Postgres\Postgres.csproj" />
     <ProjectReference Include="..\..\Services\Message\Message.csproj" />

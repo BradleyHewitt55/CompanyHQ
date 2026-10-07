@@ -28,19 +28,25 @@ public sealed class UserService(
     public async Task<PagedResult<ClientUserDto>?> ListAsync(
         ResponseAudience audience,
         PageRequest paging,
-        string? search,
+        SearchRequest? search,
         UserRole? role,
         UserSort sort,
         SortDirection direction,
         CancellationToken cancellationToken = default)
     {
         var administrator = audience is ResponseAudience.Admin;
-        if (!string.IsNullOrWhiteSpace(search) && !administrator)
+        if (!string.IsNullOrWhiteSpace(search?.Keyword) && !administrator)
         {
             return null;
         }
 
-        var query = administrator ? users.Query().FilterAdminList(search, role) : users.Query();
+        // A named field is matched as given; an unnamed keyword keeps the directory's own rule
+        // (exact address, or any part of the name).
+        var query = !administrator
+            ? users.Query()
+            : string.IsNullOrWhiteSpace(search?.Field)
+                ? users.Query().FilterAdminList(search?.Keyword, role)
+                : users.Query().FilterAdminList(role: role).Search<User, AdminUserDto>(search, UserProjections.SearchAliases);
 
         return await query.ToPagedResultAsync(
             paging,

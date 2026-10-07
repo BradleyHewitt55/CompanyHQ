@@ -1,0 +1,20 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <AssemblyName>CompanyHQ.Services.Inbox.Contracts</AssemblyName>
+    <RootNamespace>CompanyHQ.Services.Inbox.Contracts</RootNamespace>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <Compile Remove="Models\**" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <!-- The channel port pages and searches with the shared paging contracts. -->
+    <ProjectReference Include="..\..\Postgres\Contracts\Postgres.Contracts.csproj" />
+  </ItemGroup>
+
+</Project>

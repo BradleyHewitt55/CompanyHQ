@@ -63,16 +63,4 @@ public static class McpAccess
         return Enum.TryParse<AgentKeyAccess>(access, out var parsed)
             && parsed is AgentKeyAccess.Write or AgentKeyAccess.Full;
     }
-
-    /// <summary>
-    /// Rejects a <c>ReadOnly</c> key. Write tools call this before reaching their domain service;
-    /// the domain service remains responsible for ownership and validation.
-    /// </summary>
-    public static void RequireWrite(ClaimsPrincipal? principal)
-    {
-        if (!HasWriteAccess(principal))
-        {
-            throw new McpProtocolException("This tool requires a key with write access.", McpErrorCode.InvalidRequest);
-        }
-    }
 }

@@ -61,7 +61,6 @@ public sealed class NotificationsController(
         CompanyHQ.Services.Postgres.Contracts.McpCapabilityCatalog.GetMyNotificationPreferences,
         CompanyHQ.Services.Postgres.Contracts.McpCapabilityCatalog.GetMyNotificationPreferences,
         "Read the authenticated account's notification preferences and opt-out settings. This never reads another account.")]
-    [Authorize(Policy = CompanyHQ.Services.Postgres.Contracts.McpCapabilityCatalog.GetMyNotificationPreferences)]
     [ProducesResponseType<NotificationPreferencesDto>(StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status401Unauthorized)]
     public async Task<ActionResult<NotificationPreferencesDto>> GetPreferences(
@@ -76,7 +75,6 @@ public sealed class NotificationsController(
     }
 
     [HttpPut("preferences")]
-    [Authorize(Policy = CompanyHQ.Services.Postgres.Contracts.McpCapabilityCatalog.GetMyNotificationPreferences)]
     [ProducesResponseType<NotificationPreferencesDto>(StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
     [ProducesResponseType(StatusCodes.Status401Unauthorized)]

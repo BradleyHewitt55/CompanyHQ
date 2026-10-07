@@ -18,10 +18,6 @@ export async function GET(
 
   try {
     const user = await requestJson<AuthUserDto>('/api/auth/me');
-    if (user.role !== 'Admin') {
-      return NextResponse.json({ detail: 'This area is for administrators.' }, { status: 403 });
-    }
-
     const { resource: resourceKey } = await params;
     const searchParams = new URL(request.url).searchParams;
     const page = Number.parseInt(searchParams.get('page') ?? '1', 10);
@@ -36,7 +32,7 @@ export async function GET(
         ? requestedDirection
         : undefined,
     };
-    const resource = await getAdminResource(resourceKey, Number.isFinite(page) && page > 0 ? page : 1, query);
+    const resource = await getAdminResource(resourceKey, user.permissions, Number.isFinite(page) && page > 0 ? page : 1, query);
     return resource
       ? NextResponse.json(resource, { headers: { 'Cache-Control': 'no-store' } })
       : NextResponse.json({ detail: 'Resource not found.' }, { status: 404 });

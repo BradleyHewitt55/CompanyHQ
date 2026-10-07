@@ -465,6 +465,7 @@
         "enum": [
           "Message",
           "User",
+          "Content",
           null
         ]
       },

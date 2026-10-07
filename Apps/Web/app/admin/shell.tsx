@@ -7,13 +7,15 @@ import { useEffect, useRef, useState, type ReactNode } from 'react';
 import { logoutAction } from '../auth/login/actions';
 import type { AuthUserDto, ClientCompanyProfileDto } from '../../src/api/types';
 import type { PagedResultOfAdminConversationDto } from '../../src/api/types';
-import { getResource } from '../../Components/admin-data';
+import { getResource, resourceFor } from '../../Components/admin-data';
 import { CompanyLogo } from '../../Components/company-logo';
 import { Icon, type IconName } from '../../Components/icons';
 import { Button } from '../../Components/ui/button';
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from '../../Components/ui/dialog';
 import { AdminBreadcrumbProvider, useAdminBreadcrumb } from './breadcrumb';
 import { fullName } from '@/lib/utils';
+import { areaPermissions } from '../../src/api/access';
+import { TopbarSlots } from './topbar-slots';
 
 type AdminShellProps = {
   children: ReactNode;
@@ -22,28 +24,46 @@ type AdminShellProps = {
   latestClosedConversation: PagedResultOfAdminConversationDto['items'][number] | null;
 };
 
+// `visible` decides from the role's permissions whether the entry is offered; absent means always.
 type NavItem = {
   label: string;
   icon: IconName;
   href: string;
+  visible?: (permissions: readonly string[]) => boolean;
 };
+
+const resourceNav = (key: string): NavItem => {
+  const resource = getResource(key)!;
+  return {
+    label: resource.label,
+    href: `/admin/${resource.key}`,
+    icon: resource.icon,
+    visible: (permissions) => resourceFor(key, permissions) !== undefined,
+  };
+};
+
+const holds = (permission: string) => (permissions: readonly string[]) => permissions.includes(permission);
 
 const mainNav: NavItem[] = [
   { label: 'Dashboard', href: '/admin', icon: 'dashboard' },
-  { label: 'Users', href: '/admin/users', icon: 'users' },
+  resourceNav('inbox'),
+  resourceNav('users'),
 ];
 
 const serviceNav: NavItem[] = [
-  { label: 'Blog', href: '/admin/blog', icon: 'blog' },
-  { label: 'Messages', href: '/admin/messages', icon: 'messages' },
-  { label: "FAQ's", href: '/admin/faqs', icon: 'faq' },
-  { label: 'Email Templates', href: '/admin/email-templates', icon: 'envelope' },
+  resourceNav('blog'),
+  resourceNav('faqs'),
+  { label: 'Email Templates', href: '/admin/email-templates', icon: 'envelope', visible: holds(areaPermissions.emailTemplates) },
 ];
 
-const settingsNav = [
-  { label: 'Company Profile', description: 'Basic company info', href: '/admin/settings/company', icon: 'settings' as IconName },
-  { label: 'User Profile', description: 'Account and preferences', href: '/admin/settings/user', icon: 'users' as IconName },
+const settingsNav: (NavItem & { description: string })[] = [
+  { label: 'Company Profile', description: 'Basic company info', href: '/admin/settings/company', icon: 'settings', visible: holds(areaPermissions.company) },
+  { label: 'Roles', description: 'What each role may do', href: '/admin/settings/roles', icon: 'users', visible: holds(areaPermissions.roles) },
+  { label: 'User Profile', description: 'Account and preferences', href: '/admin/settings/user', icon: 'users' },
 ];
+
+const offered = <T extends NavItem>(items: T[], permissions: readonly string[]) =>
+  items.filter((item) => item.visible?.(permissions) ?? true);
 
 export default function AdminShell({ children, company, currentUser, latestClosedConversation }: AdminShellProps) {
   return (
@@ -57,8 +77,11 @@ export default function AdminShell({ children, company, currentUser, latestClose
 
 function AdminShellFrame({ children, company, currentUser, latestClosedConversation }: AdminShellProps) {
   const pathname = usePathname() ?? '/admin';
+  const { permissions } = currentUser;
+  const services = offered(serviceNav, permissions);
   const { detail } = useAdminBreadcrumb();
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [action, setAction] = useState<HTMLElement | null>(null);
   const [settingsOpen, setSettingsOpen] = useState(false);
   const [settingsPosition, setSettingsPosition] = useState<{ left: number; bottom: number } | null>(null);
   const [userOpen, setUserOpen] = useState(false);
@@ -146,21 +169,25 @@ function AdminShellFrame({ children, company, currentUser, latestClosedConversat
         </div>
 
         <nav className="sidebar-nav" aria-label="Main navigation">
-          {mainNav.map((item) => (
+          {offered(mainNav, permissions).map((item) => (
             <SidebarItem item={item} key={item.label} isActive={isActivePath(pathname, item.href)} onNavigate={closeSidebar} />
           ))}
 
-          <div className="sidebar-divider" />
-          <div className="sidebar-section-heading">
-            <span>Services</span>
-            <Icon name="plus" size={14} />
-          </div>
+          {services.length > 0 ? (
+            <>
+              <div className="sidebar-divider" />
+              <div className="sidebar-section-heading">
+                <span>Services</span>
+                <Icon name="plus" size={14} />
+              </div>
 
-          <div className="service-nav">
-            {serviceNav.map((item) => (
-              <SidebarItem item={item} key={item.label} isActive={isActivePath(pathname, item.href)} onNavigate={closeSidebar} />
-            ))}
-          </div>
+              <div className="service-nav">
+                {services.map((item) => (
+                  <SidebarItem item={item} key={item.label} isActive={isActivePath(pathname, item.href)} onNavigate={closeSidebar} />
+                ))}
+              </div>
+            </>
+          ) : null}
         </nav>
 
         <div className="sidebar-footer">
@@ -188,7 +215,7 @@ function AdminShellFrame({ children, company, currentUser, latestClosedConversat
           role="dialog"
           style={settingsPosition ? { left: `${settingsPosition.left}px`, bottom: `${settingsPosition.bottom}px` } : undefined}
         >
-          {settingsNav.map((item) => (
+          {offered(settingsNav, permissions).map((item) => (
             <Link
               className={`settings-popover-item${pathname === item.href ? ' is-active' : ''}`}
               href={item.href}
@@ -227,10 +254,11 @@ function AdminShellFrame({ children, company, currentUser, latestClosedConversat
           </div>
 
           <div className="topbar-actions">
-            <button className="website-button" type="button">
+            <div ref={setAction} />
+            <a className="website-button" href="/" rel="noopener" target="_blank">
               <Icon name="language" size={16} />
-              <span>View website</span>
-            </button>
+              <span>Website</span>
+            </a>
             <button aria-label="Notifications" className="icon-button notification-button" type="button">
               <Icon name="notifications" />
             </button>
@@ -239,24 +267,26 @@ function AdminShellFrame({ children, company, currentUser, latestClosedConversat
                 <span className="user-avatar">{getInitials(fullName(currentUser) || currentUser.email)}</span>
                 <span className="user-identity">
                   <strong>{fullName(currentUser) || currentUser.email}</strong>
-                  <small>{currentUser.role}</small>
+                  <small>{currentUser.roleName}</small>
                 </span>
                 <Icon className={`user-chevron${userOpen ? ' is-open' : ''}`} name="chevron-down" size={14} />
               </DialogTrigger>
               <DialogContent className="admin-user-dialog">
                 <DialogHeader>
                   <DialogTitle>Account</DialogTitle>
-                  <DialogDescription>{fullName(currentUser) || currentUser.email} · {currentUser.role}</DialogDescription>
+                  <DialogDescription>{fullName(currentUser) || currentUser.email} · {currentUser.roleName}</DialogDescription>
                 </DialogHeader>
                 <div className="admin-user-dialog__links">
                   <Link className="admin-user-dialog__link" href="/admin/settings/user">
                     <Icon name="users" size={17} />
                     <span><strong>My profile</strong><small>Account and preferences</small></span>
                   </Link>
-                  <Link className="admin-user-dialog__link" href="/admin/settings/company">
-                    <Icon name="settings" size={17} />
-                    <span><strong>Company profile</strong><small>Basic company information</small></span>
-                  </Link>
+                  {permissions.includes(areaPermissions.company) ? (
+                    <Link className="admin-user-dialog__link" href="/admin/settings/company">
+                      <Icon name="settings" size={17} />
+                      <span><strong>Company profile</strong><small>Basic company information</small></span>
+                    </Link>
+                  ) : null}
                 </div>
                 <DialogFooter className="admin-user-dialog__footer">
                   <form action={logoutAction}>
@@ -273,7 +303,7 @@ function AdminShellFrame({ children, company, currentUser, latestClosedConversat
 
         <div className="admin-content">
           {latestClosedConversation && (
-            <Link className="admin-notification" href={`/admin/messages/${latestClosedConversation.id}`} role="status">
+            <Link className="admin-notification" href={`/admin/inbox/${latestClosedConversation.id}`} role="status">
               <span className="admin-notification-icon"><Icon name="notifications" size={18} /></span>
               <span className="admin-notification-copy">
                 <strong>Conversation closed</strong>
@@ -282,7 +312,7 @@ function AdminShellFrame({ children, company, currentUser, latestClosedConversat
               <span className="admin-notification-time">{formatNotificationTime(latestClosedConversation.closedAt)}</span>
             </Link>
           )}
-          {children}
+          <TopbarSlots.Provider value={{ action }}>{children}</TopbarSlots.Provider>
         </div>
       </main>
     </div>
@@ -317,6 +347,15 @@ function getPageLabel(pathname: string, detail: string | null) {
   if (pathname.startsWith('/admin/settings/user')) {
     return 'User Profile';
   }
+  if (pathname.startsWith('/admin/settings/roles')) {
+    return 'Roles';
+  }
+  if (pathname.startsWith('/admin/settings/github')) {
+    return 'GitHub Repository';
+  }
+  if (pathname.startsWith('/admin/email-templates')) {
+    return 'Email Templates';
+  }
 
   const resourceKey = pathname.split('/')[2] ?? '';
   const resource = getResource(resourceKey);
@@ -331,7 +370,7 @@ function getPageLabel(pathname: string, detail: string | null) {
 
 function getInitials(value: string) {
   const words = value.trim().split(/\s+/).filter(Boolean);
-  return words.slice(0, 2).map((word) => word[0]?.toUpperCase() || '').join('') || 'PG';
+  return words.slice(0, 2).map((word) => word[0]?.toUpperCase() || '').join('') || '?';
 }
 
 function formatNotificationTime(value: string) {

@@ -3,12 +3,13 @@ import { ACCESS_TOKEN_COOKIE, REFRESH_TOKEN_COOKIE } from './src/api/cookie-name
 import type { AuthSessionDto, AuthUserDto } from './src/api/types';
 import { coordinatedRefresh } from './src/api/refresh';
 import { getApiUrl } from './src/api/client';
+import { canOpenAdmin } from './src/api/access';
 
 const options = { httpOnly: true, sameSite: 'lax' as const, secure: process.env.NODE_ENV === 'production', path: '/' };
 
 export async function middleware(request: NextRequest) {
   const pathname = request.nextUrl.pathname;
-  const publicPage = /^\/auth\/(login|signup|forgot-password|reset-password|verify-email|confirm-email-change)$/.test(pathname);
+  const publicPage = /^\/auth\/(login|signup|forgot-password|reset-password|verify-email|confirm-email-change|confirm-account-deletion)$/.test(pathname);
   let token = request.cookies.get(ACCESS_TOKEN_COOKIE)?.value;
   const refreshToken = request.cookies.get(REFRESH_TOKEN_COOKIE)?.value;
   let session: AuthSessionDto | undefined;
@@ -40,7 +41,7 @@ export async function middleware(request: NextRequest) {
     return result;
   }
   if (user && (pathname === '/auth/login' || pathname === '/auth/signup')) result = NextResponse.redirect(new URL('/', request.url));
-  else if (user && pathname.startsWith('/admin') && user.role !== 'Admin') result = NextResponse.redirect(new URL('/', request.url));
+  else if (user && pathname.startsWith('/admin') && !canOpenAdmin(user.permissions)) result = NextResponse.redirect(new URL('/', request.url));
   else {
     const headers = new Headers(request.headers);
     if (session) {

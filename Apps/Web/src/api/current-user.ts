@@ -11,9 +11,12 @@ export const currentUser = cache(async () => {
     throw error;
   }
 });
-export async function requireAdmin() {
+
+/** The signed-in account, or a 403 when its role holds none of the given permissions. */
+export async function requirePermission(...anyOf: string[]) {
   const user = await currentUser();
-  if (user.role !== 'Admin') throw new ApiError(403, { detail: 'Administrator access required.' });
+  if (!anyOf.some((permission) => user.permissions.includes(permission))) {
+    throw new ApiError(403, { detail: 'Your role does not allow this.' });
+  }
   return user;
 }
-

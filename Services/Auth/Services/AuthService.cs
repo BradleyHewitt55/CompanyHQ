@@ -9,12 +9,14 @@ using CompanyHQ.Services.Auth.Contracts.Dtos;
 using CompanyHQ.Services.Auth.Contracts.Enums;
 using CompanyHQ.Services.Auth.Contracts.Forms;
 using CompanyHQ.Services.Auth.Contracts.Models;
+using CompanyHQ.Services.Postgres.Contracts;
 using CompanyHQ.Services.Postgres.Contracts.Dtos;
 using CompanyHQ.Services.Postgres.Contracts.Forms;
 using CompanyHQ.Services.Postgres.Data;
 using CompanyHQ.Services.Postgres.Extensions;
 using CompanyHQ.Services.Users.Contracts.Enums;
 using CompanyHQ.Services.Users.Contracts.Models;
+using CompanyHQ.Services.Users.Services;
 
 namespace CompanyHQ.Services.Auth.Services;
 
@@ -31,6 +33,7 @@ public sealed class AuthService(
     IAuthEmailSender authEmail,
     IPasswordHasher<User> passwordHasher,
     IAuthRateLimiter rateLimiter,
+    IAccountDeletionCoordinator accountDeletion,
     LoginRateLimitOptions loginRateLimitOptions,
     TimeProvider clock,
     ILogger<AuthService> logger) : IAuthService
@@ -438,6 +441,59 @@ public sealed class AuthService(
         return AuthActionOutcome.Success();
     }
 
+    public async Task<AuthActionOutcome> RequestAccountDeletionAsync(
+        Guid userId,
+        string fullName,
+        CancellationToken cancellationToken = default)
+    {
+        var user = await context.Set<User>()
+            .AsNoTracking()
+            .Where(candidate => candidate.Id == userId)
+            .Select(candidate => new { candidate.Email, candidate.FirstName, candidate.LastName })
+            .FirstOrDefaultAsync(cancellationToken);
+        if (user is null)
+        {
+            return AuthActionOutcome.Failure(AuthError.InvalidSession);
+        }
+
+        // An account with no name on it confirms with its address instead.
+        var expected = $"{user.FirstName} {user.LastName}".Trim();
+        if (expected.Length == 0)
+        {
+            expected = user.Email;
+        }
+
+        if (!string.Equals(string.Join(' ', fullName.Split(' ', StringSplitOptions.RemoveEmptyEntries)),
+                expected, StringComparison.OrdinalIgnoreCase))
+        {
+            return AuthActionOutcome.Failure(AuthError.NameMismatch);
+        }
+
+        var token = await authTokens.IssueAsync(userId, AuthTokenPurpose.AccountDeletion, cancellationToken: cancellationToken);
+        await authEmail.SendAccountDeletionConfirmationAsync(user.Email, token, cancellationToken);
+        return AuthActionOutcome.Success();
+    }
+
+    public async Task<(AuthActionOutcome Outcome, string? Reason)> ConfirmAccountDeletionAsync(
+        string token,
+        CancellationToken cancellationToken = default)
+    {
+        var stored = await authTokens.FindActiveAsync(token, AuthTokenPurpose.AccountDeletion, cancellationToken);
+        if (stored is null)
+        {
+            return (AuthActionOutcome.Failure(AuthError.InvalidToken), null);
+        }
+
+        // Sessions, tokens and every row with a cascading key to the account go with it.
+        var (result, reason) = await accountDeletion.DeleteAsync(stored.UserId, cancellationToken);
+        return result switch
+        {
+            AccountDeletionOutcome.Deleted => (AuthActionOutcome.Success(), null),
+            AccountDeletionOutcome.Blocked => (AuthActionOutcome.Failure(AuthError.None), reason),
+            _ => (AuthActionOutcome.Failure(AuthError.InvalidToken), null)
+        };
+    }
+
     public async Task<AuthActionOutcome> ConfirmEmailChangeAsync(
         string token,
         CancellationToken cancellationToken = default)
@@ -720,12 +776,37 @@ public sealed class AuthService(
         await context.SaveChangesAsync(cancellationToken);
     }
 
-    public Task<AuthUserDto?> GetUserAsync(Guid id, CancellationToken cancellationToken = default) =>
-        context.Set<User>()
+    public async Task<AuthUserDto?> GetUserAsync(Guid id, CancellationToken cancellationToken = default)
+    {
+        var user = await context.Set<User>()
             .AsNoTracking()
             .Where(user => user.Id == id)
-            .Select(user => new AuthUserDto(user.Id, user.Email, user.FirstName, user.LastName, user.Role, user.EmailVerified))
+            .Select(user => new
+            {
+                user.Id,
+                user.Email,
+                user.FirstName,
+                user.LastName,
+                user.Role,
+                user.EmailVerified,
+                RoleName = user.AccessRole == null ? null : user.AccessRole.Name,
+                Permissions = user.AccessRole == null ? null : user.AccessRole.Permissions
+            })
             .FirstOrDefaultAsync(cancellationToken);
+
+        // An account with no role row yet reads as its legacy role, exactly as token validation does.
+        return user is null
+            ? null
+            : new AuthUserDto(
+                user.Id,
+                user.Email,
+                user.FirstName,
+                user.LastName,
+                user.Role,
+                user.EmailVerified,
+                user.RoleName ?? user.Role.ToString(),
+                user.Permissions ?? (user.Role is UserRole.Admin ? AccessPermissions.All : AccessPermissions.Client));
+    }
 
     /// <summary>
     /// Stores the new refresh token and commits it together with whatever the caller already
@@ -756,7 +837,8 @@ public sealed class AuthService(
             refresh.Value,
             refresh.ExpiresAt,
             row.Id,
-            user.ToAuthUserDto());
+            await GetUserAsync(user.Id, cancellationToken)
+                ?? throw new InvalidOperationException("The account disappeared while its session was issued."));
     }
 
     /// <summary>

@@ -228,6 +228,22 @@
             }
           },
           {
+            "name": "Field",
+            "in": "query",
+            "schema": {
+              "maxLength": 64,
+              "type": "string"
+            }
+          },
+          {
+            "name": "Keyword",
+            "in": "query",
+            "schema": {
+              "maxLength": 200,
+              "type": "string"
+            }
+          },
+          {
             "name": "status",
             "in": "query",
             "schema": {
@@ -649,6 +665,22 @@
                 "string"
               ],
               "format": "int32"
+            }
+          },
+          {
+            "name": "Field",
+            "in": "query",
+            "schema": {
+              "maxLength": 64,
+              "type": "string"
+            }
+          },
+          {
+            "name": "Keyword",
+            "in": "query",
+            "schema": {
+              "maxLength": 200,
+              "type": "string"
             }
           },
           {

@@ -5,11 +5,12 @@ using Microsoft.AspNetCore.Mvc;
 using CompanyHQ.Services.Company.Contracts.Dtos;
 using CompanyHQ.Services.Company.Contracts.Forms;
 using CompanyHQ.Services.Company.Services;
+using CompanyHQ.Services.Postgres.Contracts;
 using CompanyHQ.Services.Auth.Contracts.Identity;
 
 namespace CompanyHQ.Services.Company.Controllers;
 
-/// <summary>The operating company profile: public to read, administrator-only to change.</summary>
+/// <summary>The operating company profile: public to read, <c>company.manage</c> to change.</summary>
 [ApiController]
 [Route("api/company")]
 [Produces("application/json")]
@@ -23,7 +24,7 @@ public sealed class CompanyController(ICompanyProfileService profiles) : Control
         await profiles.GetAsync(cancellationToken) is { } profile ? profile : NotFound();
 
     [HttpPut]
-    [Authorize(Roles = "Admin")]
+    [Authorize(Policy = AccessPermissions.ManageCompany)]
     [ProducesResponseType<ClientCompanyProfileDto>(StatusCodes.Status200OK)]
     [ProducesResponseType<ProblemDetails>(StatusCodes.Status400BadRequest)]
     [ProducesResponseType(StatusCodes.Status403Forbidden)]

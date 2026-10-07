@@ -1,0 +1,12 @@
+# Both images build from the repository root. Local build output must stay out of the context: a
+# host-restored obj/ copied over the image's own restore breaks `dotnet publish --no-restore`, and a
+# host node_modules or .next would replace the one built for the image.
+**/bin
+**/obj
+**/node_modules
+**/.next
+**/*.tsbuildinfo
+
+.git
+.env
+.env.dev

@@ -14,15 +14,17 @@ export const root = join(dirname(fileURLToPath(import.meta.url)), '..');
  * The host boots to describe itself, so the usual .env settings apply; migrations and seeding are
  * switched off because describing the API must never touch a database.
  */
-export function buildDocuments() {
+export function buildDocuments(project = join(root, 'Apps', 'Api', 'Api.csproj')) {
   const out = mkdtempSync(join(tmpdir(), 'companyhq-openapi-'));
   try {
     execFileSync(
       'dotnet',
       [
         'build',
-        join(root, 'Apps', 'Api', 'Api.csproj'),
+        project,
         '-nologo',
+        '-m:1',
+        '-nr:false',
         '-v', 'q',
         // An up-to-date build skips emission, which would look like "no services".
         '--no-incremental',
@@ -34,7 +36,7 @@ export function buildDocuments() {
 
     const documents = {};
     for (const file of readdirSync(out)) {
-      const match = /^Api_(.+)\.json$/.exec(file);
+      const match = /^.+_(.+)\.json$/.exec(file);
       if (match) documents[match[1]] = readFileSync(join(out, file), 'utf8');
     }
     if (Object.keys(documents).length === 0) throw new Error('The API build emitted no OpenAPI documents.');
@@ -45,15 +47,15 @@ export function buildDocuments() {
 }
 
 /** A document named `faq` belongs to `Services/Faq/Contracts/OpenApi/faq.json`. */
-export function documentPath(name) {
-  const folder = join(root, 'Services', name[0].toUpperCase() + name.slice(1));
-  if (!existsSync(folder)) throw new Error(`No service folder for OpenAPI document '${name}' (expected ${folder}).`);
-  return join(folder, 'Contracts', 'OpenApi', `${name}.json`);
+export function documentPath(name, services = join(root, 'Services')) {
+  // Matched without case so a folder like Services/GitHub resolves on a case-sensitive filesystem too.
+  const folder = readdirSync(services).find((entry) => entry.toLowerCase() === name);
+  if (!folder) throw new Error(`No service folder for OpenAPI document '${name}' (expected Services/${name}).`);
+  return join(services, folder, 'Contracts', 'OpenApi', `${name}.json`);
 }
 
 /** Every committed service document, found by folder convention. */
-export function committedDocuments() {
-  const services = join(root, 'Services');
+export function committedDocuments(services = join(root, 'Services')) {
   const documents = {};
   for (const folder of readdirSync(services, { withFileTypes: true })) {
     if (!folder.isDirectory()) continue;

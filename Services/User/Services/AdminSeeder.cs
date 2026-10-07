@@ -47,13 +47,15 @@ public sealed class AdminSeeder(
                     $"The configured admin email '{email}' belongs to a non-admin account.");
             }
 
-            // Passwords are deliberately not re-applied on boot. Verification is seed-owned for this
-            // account, though: the operator never receives or clicks an email verification link.
-            if (!existing.EmailVerified)
+            // Passwords are deliberately not re-applied on boot. Verification and the built-in Admin
+            // role are seed-owned for this account, though: the operator never receives or clicks an
+            // email verification link, and this account is the one that must always reach everything.
+            if (!existing.EmailVerified || existing.AccessRoleId != adminRole.Id)
             {
                 existing.EmailVerified = true;
+                existing.AccessRoleId = adminRole.Id;
                 await context.SaveChangesAsync(cancellationToken);
-                logger.LogInformation("Verified existing seeded admin {Email}.", email);
+                logger.LogInformation("Repaired seeded admin {Email}.", email);
                 return;
             }
 
@@ -85,9 +87,21 @@ public sealed class AdminSeeder(
     private static async Task<AccessRole> EnsureRoleAsync(
         PostgresDbContext context, string name, IReadOnlyList<string> permissions, CancellationToken cancellationToken)
     {
+        var normalized = AccessPermissions.Normalize(permissions);
         var existing = await context.Set<AccessRole>().FirstOrDefaultAsync(role => role.Name == name, cancellationToken);
-        if (existing is not null) return existing;
-        var role = new AccessRole { Name = name, Permissions = AccessPermissions.Normalize(permissions) };
+        if (existing is not null)
+        {
+            // The built-in rows cannot be edited, so a permission added in code reaches them here.
+            if (!existing.Permissions.SequenceEqual(normalized, StringComparer.Ordinal))
+            {
+                existing.Permissions = normalized;
+                await context.SaveChangesAsync(cancellationToken);
+            }
+
+            return existing;
+        }
+
+        var role = new AccessRole { Name = name, Permissions = normalized };
         context.Set<AccessRole>().Add(role);
         await context.SaveChangesAsync(cancellationToken);
         return role;

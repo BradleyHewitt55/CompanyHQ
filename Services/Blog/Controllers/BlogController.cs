@@ -22,15 +22,15 @@ public sealed class BlogController(IBlogService blogs) : ControllerBase
 {
     [HttpGet]
     [McpAction(McpCapabilityCatalog.ListBlogPosts, McpCapabilityCatalog.ListBlogPosts,
-        "List blog posts. With listing permission, include drafts and audit fields. Search title, description, author, or category; page with page and pageSize.")]
+        "List blog posts. With listing permission, include drafts and audit fields. Match a keyword against one named field, or every text field when none is named; page with page and pageSize.")]
     [AllowAnonymous]
     [ProducesResponseType<PagedResult<ClientBlogPostDto>>(StatusCodes.Status200OK)]
     public Task<PagedResult<ClientBlogPostDto>> List(
         [FromQuery] PageRequest paging,
-        [FromQuery] string? search = null,
+        [FromQuery] SearchRequest search,
         CancellationToken cancellationToken = default) =>
         blogs.ListAsync(paging, search,
-            User.HasClaim("permission", McpCapabilityCatalog.ListBlogPosts) ? ResponseAudience.Admin : this.User.Audience(),
+            User.Audience(McpCapabilityCatalog.ListBlogPosts),
             User.GetUserId(), cancellationToken);
 
     [HttpGet("{slug}")]
@@ -46,7 +46,7 @@ public sealed class BlogController(IBlogService blogs) : ControllerBase
         try
         {
             return await blogs.GetAsync(slug,
-                User.HasClaim("permission", McpCapabilityCatalog.GetBlogPost) ? ResponseAudience.Admin : this.User.Audience(),
+                User.Audience(McpCapabilityCatalog.GetBlogPost),
                 User.GetUserId(), cancellationToken) is { } post
                 ? post
                 : NotFound();
@@ -73,7 +73,6 @@ public sealed class BlogController(IBlogService blogs) : ControllerBase
         {
             var post = await blogs.CreateAsync(
                 request,
-                this.User.Audience(),
                 User.GetUserId(),
                 cancellationToken);
             return CreatedAtAction(nameof(Get), new { post.Slug }, post);
@@ -120,7 +119,6 @@ public sealed class BlogController(IBlogService blogs) : ControllerBase
             return await blogs.UpdateAsync(
                 slug,
                 request,
-                this.User.Audience(),
                 User.GetUserId(),
                 cancellationToken) is { } post
                 ? post
@@ -154,7 +152,6 @@ public sealed class BlogController(IBlogService blogs) : ControllerBase
         {
             return await blogs.DeleteAsync(
                 slug,
-                this.User.Audience(),
                 User.GetUserId(),
                 cancellationToken)
                 ? NoContent()

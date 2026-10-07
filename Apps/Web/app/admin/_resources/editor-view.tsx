@@ -9,16 +9,20 @@ import { useAdminBreadcrumbDetail } from '@/app/admin/breadcrumb';
 import { AccountFields } from '@/Components/Admin/account-fields';
 import { BlogFields } from '@/app/admin/(pages)/blog/fields';
 import { FaqsFields } from '@/app/admin/(pages)/faqs/fields';
+import { DeleteResourceButton } from '@/app/admin/_resources/delete-button';
+import { TopbarAction } from '@/app/admin/topbar-slots';
 const initialActionState: AdminActionState = { error: '', success: '' };
 
 export function ResourceEditor({
   resource,
   record,
   recordId,
+  aside,
 }: {
   resource: ResourceConfig;
   record?: AdminRecord;
   recordId: string;
+  aside?: ReactNode;
 }) {
   const isNew = recordId === 'new';
   useAdminBreadcrumbDetail(isNew ? `New ${resource.singularLabel}` : record?.title ?? 'Details');
@@ -49,16 +53,20 @@ export function ResourceEditor({
     setDraftValues(undefined);
     setIsEditing(false);
   };
+  const deleteButton = !isNew && record && resource.canDelete && !isEditing ? (
+    <DeleteResourceButton label={record.title} onDeleted={() => router.replace(`/admin/${resource.key}`)} recordId={recordId} resource={resource} />
+  ) : null;
 
   if (!canSave) {
     return (
       <section aria-labelledby="editor-title" className="editor-page" data-resource={resource.key}>
         <h1 className="visually-hidden" id="editor-title">{resource.label} details</h1>
-        <div className="api-empty-card">
-          <span className="empty-state-icon"><Icon name={resource.icon} size={22} /></span>
-          <h2 className="section-title">Read-only API resource</h2>
-          <p>The current API does not expose a write operation for this resource.</p>
+        <div className="detail-grid">
           {record ? <ReadOnlyFields record={record} /> : null}
+          <aside className="editor-aside">
+            {deleteButton ? <div className="editor-aside__actions">{deleteButton}</div> : null}
+            {aside}
+          </aside>
         </div>
       </section>
     );
@@ -67,9 +75,13 @@ export function ResourceEditor({
   return (
     <section aria-labelledby="editor-title" className="editor-page" data-resource={resource.key}>
       <h1 className="visually-hidden" id="editor-title">{isNew ? `New ${resource.singularLabel}` : `${resource.label} details`}</h1>
+      {isEditing && <TopbarAction>
+        {isNew ? <Link className="button button-secondary" href={`/admin/${resource.key}`}>Cancel</Link>
+          : <button className="button button-secondary" onClick={cancelEditing} type="button">Cancel</button>}
+      </TopbarAction>}
 
       <div className="detail-grid">
-        <form action={formAction} aria-busy={pending} className={`form-card${isEditing ? ' is-editing' : ''}`}>
+        <form action={formAction} aria-busy={pending} className={`form-card${isEditing ? ' is-editing' : ''}`} id="resource-editor-form">
           <input name="resource" type="hidden" value={resource.key} />
           <input name="recordId" type="hidden" value={recordId} />
           <div className="card-header">
@@ -85,31 +97,28 @@ export function ResourceEditor({
                 {renderResourceFields(resource.key, values, isNew)}
               </div>
             </fieldset>
-            {isEditing ? (
-              <div className="form-actions">
-                <button className="button button-primary" disabled={pending} type="submit">
-                  <Icon name="check" size={17} />
-                  {pending ? 'Saving...' : isNew ? `Create ${resource.singularLabel}` : 'Save changes'}
-                </button>
-                {isNew ? (
-                  <Link className="button button-secondary" href={`/admin/${resource.key}`}>Cancel</Link>
-                ) : (
-                  <button className="button button-secondary" onClick={cancelEditing} type="button">Cancel</button>
-                )}
-              </div>
-            ) : null}
           </div>
         </form>
 
         <aside className="editor-aside">
-          {!isNew && resource.canEdit ? (
-            <div className="editor-aside__actions">
-              <button aria-pressed={isEditing} className="edit-button" disabled={isEditing} onClick={() => setIsEditing(true)} type="button">
+          <div className="editor-aside__actions">
+            {!isNew && resource.canEdit && !isEditing ? (
+              <button className="edit-button" onClick={() => setIsEditing(true)} type="button">
                 <Icon name="edit" size={16} />
-                {isEditing ? 'Editing' : 'Edit'}
+                Edit
               </button>
-            </div>
-          ) : null}
+            ) : null}
+            {isEditing ? (
+              <>
+                <button className="button button-primary" disabled={pending} form="resource-editor-form" type="submit">
+                  <Icon name="check" size={17} />
+                  {pending ? 'Saving...' : isNew ? `Create ${resource.singularLabel}` : 'Save changes'}
+                </button>
+              </>
+            ) : null}
+            {deleteButton}
+          </div>
+          {aside}
         </aside>
       </div>
     </section>
@@ -118,11 +127,12 @@ export function ResourceEditor({
 
 function ReadOnlyFields({ record }: { record: AdminRecord }) {
   return (
-    <dl className="detail-list">
+    <dl className="detail-list readonly-fields">
       {record.fields.map((field) => (
-        <div key={`${field.label}-${field.value}`}>
+        // Long values like descriptions and message bodies read better across the full width.
+        <div className={field.value.length > 80 ? 'readonly-fields__wide' : undefined} key={`${field.label}-${field.value}`}>
           <dt>{field.label}</dt>
-          <dd>{field.value}</dd>
+          <dd>{field.href ? <Link href={field.href}>{field.value}</Link> : field.value}</dd>
         </div>
       ))}
     </dl>

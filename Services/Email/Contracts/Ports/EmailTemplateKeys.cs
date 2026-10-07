@@ -8,7 +8,9 @@ public static class EmailTemplateKeys
     public const string EmailChangeConfirmation = "auth.email-change-confirmation";
     public const string PasswordChanged = "auth.password-changed";
     public const string EmailChanging = "auth.email-changing";
+    public const string AccountDeletion = "auth.account-deletion";
     public const string ContactMessage = "contact.message";
     public const string NotificationMessage = "notification.message";
     public const string NotificationGeneric = "notification.generic";
+    public const string InboxReply = "inbox.reply";
 }

@@ -59,7 +59,7 @@ public sealed class UsersController(
     [ProducesResponseType(StatusCodes.Status403Forbidden)]
     public async Task<ActionResult<PagedResult<ClientUserDto>>> List(
         [FromQuery] PageRequest paging,
-        [FromQuery] string? search = null,
+        [FromQuery] SearchRequest search,
         [FromQuery] UserRole? role = null,
         [FromQuery] UserSort sort = UserSort.CreatedAt,
         [FromQuery] SortDirection direction = SortDirection.Descending,
@@ -78,11 +78,11 @@ public sealed class UsersController(
     [ProducesResponseType<PagedResult<ClientUserLookupDto>>(StatusCodes.Status200OK)]
     public Task<PagedResult<ClientUserLookupDto>> Lookup(
         [FromQuery] PageRequest paging,
-        [FromQuery] string? search = null,
+        [FromQuery] string? keyword = null,
         [FromQuery] UserSort sort = UserSort.CreatedAt,
         [FromQuery] SortDirection direction = SortDirection.Descending,
         CancellationToken cancellationToken = default) =>
-        users.LookupAsync(paging, search, sort, direction, cancellationToken);
+        users.LookupAsync(paging, keyword, sort, direction, cancellationToken);
 
     /// <summary>
     /// Resolves one user by id, display name, or email — whichever the caller happens to hold.
@@ -238,7 +238,7 @@ public sealed class UsersController(
     }
 
     private ResponseAudience Audience() =>
-        User.HasClaim("permission", AccessPermissions.ReadPrivateUsers)
+        User.HasPermission(AccessPermissions.ReadPrivateUsers)
             ? ResponseAudience.Admin
             : ResponseAudience.Client;
 }

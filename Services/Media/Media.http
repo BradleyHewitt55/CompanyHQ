@@ -66,3 +66,10 @@ Authorization: Bearer {{token}}
 Content-Type: image/png
 
 < ./probe.jpg
+
+### Upload a public content image for a blog cover (retain mediaObjectId and ticket.url)
+POST {{baseUrl}}/api/media
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{"scope":"Content","contentType":"image/png","sizeBytes":1024}

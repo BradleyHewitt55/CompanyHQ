@@ -30,7 +30,7 @@
 
 .detail-grid {
   display: grid;
-  grid-template-columns: minmax(0, 7fr) auto;
+  grid-template-columns: 70% auto;
   align-items: start;
   gap: var(--gap-md);
 }
@@ -41,10 +41,15 @@
   gap: var(--gap-md);
 }
 
+/* Column two holds the page actions, then any cards under them. Actions stay left aligned and
+   keep their own width so a second button sits beside the first instead of being pushed apart. */
 .editor-aside__actions {
   display: flex;
-  justify-content: flex-end;
   min-height: 36px;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: flex-start;
+  gap: var(--gap-sm);
 }
 
 .editor-fields {
@@ -74,22 +79,10 @@
 
 @media (max-width: 820px) {
   .detail-grid { grid-template-columns: minmax(0, 1fr); }
-
-  .editor-aside {
-    display: grid;
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-  }
-
-  .editor-aside__actions {
-    grid-column: 1 / -1;
-  }
 }
 
 @media (max-width: 600px) {
-  .field-grid,
-  .editor-aside {
-    grid-template-columns: minmax(0, 1fr);
-  }
+  .field-grid { grid-template-columns: minmax(0, 1fr); }
 }
 
 .editor-page .form-card,
@@ -122,4 +115,91 @@
 .editor-page .api-empty-card .detail-list {
   width: 100%;
   max-width: none;
+}
+
+/* Read-only records: a divided two-column list instead of one long vertical stack. */
+.readonly-fields {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+  gap: 0 var(--gap-xl);
+}
+
+.readonly-fields > div {
+  padding: var(--gap-md) 0;
+  border-bottom: 1px solid var(--border);
+  min-width: 0;
+}
+
+.readonly-fields dd {
+  overflow-wrap: anywhere;
+  white-space: pre-wrap;
+}
+
+.readonly-fields .readonly-fields__wide {
+  grid-column: 1 / -1;
+}
+
+.readonly-fields__wide dd {
+  font-weight: var(--font-weight-medium);
+}
+
+.standing-panel {
+  display: grid;
+  gap: var(--gap-sm);
+  padding-top: var(--gap-md);
+  border-top: 1px solid var(--border);
+}
+
+.standing-panel__note {
+  margin: 0;
+  color: var(--muted);
+  font-size: var(--font-size-caption);
+  line-height: var(--line-height-relaxed);
+}
+
+.standing-panel__form {
+  display: grid;
+  gap: var(--gap-sm);
+}
+
+.standing-panel__form .form-error,
+.standing-panel__form .save-notice {
+  margin: 0;
+}
+
+.standing-panel__label {
+  color: var(--primary);
+  font-size: var(--font-size-caption);
+  font-weight: var(--font-weight-semibold);
+}
+
+.standing-log {
+  display: grid;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.standing-log li {
+  display: grid;
+  gap: var(--gap-xs);
+  padding: var(--gap-sm) 0;
+  border-bottom: 1px solid var(--border);
+  font-size: var(--font-size-caption);
+}
+
+.standing-log__change {
+  color: var(--primary);
+  font-weight: var(--font-weight-semibold);
+}
+
+.standing-log time,
+.standing-log__by {
+  color: var(--muted);
+}
+
+.standing-log p {
+  margin: 0;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
 }

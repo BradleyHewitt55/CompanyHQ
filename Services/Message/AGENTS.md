@@ -7,8 +7,11 @@ thread only when that operator is one of the two participants.
 
 ## Rules
 
-- `Conversation.ParticipantKey` is the sorted pair of user ids and has a database-enforced unique
-  index. Get-or-create must keep that invariant under concurrent starts.
+- An "operator", "administrator" or "Admin account" anywhere below is any account whose role holds
+  `conversations.manage`. Nothing here checks a role name: closed-conversation review, the operator
+  entry point, the spam carve-outs and who is notified all ask for that permission.
+- `Conversation.ParticipantKey` is the sorted pair of user ids. The database enforces uniqueness
+  of that pair together with `ContextKey`, so a general thread and a tagged thread stay separate. Get-or-create must keep that invariant under concurrent starts.
 - `ConversationParticipant` is one row per side. `LastMessageAt` belongs there, not on
   `Conversation`, because a suppressed message must reorder only the sender's list. `LastReadAt`,
   `ClearedAt`, and `MutedAt` are also per side.
@@ -56,11 +59,32 @@ thread only when that operator is one of the two participants.
 - `POST /api/conversations/with/{userId}` is the only operator conversation entry point. There is
   intentionally no arbitrary admin live-thread reader. A participant can close a conversation, after
   which administrators may review its history through the closed-only admin endpoints.
+- Context is optional: `ContextKind` is a lowercase label and `ContextId` an opaque, case-sensitive
+  identifier, supplied together. They are metadata, never proof of access. Message knows no SOS,
+  ticket, order, or other feature model. Existing and untagged requests reuse the general thread.
+- Hosts may register multiple `IMessageConversationPolicy` adapters. Every start/reuse must pass
+  all creation rules. Existing-conversation restrictions are combined as denials and applied before
+  SQL paging/counts, unread totals, message reads, attachment reads, sends, and close/delete. Staff
+  have no policy bypass. A host that requires context must reject untagged creation itself; removing
+  a policy removes that application's additional restriction. The adapter may use permissions or
+  its own domain data, must include revoked contexts, and must not depend on `IMessageService`.
+- Sending checks current email verification in the service by default, for HTTP and in-process
+  callers. Deployments may disable that default with `Message:Access:RequireVerifiedEmail`; their
+  policy adapters still apply. A recipient forbidden from reading a thread receives no new sends.
 - `POST /api/conversations` is get-or-create with an existing account by `ParticipantId`. The caller's
   own id is 400 and an unknown id is 404. There is no user search here; a caller must already know
   the id.
 - `POST /api/conversations/{id}/close` closes both participant views permanently. Closed threads are
   read-only for participants, while every administrator is notified and may review the complete history.
+- `DELETE /api/conversations/{id}` is a hard delete for everyone: the conversation, its participant
+  rows and its messages go through the cascading foreign keys, and every attached file is then
+  deleted through `IMessageAttachments.DeleteAsync`. `clear` stays the per-side, non-destructive hide.
+- Who may close and who may delete is a per-deployment choice, `Message:Access:Close` and
+  `Message:Access:Delete`, each `Both` (default), `Users`, or `Admins`. An "admin" here is any
+  account holding `conversations.manage`, and it may act on a conversation it is not in; a "user" is
+  a participant without that permission. `Users` therefore refuses a manager even in their own
+  thread. A caller the setting excludes gets 403; a non-participant without the permission still
+  gets 404. Both rules live in `MessageService`, never in the controller.
 
 ## Attachments
 
@@ -99,12 +123,29 @@ report restrictions, notifications, and attachments are its own optional ports i
 them to Moderation, Notification and Media. Remove a bridge and that capability switches off; Message
 still builds and runs.
 
-`Message:Spam` binds once at startup and is validated there; a bad threshold stops the host.
+`Message:Spam` and `Message:Access` bind once at startup and are validated there; a bad threshold
+or an unknown access value stops the host.
 
 There is no null broadcaster. The API is the only host, and it always has the hub.
 
 ## Boundaries
 
-This service does not build groups, typing indicators, presence, reactions, edits, deletes, unsends,
-location sharing, push transport, or an administrator's arbitrary live-conversation read route.
-Administrators can review explicitly closed conversation history only; live reads remain participant-scoped.
+This service does not build groups, typing indicators, presence, reactions, edits, single-message
+deletes, unsends, location sharing, push transport, or an administrator's arbitrary
+live-conversation read or list route. Administrators can review explicitly closed conversation
+history only; live reads remain participant-scoped, so a manager closes or deletes a live thread
+they are not in only by an id they already hold.
+
+Deleting a conversation deletes its attachments after the rows are gone; with no attachment
+adapter plugged in there are none to delete. Evidence Moderation froze when a message was reported
+is Moderation's own copy and is not touched. The delete sends no notification or hub event.
+
+Account deletion is refused with a caller-facing 409 while the account participates in any
+conversation, including closed history. Message registers User's deletion guard so its restrictive
+foreign keys never surface as an HTTP 500. Remove those conversations explicitly first; deleting
+one participant must not silently erase the other participant's shared history. Clearing a side
+or closing a conversation does not remove that history or satisfy the guard.
+
+Closed conversations also appear in the staff inbox as the `conversations` channel. That bridge is
+the host's (`Apps/Api/Integrations/InboxIntegration.cs`) and calls the same closed-history and
+delete methods; nothing here knows about Inbox. Text filters on these routes are `?keyword=`.

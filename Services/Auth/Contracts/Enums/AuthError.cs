@@ -28,5 +28,8 @@ public enum AuthError
     InvalidToken,
 
     /// <summary>A new password equal to the current one — the one check beyond length.</summary>
-    WeakPassword
+    WeakPassword,
+
+    /// <summary>The name typed to confirm an account deletion is not the account's own.</summary>
+    NameMismatch
 }

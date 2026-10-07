@@ -1,0 +1,67 @@
+name: ${COMPOSE_PROJECT_NAME:-northstar-demo}
+services:
+  postgres:
+    image: postgis/postgis:17-3.5
+    environment:
+      POSTGRES_DB: northstar
+      POSTGRES_USER: northstar
+      POSTGRES_PASSWORD: ${DEMO_POSTGRES_PASSWORD:?Run a startup script first}
+    ports: ["127.0.0.1:${DATABASE_PORT:-55432}:5432"]
+    volumes: ["postgres-data:/var/lib/postgresql/data"]
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U northstar -d northstar"]
+      interval: 2s
+      timeout: 3s
+      retries: 30
+  redis:
+    image: redis:7.4-alpine
+    ports: ["127.0.0.1:${REDIS_PORT:-56379}:6379"]
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 2s
+      timeout: 3s
+      retries: 30
+  mailpit:
+    image: axllent/mailpit:v1.27.8
+    ports: ["127.0.0.1:${SMTP_PORT:-51025}:1025", "127.0.0.1:${MAIL_PORT:-58025}:8025"]
+  api:
+    build:
+      context: .
+      dockerfile: Apps/Api/Dockerfile
+    depends_on:
+      postgres: { condition: service_healthy }
+      redis: { condition: service_healthy }
+    environment:
+      ASPNETCORE_ENVIRONMENT: Production
+      Postgres__Host: postgres
+      Postgres__Port: 5432
+      Cache__ConnectionString: redis:6379
+      Demo__SmtpHost: mailpit
+      Demo__SmtpPort: 1025
+    volumes:
+      - ./.local/runtime.json:/app/.local/runtime.json:ro
+      - ./.local/storage:/app/.local/storage
+    ports: ["127.0.0.1:${API_PORT:-4102}:8080"]
+    healthcheck:
+      test: ["CMD-SHELL", "bash -c 'exec 3<>/dev/tcp/127.0.0.1/8080; printf \"GET /health HTTP/1.1\\r\\nHost: localhost\\r\\nConnection: close\\r\\n\\r\\n\" >&3; cat <&3 | grep -q Healthy'"]
+      interval: 3s
+      timeout: 5s
+      retries: 40
+  web:
+    build:
+      context: .
+      dockerfile: Apps/Web/Dockerfile
+    depends_on:
+      api: { condition: service_healthy }
+    environment:
+      API_INTERNAL_URL: http://api:8080
+      WEB_REDIS_URL: redis://redis:6379
+      MARKETING_URL: http://localhost:${WEB_PORT:-3104}
+    ports: ["127.0.0.1:${WEB_PORT:-3104}:3104"]
+    healthcheck:
+      test: ["CMD", "node", "-e", "fetch('http://127.0.0.1:3104').then(r=>process.exit(r.ok?0:1)).catch(()=>process.exit(1))"]
+      interval: 3s
+      timeout: 5s
+      retries: 40
+volumes:
+  postgres-data:

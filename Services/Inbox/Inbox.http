@@ -1,0 +1,46 @@
+@baseUrl = http://localhost:4002
+@accessToken = replace-with-a-token-whose-role-has-inbox.manage
+@threadId = replace-with-an-id-from-a-list
+
+### The channels this role may open, and whether each is connected. 403 without inbox.manage
+GET {{baseUrl}}/api/inbox/channels
+Authorization: Bearer {{accessToken}}
+
+### Visitor conversations, open ones first
+GET {{baseUrl}}/api/inbox/messages?page=1&pageSize=10
+Authorization: Bearer {{accessToken}}
+
+### The same list, matching a keyword against one field of the item. An unknown field is 400
+GET {{baseUrl}}/api/inbox/messages?field=contact&keyword=sam@example.com
+Authorization: Bearer {{accessToken}}
+
+### GitHub issues. 403 without github.manage, 502 while no repository is connected
+GET {{baseUrl}}/api/inbox/github?keyword=checkout
+Authorization: Bearer {{accessToken}}
+
+### Closed member conversations. 403 without conversations.manage
+GET {{baseUrl}}/api/inbox/conversations
+Authorization: Bearer {{accessToken}}
+
+### A channel that is not plugged in: 404
+GET {{baseUrl}}/api/inbox/unknown
+Authorization: Bearer {{accessToken}}
+
+### One thread with its messages and what staff may do to it
+GET {{baseUrl}}/api/inbox/messages/{{threadId}}
+Authorization: Bearer {{accessToken}}
+
+### Reply (201). 409 once resolved, 400 on a channel that takes no replies
+POST {{baseUrl}}/api/inbox/messages/{{threadId}}/replies
+Authorization: Bearer {{accessToken}}
+Content-Type: application/json
+
+{"body":"Thanks for getting in touch. Here is the pricing page."}
+
+### Resolve (204). On the GitHub channel this closes the issue
+POST {{baseUrl}}/api/inbox/messages/{{threadId}}/resolve
+Authorization: Bearer {{accessToken}}
+
+### Delete the thread and everything in it (204). 400 on a channel that cannot delete
+DELETE {{baseUrl}}/api/inbox/messages/{{threadId}}
+Authorization: Bearer {{accessToken}}

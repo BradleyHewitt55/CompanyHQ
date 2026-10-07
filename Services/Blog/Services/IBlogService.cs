@@ -10,7 +10,7 @@ public interface IBlogService
 {
     Task<PagedResult<ClientBlogPostDto>> ListAsync(
         PageRequest page,
-        string? search = null,
+        SearchRequest? search = null,
         ResponseAudience audience = ResponseAudience.Client,
         Guid? actingUserId = null,
         CancellationToken cancellationToken = default);
@@ -23,20 +23,17 @@ public interface IBlogService
 
     Task<ClientBlogPostDto> CreateAsync(
         CreateBlogPostRequest request,
-        ResponseAudience audience = ResponseAudience.Client,
         Guid? actingUserId = null,
         CancellationToken cancellationToken = default);
 
     Task<ClientBlogPostDto?> UpdateAsync(
         string slug,
         UpdateBlogPostRequest request,
-        ResponseAudience audience = ResponseAudience.Client,
         Guid? actingUserId = null,
         CancellationToken cancellationToken = default);
 
     Task<bool> DeleteAsync(
         string slug,
-        ResponseAudience audience = ResponseAudience.Client,
         Guid? actingUserId = null,
         CancellationToken cancellationToken = default);
 }

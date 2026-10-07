@@ -12,5 +12,8 @@ public enum MediaScope
     Message,
 
     /// <summary>A profile image, public once ready.</summary>
-    User
+    User,
+
+    /// <summary>Public images for authored content, including blog covers.</summary>
+    Content
 }

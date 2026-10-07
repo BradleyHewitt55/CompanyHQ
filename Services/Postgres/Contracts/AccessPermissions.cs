@@ -6,6 +6,13 @@ public static class AccessPermissions
     public const string ManageRoles = "roles.manage";
     public const string ManageUsers = "users.manage";
     public const string ReadPrivateUsers = "users.read_private";
+    public const string ManageConversations = "conversations.manage";
+    public const string ManageCompany = "company.manage";
+    public const string ManageModeration = "moderation.manage";
+    public const string ManageMedia = "media.manage";
+    public const string ManageInbox = "inbox.manage";
+    public const string ManageGitHub = "github.manage";
+    public const string ManageAppointments = "appointments.manage";
 
     public static IReadOnlyList<string> Client { get; } =
         [McpCapabilityCatalog.SearchArea, McpCapabilityCatalog.GetMyNotificationPreferences];
@@ -28,7 +35,8 @@ public static class AccessPermissions
         McpCapabilityCatalog.UpdateEmailTemplate,
         McpCapabilityCatalog.PreviewEmailTemplate,
         McpCapabilityCatalog.ResetEmailTemplate,
-        ManageRoles, ManageUsers, ReadPrivateUsers
+        ManageRoles, ManageUsers, ReadPrivateUsers, ManageConversations,
+        ManageCompany, ManageModeration, ManageMedia, ManageInbox, ManageGitHub, ManageAppointments
     ];
 
     public static string[] Normalize(IEnumerable<string>? permissions) =>
