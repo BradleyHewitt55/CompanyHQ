@@ -3,15 +3,20 @@ import Link from 'next/link';
 import './home.css';
 import { CompanyLogo } from '../Components/company-logo';
 import { ContactWidget } from '../Components/contact-widget';
+import { canOpenAdmin } from '../src/api/access';
 import { requestJson } from '../src/api/client';
 import { getCompanyProfile } from '../src/api/company';
-import type { ClientWidgetDto } from '../src/api/types';
+import { readAccessToken } from '../src/api/session';
+import type { AuthUserDto, ClientWidgetDto } from '../src/api/types';
+import { logoutAction } from './auth/login/actions';
 
 /** The company's default public website: who they are and how to reach them. */
 export default async function HomePage() {
   const company = await getCompanyProfile();
   // The form is left out, not broken, when the API has no widget plugged in or cannot be reached.
   const widget = await requestJson<ClientWidgetDto>('/api/widget').catch(() => undefined);
+  // A visitor stays a visitor when there is no session or the API cannot confirm it.
+  const user = await readAccessToken() ? await requestJson<AuthUserDto>('/api/auth/me').catch(() => undefined) : undefined;
   const name = company?.name || 'Our company';
   const year = new Date().getFullYear();
 
@@ -25,7 +30,16 @@ export default async function HomePage() {
         <nav className="site-nav" aria-label="Main">
           <a href="#about">About</a>
           <a href="#contact">Contact</a>
-          <Link className="site-nav-cta" href="/auth/login">Sign in</Link>
+          {user ? (
+            <>
+              {canOpenAdmin(user.permissions) && <Link href="/admin">Admin</Link>}
+              <form action={logoutAction}>
+                <button className="site-nav-cta" type="submit">Sign out</button>
+              </form>
+            </>
+          ) : (
+            <Link className="site-nav-cta" href="/auth/login">Sign in</Link>
+          )}
         </nav>
       </header>
 

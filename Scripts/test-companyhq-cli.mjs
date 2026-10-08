@@ -1,98 +1,37 @@
-// One isolated Git lifecycle regression: create, publish/fetch updates, preservation and refusal.
+// Creation regression: the starter a company receives, and the refusal to overwrite one.
 import assert from 'node:assert/strict';
-import { cp, mkdir, readFile, writeFile, rename, readdir } from 'node:fs/promises';
+import { readFile, readdir, rm } from 'node:fs/promises';
+import { existsSync } from 'node:fs';
 import { spawnSync } from 'node:child_process';
 import { fileURLToPath } from 'node:url';
 import path from 'node:path';
 import { randomUUID } from 'node:crypto';
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
-const area = path.resolve(process.argv[2] ?? path.join(root, '.testagent', `cli-${randomUUID()}`));
-const upstream = path.join(area, 'publisher');
-const remote = path.join(area, 'upstream.git');
-const project = path.join(area, 'consumer');
-await mkdir(upstream, { recursive: true });
-function command(tool, args, cwd = root, expected = 0) {
-  const result = spawnSync(tool, args, { cwd, encoding: 'utf8', windowsHide: true });
-  if (result.error) throw result.error;
-  assert.equal(result.status, expected, `${tool} ${args[0]}: ${result.stdout}\n${result.stderr}`);
-  return `${result.stdout}${result.stderr}`.trim();
-}
-function git(args, cwd = upstream) { return command('git', args, cwd); }
+const project = path.resolve(process.argv[2] ?? path.join(root, '.testagent', `cli-${randomUUID()}`));
 function cli(args, expected = 0) {
-  if (args[0] === 'update') {
-    const target = args[2];
-    return command('powershell.exe', ['-NoProfile', '-ExecutionPolicy', 'Bypass', '-File', path.join(target, 'Scripts/Update.ps1')], target, expected);
-  }
-  return command(process.execPath, [path.join(root, 'Scripts/companyhq.mjs'), ...args], root, expected);
+  const result = spawnSync(process.execPath, [path.join(root, 'Scripts/companyhq.mjs'), ...args], { cwd: root, encoding: 'utf8', windowsHide: true });
+  if (result.error) throw result.error;
+  assert.equal(result.status, expected, `${result.stdout}\n${result.stderr}`);
 }
-const excluded = new Set(['node_modules', '.next', 'bin', 'obj', '.git', '.local', 'artifacts', '.env', '.env.dev', '.env.local', '.testagent', 'tsconfig.tsbuildinfo']);
-for (const item of ['Apps', 'Services', 'Assets', 'Scripts', 'Templates', 'Tests', 'AGENTS.md', '.gitignore', '.dockerignore', 'docker-compose.yml', 'docker-compose.dev.yml']) {
-  await cp(path.join(root, item), path.join(upstream, item), { recursive: true, filter: file => !excluded.has(path.basename(file)) });
+try {
+  cli(['create', '--name', 'Northstar Studio', '--path', project, '--port-offset', '100']);
+  assert.deepEqual((await readdir(path.join(project, 'Scripts'))).sort(), ['AGENTS.md', 'StartDev.ps1', 'StartProd.ps1', 'Update.ps1']);
+  // Both start scripts write the company's migrations themselves; the starter ships none.
+  for (const file of ['StartDev.ps1', 'StartProd.ps1']) assert.match(await readFile(path.join(project, 'Scripts', file), 'utf8'), /^Update-Migrations\r?$/m);
+  assert.equal(existsSync(path.join(project, 'Apps/Api/Migrations')), false);
+  // Generic services arrive as packages: no HQ source, local state or secrets in a new company.
+  for (const absent of ['.companyhq', '.local', '.env', 'artifacts']) assert.equal(existsSync(path.join(project, absent)), false, absent);
+  assert.match(await readFile(path.join(project, 'Apps/Api/Company.Api.csproj'), 'utf8'), /PackageReference Include="CompanyHQ\.Api"/);
+  assert.match(await readFile(path.join(project, 'Directory.Build.props'), 'utf8'), /<CompanyHQVersion>\d+\.\d+\.\d+</);
+  const settings = JSON.parse(await readFile(path.join(project, 'project.json'), 'utf8'));
+  assert.equal(settings.slug, 'northstar-studio');
+  assert.equal(settings.ports.web, 3204);
+  const scripts = JSON.parse(await readFile(path.join(project, 'Apps/Web/package.json'), 'utf8')).scripts;
+  assert.equal(scripts['api:types'], 'node api-types.mjs');
+  assert.ok(existsSync(path.join(project, 'Apps/Web/api-types.mjs')));
+  cli(['create', '--name', 'Overwrite', '--path', project], 1);
+  console.log('companyhq create: passed');
+} finally {
+  await rm(project, { recursive: true, force: true });
 }
-git(['init', '--initial-branch=main']);
-git(['config', 'user.name', 'CompanyHQ CLI Test']);
-git(['config', 'user.email', 'cli-test@example.test']);
-git(['add', '.']);
-git(['commit', '-m', 'Initial shared service snapshot']);
-git(['init', '--bare', '--initial-branch=main', remote]);
-git(['remote', 'add', 'origin', remote]);
-git(['push', '-u', 'origin', 'main']);
-const first = git(['rev-parse', 'HEAD']);
-cli(['create', '--name', 'Northstar Studio', '--path', project, '--source', remote, '--port-offset', '100']);
-for (const file of ['StartDev.ps1', 'StartProd.ps1', 'Update.ps1', 'AGENTS.md']) assert.ok((await readFile(path.join(project, 'Scripts', file), 'utf8')).length);
-assert.deepEqual((await readdir(path.join(project, 'Scripts'))).sort(), ['AGENTS.md', 'StartDev.ps1', 'StartProd.ps1', 'Update.ps1']);
-assert.equal((await readdir(project)).includes('artifacts'), false);
-cli(['create', '--name', 'Overwrite', '--path', project, '--source', remote], 1);
-const personalFiles = ['Apps/Web/app/page.tsx', 'Scripts/StartDev.ps1', 'Scripts/AGENTS.md', 'project.json'];
-await writeFile(path.join(project, 'Scripts/custom.ps1'), '# Company-owned script\n');
-const before = new Map(await Promise.all(personalFiles.map(async file => [file, await readFile(path.join(project, file), 'utf8')])));
-const sharedFile = 'Services/Geo/Services/GeoService.cs';
-const marker = '// Published generic-service update used by the CLI regression.\n';
-await writeFile(path.join(upstream, sharedFile), marker + await readFile(path.join(upstream, sharedFile), 'utf8'));
-await writeFile(path.join(upstream, 'Apps/Web/app/page.tsx'), '// An upstream website must never replace a consumer website.\n');
-git(['add', '.']); git(['commit', '-m', 'Publish a generic service change']); git(['push', 'origin', 'main']);
-const second = git(['rev-parse', 'HEAD']);
-assert.notEqual(first, second);
-assert.match(cli(['update', '--project', project]), /Updated CompanyHQ/);
-const lock = JSON.parse(await readFile(path.join(project, '.companyhq/lock.json'), 'utf8'));
-assert.equal(lock.revision, second);
-assert.ok((await readFile(path.join(project, '.companyhq/source', sharedFile), 'utf8')).replaceAll('\r\n', '\n').startsWith(marker));
-for (const [file, content] of before) assert.equal(await readFile(path.join(project, file), 'utf8'), content);
-assert.equal(await readFile(path.join(project, 'Scripts/custom.ps1'), 'utf8'), '# Company-owned script\n');
-assert.match(cli(['update', '--project', project]), /already current/);
-const checkout = path.join(project, '.companyhq/source');
-await writeFile(path.join(checkout, 'untracked-local-change.txt'), 'Preserve me');
-assert.match(cli(['update', '--project', project], 1), /local edits/);
-await rename(path.join(checkout, 'untracked-local-change.txt'), path.join(area, 'preserved-local-change.txt'));
-await rename(checkout, path.join(area, 'preserved-checkout'));
-assert.match(cli(['update', '--project', project]), /Restored the locked/);
-assert.equal(git(['rev-parse', 'HEAD'], checkout), second);
-// A force-pushed older branch must not silently downgrade a consumer.
-git(['push', '--force', 'origin', `${first}:refs/heads/main`]);
-cli(['update', '--project', project], 1);
-assert.equal(git(['rev-parse', 'HEAD'], checkout), second);
-assert.equal(JSON.parse(await readFile(path.join(project, '.companyhq/lock.json'), 'utf8')).revision, second);
-git(['push', '--force', 'origin', 'main']);
-// Put the publisher website back for a fresh fixture suitable for Docker integration CI.
-git(['checkout', first, '--', 'Apps/Web/app/page.tsx']);
-git(['add', '.']); git(['commit', '-m', 'Restore upstream consumer template']); git(['push', 'origin', 'main']);
-cli(['update', '--project', project]);
-const linkedProject = path.join(area, 'linked-consumer');
-const linkedSource = path.join(area, 'linked-source');
-git(['clone', remote, linkedSource]);
-await mkdir(path.join(linkedProject, '.companyhq'), { recursive: true });
-await writeFile(path.join(linkedProject, '.companyhq/lock.json'), JSON.stringify({ version: 1, mode: 'linked', path: '../linked-source', source: remote, branch: 'main', revision: git(['rev-parse', 'HEAD'], linkedSource) }));
-await writeFile(path.join(upstream, sharedFile), marker + await readFile(path.join(upstream, sharedFile), 'utf8'));
-git(['add', '.']); git(['commit', '-m', 'Publish shared change for linked consumers']); git(['push', 'origin', 'main']);
-await mkdir(path.join(linkedProject, 'Scripts'));
-await cp(path.join(project, 'Scripts/Update.ps1'), path.join(linkedProject, 'Scripts/Update.ps1'));
-assert.match(cli(['update', '--project', linkedProject]), /Updated CompanyHQ/);
-assert.equal(git(['rev-parse', 'HEAD'], linkedSource), git(['rev-parse', 'HEAD']));
-await writeFile(path.join(linkedSource, 'local-work.txt'), 'Keep local shared work');
-assert.match(cli(['update', '--project', linkedProject], 1), /local edits/);
-assert.equal(await readFile(path.join(linkedSource, 'local-work.txt'), 'utf8'), 'Keep local shared work');
-cli(['update', '--project', project]);
-const report = { passed: ['default scripts on creation', 'refuse existing destination', 'published Git update', 'company file preservation', 'no-op when current', 'refuse dirty dependencies', 'restore locked dependency', 'refuse force-pushed downgrade', 'linked shared-checkout update', 'linked local edits preserved'], project, remote, before: first, after: git(['rev-parse', 'HEAD'], checkout) };
-await writeFile(path.join(area, 'companyhq-cli.json'), JSON.stringify(report, null, 2));
-console.log(JSON.stringify(report, null, 2));

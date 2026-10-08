@@ -5,7 +5,7 @@ services:
     environment:
       POSTGRES_DB: northstar
       POSTGRES_USER: northstar
-      POSTGRES_PASSWORD: ${DEMO_POSTGRES_PASSWORD:?Run a startup script first}
+      POSTGRES_PASSWORD: ${Postgres__Password:?Copy .env.example to .env and fill in the values}
     ports: ["127.0.0.1:${DATABASE_PORT:-55432}:5432"]
     volumes: ["postgres-data:/var/lib/postgresql/data"]
     healthcheck:
@@ -28,19 +28,30 @@ services:
     build:
       context: .
       dockerfile: Apps/Api/Dockerfile
+      secrets: [packages_token]
     depends_on:
       postgres: { condition: service_healthy }
       redis: { condition: service_healthy }
+    # The same .env Compose reads, so the database and the API share one set of credentials.
+    env_file:
+      - .env
     environment:
       ASPNETCORE_ENVIRONMENT: Production
+      # Needed only to build; the running API never sees it.
+      COMPANYHQ_PACKAGES_TOKEN: ""
       Postgres__Host: postgres
       Postgres__Port: 5432
       Cache__ConnectionString: redis:6379
       Demo__SmtpHost: mailpit
       Demo__SmtpPort: 1025
-    volumes:
-      - ./.local/runtime.json:/app/.local/runtime.json:ro
-      - ./.local/storage:/app/.local/storage
+      # Links in emails and OAuth metadata must use the ports project.json publishes.
+      Auth__WebBaseAddress: http://localhost:${WEB_PORT:-3104}
+      Marketing__Origins__0: http://localhost:${WEB_PORT:-3104}
+      Media__ContentBaseUrl: http://localhost:${API_PORT:-4102}
+      Mcp__OAuth__PublicWebBaseAddress: http://localhost:${WEB_PORT:-3104}
+      Mcp__OAuth__AuthorizationServerBaseAddress: http://localhost:${API_PORT:-4102}
+      Mcp__OAuth__ResourceAddress: http://localhost:${API_PORT:-4102}/mcp
+    volumes: ["media-data:/app/Apps/Api/storage"]
     ports: ["127.0.0.1:${API_PORT:-4102}:8080"]
     healthcheck:
       test: ["CMD-SHELL", "bash -c 'exec 3<>/dev/tcp/127.0.0.1/8080; printf \"GET /health HTTP/1.1\\r\\nHost: localhost\\r\\nConnection: close\\r\\n\\r\\n\" >&3; cat <&3 | grep -q Healthy'"]
@@ -65,3 +76,7 @@ services:
       retries: 40
 volumes:
   postgres-data:
+  media-data:
+secrets:
+  packages_token:
+    environment: COMPANYHQ_PACKAGES_TOKEN

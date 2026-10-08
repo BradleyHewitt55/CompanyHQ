@@ -1,6 +1,6 @@
 # CompanyHQ
 
-Shared C# services, dependency update tooling, and a minimal company starter.
+Shared C# services published as NuGet packages, and a minimal company starter that consumes them.
 
 ```powershell
 node .\Scripts\companyhq.mjs create --name "My Company" --path D:\Projects\MyCompany
@@ -10,19 +10,18 @@ cd D:\Projects\MyCompany
 
 Creation installs exactly StartDev.ps1, StartProd.ps1, Update.ps1 and Scripts/AGENTS.md.
 StartDev defaults to --Web on the host with API/infrastructure in Docker; StartProd starts all in Docker.
+Both write the company's database migrations whenever its model changed, before building.
 The destination must be empty; use --port-offset 100 if another starter occupies the default ports.
-Copy .env.example to .env or .env.dev and configure admin credentials before the first start.
+Copy .env.example to .env and fill it in before the first start.
 
-Inside the company, Update pulls the saved upstream and records its exact commit. Rebuild afterward.
-Without Update it continues using the selected version. A first update after a fresh clone restores the
-locked revision; a second advances to latest. Company-owned apps, configuration and scripts survive updates.
-Edited dependencies and non-forward upstream history stop the update. Commit the dependency lock file.
-HQ must be committed and pushed before other users can fetch changes from GitHub.
+A company holds no HQ source. It references the CompanyHQ packages on GitHub Packages at the one version
+pinned in its Directory.Build.props; its Update script moves that pin to the newest release or to any
+older one. A release is a vX.Y.Z tag pushed here, which publishes every package at that version.
+Published versions never change, so a company that does not update keeps building.
 
-Implementations and client Contracts are source ProjectReferences, not published HQ NuGet packages.
-C# clients reference Contracts; TypeScript types are generated from service OpenAPI documents.
+C# clients reference the Contracts packages; TypeScript types are generated from OpenAPI documents.
 An existing Blazor/company website can keep its UI and call the API without adopting the starter website.
-See [the consumer guide](Templates/Company/README.md) for DTO references, Blazor calls and admin seeding.
+See [the consumer guide](Templates/Company/README.md) for packages, migrations, contracts and admin seeding.
 
 Verification tooling belongs to HQ, not generated company folders. Run node Scripts/test-companyhq-cli.mjs
-only when validating creation/update changes. No consumer artifacts directory is created by startup.
+only when validating creation changes. No consumer artifacts directory is created by startup.

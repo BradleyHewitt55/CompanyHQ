@@ -9,7 +9,7 @@ const options = { httpOnly: true, sameSite: 'lax' as const, secure: process.env.
 
 export async function middleware(request: NextRequest) {
   const pathname = request.nextUrl.pathname;
-  const publicPage = /^\/auth\/(login|signup|forgot-password|reset-password|verify-email|confirm-email-change|confirm-account-deletion)$/.test(pathname);
+  const publicPage = pathname === '/' || /^\/auth\/(login|signup|forgot-password|reset-password|verify-email|confirm-email-change|confirm-account-deletion)$/.test(pathname);
   let token = request.cookies.get(ACCESS_TOKEN_COOKIE)?.value;
   const refreshToken = request.cookies.get(REFRESH_TOKEN_COOKIE)?.value;
   let session: AuthSessionDto | undefined;
@@ -58,6 +58,6 @@ export async function middleware(request: NextRequest) {
   result.headers.set('Cache-Control', 'no-store');
   return result;
 }
-// The public home page is not matched: it needs no session. Only the admin console and the auth
-// pages (which redirect a signed-in user away) go through the session check.
-export const config = { runtime: 'nodejs', matcher: ['/admin/:path*', '/auth/:path*'] };
+// The public home page needs no session but is matched so a returning visitor's expired access
+// token is refreshed before its header renders; the auth pages redirect a signed-in user away.
+export const config = { runtime: 'nodejs', matcher: ['/', '/admin/:path*', '/auth/:path*'] };

@@ -1,0 +1,23 @@
+name: Company services CI
+on: [push, pull_request, workflow_dispatch]
+permissions:
+  contents: read
+jobs:
+  company:
+    runs-on: ubuntu-latest
+    env:
+      # A token with read:packages for the account that publishes the CompanyHQ packages.
+      COMPANYHQ_PACKAGES_TOKEN: ${{ secrets.COMPANYHQ_PACKAGES_TOKEN }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: 10.0.x
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Test the company services against disposable Postgres and Redis
+        run: dotnet test Tests/Company.Tests.csproj
+      - name: Check the website against the generated API types
+        working-directory: Apps/Web
+        run: npm ci && npm run typecheck

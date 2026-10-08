@@ -30,14 +30,12 @@ using CompanyHQ.Services.Users.Extensions;
 using CompanyHQ.Services.Widget.Extensions;
 
 // Before the host builds, so the .env values are visible to configuration binding.
-// This host only reads its own configuration.
+EnvironmentFile.Load();
 
 var builder = WebApplication.CreateBuilder(args);
-builder.Configuration.AddJsonFile(Path.GetFullPath(Path.Combine(builder.Environment.ContentRootPath, "../../.local/runtime.json")), optional: false)
-    .AddEnvironmentVariables();
 
 // Every service's constructor dependencies are checked when the host builds, in every
-// environment â€” so a port with no adapter (Email without Resend, Media without Cloudflare) stops
+// environment — so a port with no adapter (Email without Resend, Media without Cloudflare) stops
 // startup instead of failing the first request that needs it.
 builder.Host.UseDefaultServiceProvider((context, provider) =>
 {
@@ -69,7 +67,7 @@ builder.Services.AddCors(options => options.AddPolicy(
 
 // Infrastructure first. Postgres discovers every service's models from this assembly's dependency
 // graph and applies the migrations built into it.
-builder.Services.AddPostgres(builder.Configuration, typeof(EnvironmentFile).Assembly);
+builder.Services.AddPostgres(builder.Configuration, System.Reflection.Assembly.GetExecutingAssembly());
 builder.Services.AddUsers(builder.Configuration);
 builder.Services.AddCache(builder.Configuration);
 
@@ -103,8 +101,21 @@ builder.Services.AddIntegrations();
 // Last: it discovers MCP-marked controller actions from every assembly registered above.
 builder.Services.AddMcp(builder.Configuration);
 
-// One generated document per controller-owning service registered above.
+// One document for every controller, generic and company-owned; the website's types come from it.
+builder.Services.AddOpenApi("api");
 
+// One contract per company-owned service, discovered from its controllers rather than listed, and
+// named after its folder (Company.Services.Orders -> order -> Services/Orders/Contracts/OpenApi).
+var controllers = new Microsoft.AspNetCore.Mvc.Controllers.ControllerFeature();
+mvc.PartManager.PopulateFeature(controllers);
+foreach (var assembly in controllers.Controllers.Select(controller => controller.Assembly).Distinct()
+    .Where(assembly => !assembly.GetName().Name!.StartsWith("CompanyHQ.", StringComparison.Ordinal)))
+{
+    var service = assembly.GetName().Name!.Split('.')[^1].ToLowerInvariant();
+    builder.Services.AddOpenApi(service.EndsWith('s') ? service[..^1] : service, options => options.ShouldInclude = description =>
+        description.ActionDescriptor is Microsoft.AspNetCore.Mvc.Controllers.ControllerActionDescriptor action
+        && action.ControllerTypeInfo.Assembly == assembly);
+}
 
 var app = builder.Build();
 
@@ -125,6 +136,7 @@ app.UseRateLimiter();
 app.UseAuthorization();
 
 app.MapControllers();
+if (app.Environment.IsDevelopment()) app.MapOpenApi();
 app.MapMessages();
 app.MapMcpEndpoint();
 app.MapHealthChecks("/health");

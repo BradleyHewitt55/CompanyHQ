@@ -5,80 +5,71 @@ From this project folder:
 ```powershell
 .\Scripts\StartDev.ps1         # default --Web: Next.js on host, API and infrastructure in Docker
 .\Scripts\StartProd.ps1        # build and start the entire stack in Docker
-.\Scripts\Update.ps1           # pull HQ updates; rebuild afterward
+.\Scripts\Update.ps1           # choose the CompanyHQ release; rebuild afterward
 ```
 
 The public home page, sign-in pages and admin pages belong to one Next.js app. StartDev accepts
---{project} for a configured Node web app. The three scripts are self-contained; there is no consumer
-CI, test runner, helper script or bundled CLI. Startup creates only ignored runtime state under .local,
-not an artifacts directory. Docker volumes and local storage survive restarts.
+--{project} for a configured Node web app and keeps it in the foreground; Ctrl+C stops it. The three
+scripts are self-contained and create no local state: configuration comes from .env, and the database
+and uploaded media live in Docker volumes that survive restarts.
 
-## Seed an administrator
+Docker, Node and the .NET SDK must be installed.
 
-Copy .env.example to .env for production or .env.dev for development, then replace its email and
-password. Development reads .env followed by .env.dev; process environment variables take precedence.
-The supported values are Seed__Admin__Email, Seed__Admin__Password, Seed__Admin__FirstName and
-Seed__Admin__LastName. Both email and password are required. Simple literal dotenv values, optionally
-wrapped in matching quotes, are supported; shell expansion and multiline values are not.
+## Configure and seed an administrator
 
-On API startup the existing HQ seeder creates a missing verified administrator with a hashed password.
-It preserves an existing administrator's password and refuses to promote an existing non-admin account.
+Copy .env.example to .env and fill in every value before the first start; both modes read that one
+file. Compose hands it to the database and the API, so they share one set of credentials. The seed
+values are Seed__Admin__Email, Seed__Admin__Password, Seed__Admin__FirstName and Seed__Admin__LastName.
+Both email and password are required. Use simple literal values; shell expansion and multiline values
+are not supported. Ports and the Compose project name come from project.json.
+
+On API startup the HQ seeder creates a missing verified administrator with a hashed password. It
+preserves an existing administrator's password and refuses to promote an existing non-admin account.
 Changing the environment password does not reset an existing account: use its password reset flow.
-Credentials are private and must never be committed. Existing demo credentials remain usable unless
-explicitly configured differently. First company-profile initialization needs valid seeded credentials.
+Credentials are private and must never be committed.
 
-## Use your existing furniture website, including Blazor
+## CompanyHQ packages
 
-Keep the existing website and its UI. There is no need to replace it with this Next.js starter, move it
-into CompanyHQ, or run the starter website. Add the API as a backing service and connect only the
-features your site needs. The create command requires an empty destination; do not run it over an
-existing website. The current startup scripts launch a Node website, so an existing Blazor website
-keeps its own dotnet launch command and deployment, or gets company-specific lifecycle scripts.
+Generic implementations and contracts come from CompanyHQ NuGet packages on GitHub Packages; there is
+no HQ source checkout. The company API references CompanyHQ.Api, which brings every generic service; a
+company service references only the packages it uses. Downloading them needs a GitHub token with
+read:packages: sign in to the GitHub CLI (gh auth refresh -s read:packages), or set
+COMPANYHQ_PACKAGES_TOKEN in .env. CI needs it as a repository secret.
 
-Currently generic implementations and contracts come from Git source ProjectReference dependencies,
-not published CompanyHQ NuGet packages. The consumer API references HQ's API project, which references
-the individual service projects. Updating the HQ checkout and rebuilding compiles the selected source.
-Blazor clients reference only the needed Contracts projects; they should not pull server implementations,
-EF Core, provider credentials or database access into a browser build.
+The company builds against the one CompanyHQ version in Directory.Build.props until Update is run.
+Update with no argument moves to the newest published release, Update 0.1.0 pins a specific one
+(older or newer) and Update --list shows what is published; it changes nothing else. Published
+releases never change, so a company that stays on an older one keeps building. There is no automatic
+upgrade at startup.
 
-For example, if an existing website project sits at Apps/Web, a managed dependency reference is:
+## Database migrations
 
-```xml
-<ItemGroup>
-  <ProjectReference Include="../../Services/YourService/Contracts/YourService.Contracts.csproj" />
-</ItemGroup>
-```
+This company owns its migrations (Apps/Api/Migrations), covering the generic tables and its own.
+StartDev and StartProd write them: when a company model changed, or a CompanyHQ update changed a
+generic one, the script adds a migration before building, and the API applies it when it starts. The
+first start writes the Initial migration. Commit every migration with the change that needed it.
 
-Company-owned services reference local contracts; generic services reference the selected HQ checkout.
-Adjust the path for your existing project location. These contracts currently target .NET 10, so an
-older Blazor project needs an explicit framework compatibility decision before referencing them.
+A migration that would delete data, such as a removed column, is written but not applied: the script
+stops so it can be reviewed, and running the script again applies it. Rolling a database back is a
+separate decision; the scripts only move forward.
 
-Use a typed HttpClient with the relevant C# Contracts assembly to call your API.
+## Company services, contracts and tests
 
-For Blazor Server, calls run on the server. Keep the current UI and acquire/forward each user's token
-through your authentication integration; the site's own login cookie does not automatically authenticate
-with this JWT API. For WebAssembly, calls run in the browser; register the client in the browser project,
-use the public API address and allow its exact origin, Authorization header and required verbs in API CORS.
-The existing marketing CORS policy allows only public calls and is insufficient for authenticated to-do
-PUT/DELETE requests. For Auto/prerendered components, registration may be needed on both server and client.
-See [Microsoft's Blazor API guidance](https://learn.microsoft.com/en-us/aspnet/core/blazor/call-web-api?view=aspnetcore-10.0).
+Add a company service under Services: reference the CompanyHQ packages it uses, reference the service
+from the company API, and register it there. A CompanyHQ update never replaces company services.
 
-The TypeScript version uses npm run api:types to generate src/api/schema.d.ts from HQ's published service
-OpenAPI documents. These declarations give compile-time shapes; HTTP JSON carries actual values.
-API changes still need corresponding client work if their contracts break. Newly introduced generic services
-may also require explicit registration in your company-owned API host; updates do not rewrite that host.
+Building the API image writes one OpenAPI contract per company service. StartDev and StartProd copy
+each into Services/{Name}/Contracts/OpenApi/{name}.json; commit them with the C# contracts. npm run
+api:types (in Apps/Web) does the same and also generates src/api/schema.d.ts from the document
+covering every generic and company controller, so TypeScript types are never hand-copied.
 
-## Choose when to update
+A Blazor or other .NET client needs no generation step: it references the C# contracts directly, the
+CompanyHQ.Services.{Name}.Contracts packages for generic DTOs and the company's own Contracts projects
+for its services. Contracts carry no database or provider code, so they are safe in a browser build.
 
-A managed project stays on the exact commit recorded in .companyhq/lock.json until Update is run.
-Keep and commit that lock file. After a fresh clone, the first update restores the locked revision;
-a subsequent update advances to the latest saved branch. Updates preserve company-owned UI and scripts.
-The Northstar demo instead links ../CompanyHQ: rebuilding immediately uses that folder's local changes.
-For independent old-version retention, use a separate managed checkout for your existing company.
+Company tests live in Tests as one xUnit project, the same flow CompanyHQ uses: dotnet test
+Tests/Company.Tests.csproj boots the company API in memory against disposable Postgres and Redis
+containers and never touches the development database. Company CI (.github/workflows/company-ci.yml)
+runs those tests and typechecks the website.
 
-Publish shared HQ code to GitHub before consumers can fetch it. Run Update, review contract/migration
-changes, regenerate client types when needed, then rebuild. There is no automatic upgrade at startup and
-no dedicated release-picker/rollback command. Database migrations may need separate rollback planning.
-
-Local email and file storage are demo adapters. Choose real providers for deployment. Configure unique
-ports and Compose project names before the first start if another project is running.
+Local email and file storage are demo adapters. Choose real providers for deployment.

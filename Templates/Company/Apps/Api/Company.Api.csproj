@@ -3,19 +3,15 @@
     <TargetFramework>net10.0</TargetFramework>
     <Nullable>enable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
+    <!-- Emitting the contracts boots the host, so only the image build turns it on. -->
+    <OpenApiGenerateDocumentsOnBuild Condition=" '$(OpenApiGenerateDocumentsOnBuild)' == '' ">false</OpenApiGenerateDocumentsOnBuild>
   </PropertyGroup>
   <ItemGroup>
-    <PackageReference Include="Microsoft.EntityFrameworkCore.Relational" Version="10.0.10" />
-    <ProjectReference Include="../../.companyhq/source/Apps/Api/Api.csproj" />
-    <Compile Include="../../.companyhq/source/Apps/Api/Integrations/*.cs" Link="Integrations/%(Filename)%(Extension)" />
+    <!-- Brings every generic service, their bridges and the shared HTTP filters. -->
+    <PackageReference Include="CompanyHQ.Api" Version="[$(CompanyHQVersion)]" />
+    <PackageReference Include="Microsoft.AspNetCore.OpenApi" Version="10.0.10" />
+    <PackageReference Include="Microsoft.Extensions.ApiDescription.Server" Version="10.0.10" PrivateAssets="all" />
+    <!-- Design-time only: `dotnet ef` writes the migrations for this company's schema. -->
+    <PackageReference Include="Microsoft.EntityFrameworkCore.Design" Version="10.0.10" PrivateAssets="all" />
   </ItemGroup>
-  <!-- Reference the HQ host for migrations, not its deployment settings. -->
-  <Target Name="ExcludeUpstreamSettings" BeforeTargets="_HandleFileConflictsForPublish">
-    <ItemGroup>
-      <_UpstreamSettings Include="$([System.IO.Path]::GetFullPath('$(MSBuildProjectDirectory)/../../.companyhq/source/Apps/Api'))/appsettings*.json" />
-      <ResolvedFileToPublish Remove="@(_UpstreamSettings)" />
-      <!-- Model discovery reads the migration host's dependency graph after publication. -->
-      <ResolvedFileToPublish Include="$([System.IO.Path]::GetFullPath('$(MSBuildProjectDirectory)/../../.companyhq/source/Apps/Api'))/bin/$(Configuration)/net10.0/Api.deps.json" RelativePath="Api.deps.json" CopyToPublishDirectory="PreserveNewest" />
-    </ItemGroup>
-  </Target>
 </Project>

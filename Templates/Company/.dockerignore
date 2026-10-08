@@ -3,7 +3,6 @@
 **/bin
 **/obj
 **/.git
-.local
 .env
 .env.dev
 artifacts

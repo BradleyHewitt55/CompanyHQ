@@ -14,7 +14,7 @@ public sealed class LocalEmailProvider(IConfiguration configuration) : IEmailPro
     public async Task<EmailSendResult> SendAsync(EmailMessage message, CancellationToken cancellationToken = default)
     {
         message.Validate();
-        using var mail = new MailMessage { From = new("hello@northstar.test", configuration["Demo:CompanyName"] ?? "Demo Company"), Subject = message.Subject, Body = message.Text };
+        using var mail = new MailMessage { From = new("hello@northstar.test", "Northstar Studio"), Subject = message.Subject, Body = message.Text };
         foreach (var address in message.To) mail.To.Add(address);
         mail.AlternateViews.Add(AlternateView.CreateAlternateViewFromString(message.Html, Encoding.UTF8, "text/html"));
         using var smtp = new SmtpClient(configuration["Demo:SmtpHost"] ?? "localhost", configuration.GetValue("Demo:SmtpPort", 51025));
@@ -36,7 +36,7 @@ public sealed class LocalObjectStorage : IMediaObjectStorageProvider
 
     public LocalObjectStorage(IConfiguration configuration, IWebHostEnvironment environment)
     {
-        root = Path.GetFullPath(Path.Combine(environment.ContentRootPath, "../../.local/storage"));
+        root = Path.Combine(environment.ContentRootPath, "storage");
         Directory.CreateDirectory(root);
         signingKey = Convert.FromBase64String(configuration["Demo:StorageSigningKey"] ?? throw new InvalidOperationException("Missing demo storage signing key."));
         origin = configuration["Media:ContentBaseUrl"] ?? "http://localhost:4102";

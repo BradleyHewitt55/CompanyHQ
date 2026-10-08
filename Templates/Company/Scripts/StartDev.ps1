@@ -1,112 +1,71 @@
+# Starts the API and backing services in Docker, then one web project on the host for debugging.
+#
+#   ./Scripts/StartDev.ps1          defaults to --Web
+#   ./Scripts/StartDev.ps1 --Web    Apps/Web on the host (next dev); Ctrl+C stops it
 param([Parameter(ValueFromRemainingArguments)][string[]]$Rest)
-$developmentMode = $true
 $ErrorActionPreference = 'Stop'
-$projectRoot = Split-Path $PSScriptRoot -Parent
-$settings = Get-Content (Join-Path $projectRoot 'project.json') -Raw | ConvertFrom-Json
-$localPath = Join-Path $projectRoot '.local'
-$envFile = Join-Path $localPath 'compose.env'
-function Initialize-Local {
-    # Process environment wins over .env.dev (development only), then .env.
-    $seedValues = @{}
-    $files = @('.env')
-    if ($developmentMode) { $files += '.env.dev' }
-    foreach ($file in $files) {
-        $filePath = Join-Path $projectRoot $file
-        if (Test-Path $filePath) {
-            foreach ($line in Get-Content $filePath) {
-                if ($line -match '^\s*(Seed__Admin__(Email|Password|FirstName|LastName))\s*=\s*(.*?)\s*$') {
-                    $value = $Matches[3]
-                    if ($value.Length -ge 2 -and (($value.StartsWith('"') -and $value.EndsWith('"')) -or ($value.StartsWith("'") -and $value.EndsWith("'")))) { $value = $value.Substring(1, $value.Length - 2) }
-                    $seedValues[$Matches[2]] = $value
-                }
-            }
-        }
-    }
-    foreach ($key in @('Email', 'Password', 'FirstName', 'LastName')) {
-        $value = [Environment]::GetEnvironmentVariable("Seed__Admin__$key")
-        if ($null -ne $value) { $seedValues[$key] = $value }
-    }
-    New-Item -ItemType Directory -Force $localPath, (Join-Path $localPath 'storage') | Out-Null
-    $configPath = Join-Path $localPath 'runtime.json'
-    if (-not (Test-Path $configPath)) {
-        function New-Secret {
-            $bytes = New-Object byte[] 32
-            $rng = [Security.Cryptography.RandomNumberGenerator]::Create()
-            try { $rng.GetBytes($bytes); [Convert]::ToBase64String($bytes) } finally { $rng.Dispose() }
-        }
-        @{
-            Postgres = @{ Password = (New-Secret) }
-            Jwt = @{ SigningKey = (New-Secret) }
-            Auth = @{ WebBaseAddress = "http://localhost:$($settings.ports.web)" }
-            Marketing = @{ Origins = @("http://localhost:$($settings.ports.web)") }
-            Mcp = @{ OAuth = @{
-                PublicWebBaseAddress = "http://localhost:$($settings.ports.web)"
-                AuthorizationServerBaseAddress = "http://localhost:$($settings.ports.api)"
-                ResourceAddress = "http://localhost:$($settings.ports.api)/mcp"
-            } }
-            Media = @{ ContentBaseUrl = "http://localhost:$($settings.ports.api)" }
-            Demo = @{ StorageSigningKey = (New-Secret); CompanyName = $settings.name }
-        } | ConvertTo-Json -Depth 8 | Set-Content $configPath
-    }
-    $config = Get-Content $configPath -Raw | ConvertFrom-Json
-    # Backfill new defaults without replacing existing company overrides or credentials.
-    if (-not $config.Marketing) {
-        $config | Add-Member -MemberType NoteProperty -Name Marketing -Value @{ Origins = @("http://localhost:$($settings.ports.web)") } -Force
-    }
-    if (-not $config.Mcp) {
-        $config | Add-Member -MemberType NoteProperty -Name Mcp -Value @{ OAuth = @{
-            PublicWebBaseAddress = "http://localhost:$($settings.ports.web)"
-            AuthorizationServerBaseAddress = "http://localhost:$($settings.ports.api)"
-            ResourceAddress = "http://localhost:$($settings.ports.api)/mcp"
-        } } -Force
-    }
-    if ($seedValues.Count) {
-        if ([string]::IsNullOrWhiteSpace($seedValues.Email) -or [string]::IsNullOrWhiteSpace($seedValues.Password)) { throw 'Configure both Seed__Admin__Email and Seed__Admin__Password.' }
-        $admin = @{ Email = $seedValues.Email; Password = $seedValues.Password; FirstName = 'Company'; LastName = 'Admin' }
-        foreach ($key in @('FirstName', 'LastName')) { if ($seedValues.ContainsKey($key)) { $admin[$key] = $seedValues[$key] } }
-        $config | Add-Member -MemberType NoteProperty -Name Seed -Value @{ Admin = $admin; FromEnvironment = $true } -Force
-    }
-    # Environment-supplied seed values apply only to this launch mode; do not reuse dev values in prod.
-    if (-not $seedValues.Count -and $config.Seed.FromEnvironment) { $config.PSObject.Properties.Remove('Seed') }
-    $config | ConvertTo-Json -Depth 8 | Set-Content $configPath
-    @(
-        "DEMO_POSTGRES_PASSWORD=$($config.Postgres.Password)"
-        "COMPOSE_PROJECT_NAME=$($settings.slug)"
-        "API_PORT=$($settings.ports.api)"
-        "WEB_PORT=$($settings.ports.web)"
-        "DATABASE_PORT=$($settings.ports.database)"
-        "REDIS_PORT=$($settings.ports.redis)"
-        "SMTP_PORT=$($settings.ports.smtp)"
-        "MAIL_PORT=$($settings.ports.mail)"
-    ) | Set-Content $envFile
+$root = Split-Path $PSScriptRoot -Parent
+$settings = Get-Content (Join-Path $root 'project.json') -Raw | ConvertFrom-Json
+$envFile = Join-Path $root '.env'
+if (-not (Test-Path $envFile)) { throw '.env not found. Copy .env.example to .env and fill in the values.' }
+
+if (-not $Rest) { $Rest = @('--Web') }
+if ($Rest.Count -ne 1 -or $Rest[0] -notmatch '^--([A-Za-z][A-Za-z0-9_-]*)$') { throw 'Expected one --{project} argument; defaults to --Web.' }
+$project = $Matches[1]
+$webPath = Join-Path $root "Apps/$project"
+if (-not (Test-Path (Join-Path $webPath 'package.json'))) { throw "Apps/$project is not a web project." }
+$port = $settings.apps.$project
+if (-not $port) { throw "Set the $project app port in project.json first." }
+
+# project.json owns the project name and ports; Compose reads .env itself for credentials.
+$env:COMPOSE_PROJECT_NAME = $settings.slug
+$env:API_PORT = $settings.ports.api
+$env:WEB_PORT = $settings.ports.web
+$env:DATABASE_PORT = $settings.ports.database
+$env:REDIS_PORT = $settings.ports.redis
+$env:SMTP_PORT = $settings.ports.smtp
+$env:MAIL_PORT = $settings.ports.mail
+
+# Downloading the CompanyHQ packages needs a GitHub token with read:packages: the one in .env, or
+# failing that the GitHub CLI login, so a broad personal token never has to be stored in a file.
+if (-not $env:COMPANYHQ_PACKAGES_TOKEN) {
+    foreach ($line in Get-Content $envFile) { if ($line -match '^\s*COMPANYHQ_PACKAGES_TOKEN\s*=\s*(\S+)\s*$') { $env:COMPANYHQ_PACKAGES_TOKEN = $Matches[1] } }
 }
-function Invoke-Stack {
-    param([switch]$Dev, [string[]]$Arguments)
-    $composeArgs = @('compose', '--project-directory', $projectRoot, '--env-file', $envFile, '-f', (Join-Path $projectRoot 'docker-compose.yml'))
-    if ($Dev) { $composeArgs += @('-f', (Join-Path $projectRoot 'docker-compose.dev.yml')) }
-    & docker @composeArgs @Arguments
-    if ($LASTEXITCODE -ne 0) { throw "Docker Compose failed ($LASTEXITCODE)." }
+if (-not $env:COMPANYHQ_PACKAGES_TOKEN -and (Get-Command gh -ErrorAction SilentlyContinue)) {
+    $env:COMPANYHQ_PACKAGES_TOKEN = gh auth token
 }
-function Wait-Url([string]$Url, [switch]$Health, [int]$TimeoutSeconds = 120) {
-    $deadline = [DateTime]::UtcNow.AddSeconds($TimeoutSeconds)
-    do {
-        try {
-            $response = Invoke-WebRequest $Url -UseBasicParsing -TimeoutSec 3
-            if ($response.StatusCode -eq 200 -and (-not $Health -or $response.Content -eq 'Healthy')) { return }
-        } catch {}
-        Start-Sleep -Milliseconds 500
-    } while ([DateTime]::UtcNow -lt $deadline)
-    throw "Timed out waiting for $Url. Inspect docker compose logs and .local logs."
+
+# This company owns the migrations for its whole schema. When one of its models changed, or a
+# CompanyHQ update changed a generic one, the migration is written here; the API applies it on start.
+function Update-Migrations {
+    if (-not (Get-Command dotnet -ErrorAction SilentlyContinue)) { throw 'The .NET SDK is required to write database migrations.' }
+    Push-Location (Join-Path $root 'Apps/Api')
+    try {
+        dotnet tool restore | Out-Null
+        if ($LASTEXITCODE -ne 0) { throw 'Could not restore the migration tool.' }
+        $built = dotnet build | Out-String
+        if ($LASTEXITCODE -ne 0) { throw "The API does not build.`n$built" }
+        $pending = dotnet ef migrations has-pending-model-changes --no-build | Out-String
+        if ($LASTEXITCODE -eq 0) { return }
+        if ($pending -notmatch 'Changes have been made to the model') { throw "Could not compare the model with the migrations.`n$pending" }
+        $name = if (Test-Path 'Migrations') { "Update$([DateTime]::UtcNow.ToString('yyyyMMddHHmmss'))" } else { 'Initial' }
+        $added = dotnet ef migrations add $name --no-build | Out-String
+        if ($LASTEXITCODE -ne 0) { throw "Could not write migration $name.`n$added" }
+        Write-Host "Wrote migration $name in Apps/Api/Migrations; commit it with the change that needed it."
+        # Nothing has touched the database yet, so a migration that drops data waits for a person.
+        if ($added -match 'loss of data') { throw "Migration $name may delete data. Review it in Apps/Api/Migrations, then run this script again to apply it." }
+    } finally { Pop-Location }
 }
+
+# Creates the company profile once, signed in as the administrator seeded from .env.
 function Initialize-Company {
     $api = "http://localhost:$($settings.ports.api)"
-    Wait-Url "$api/health" -Health
-    $existing = $null
-    try { $existing = Invoke-RestMethod "$api/api/company" } catch { if ([int]$_.Exception.Response.StatusCode -ne 404) { throw } }
-    if ($existing) { return }
-    $config = Get-Content (Join-Path $localPath 'runtime.json') -Raw | ConvertFrom-Json
-    if (-not $config.Seed.Admin.Email -or -not $config.Seed.Admin.Password) { return }
-    $login = Invoke-RestMethod "$api/api/auth/login" -Method Post -ContentType 'application/json' -Body (@{ email = $config.Seed.Admin.Email; password = $config.Seed.Admin.Password } | ConvertTo-Json)
+    try { Invoke-RestMethod "$api/api/company" | Out-Null; return } catch { if ([int]$_.Exception.Response.StatusCode -ne 404) { throw } }
+    $values = @{}
+    foreach ($line in Get-Content $envFile) {
+        if ($line -match '^\s*([A-Za-z_][A-Za-z0-9_]*)\s*=\s*(.*?)\s*$') { $values[$Matches[1]] = $Matches[2] }
+    }
+    $login = Invoke-RestMethod "$api/api/auth/login" -Method Post -ContentType 'application/json' -Body (@{ email = $values['Seed__Admin__Email']; password = $values['Seed__Admin__Password'] } | ConvertTo-Json)
     try {
         $profile = @{ name = $settings.name; website = "http://localhost:$($settings.ports.web)"; supportEmail = 'support@northstar.test'; infoEmail = 'hello@northstar.test'; description = 'A small studio building thoughtful websites and digital products.'; publicEmails = @(@{ title = 'Support'; address = 'support@northstar.test' }, @{ title = 'Hello'; address = 'hello@northstar.test' }) }
         Invoke-RestMethod "$api/api/company" -Method Put -Headers @{ Authorization = "Bearer $($login.accessToken)" } -ContentType 'application/json' -Body ($profile | ConvertTo-Json -Depth 5) | Out-Null
@@ -114,44 +73,43 @@ function Initialize-Company {
         Invoke-RestMethod "$api/api/auth/logout" -Method Post -ContentType 'application/json' -Body (@{ refreshToken = $login.refreshToken } | ConvertTo-Json) | Out-Null
     }
 }
-function Stop-HostWeb {
-    $recordPath = Join-Path $localPath 'web-process.json'
-    if (-not (Test-Path $recordPath)) { return }
-    $record = Get-Content $recordPath -Raw | ConvertFrom-Json
-    $process = Get-Process -Id $record.Id -ErrorAction SilentlyContinue
-    if ($process -and $process.StartTime.ToUniversalTime().ToString('o') -eq $record.Started) {
-        $command = (Get-CimInstance Win32_Process -Filter "ProcessId = $($record.Id)").CommandLine
-        if ($command -notlike '*next*' -or $command -notlike "*--port $($record.Port)*") { throw 'Recorded process is not the project web server.' }
-        taskkill /PID $record.Id /T /F | Out-Null
-        if ($LASTEXITCODE -ne 0) { throw 'Could not stop the project web server.' }
-    }
-    Remove-Item -LiteralPath $recordPath
+
+# The API build wrote one OpenAPI contract per company service; each goes next to its C# contracts.
+function Save-Contracts {
+    $temp = Join-Path ([IO.Path]::GetTempPath()) "company-openapi-$PID"
+    docker @compose cp api:/app/openapi $temp
+    if ($LASTEXITCODE -ne 0) { throw 'Could not read the OpenAPI contracts from the API container.' }
+    try {
+        foreach ($file in Get-ChildItem $temp -Filter *.json) {
+            $name = $file.BaseName -replace '^.*_', ''
+            # "api" describes every controller, for the website's types; it belongs to no one service.
+            if ($name -eq 'api') { continue }
+            $service = Get-ChildItem (Join-Path $root 'Services') -Directory | Where-Object Name -eq $name
+            if (-not $service) { throw "No Services folder for OpenAPI contract '$name'." }
+            $target = New-Item -ItemType Directory -Force (Join-Path $service.FullName 'Contracts/OpenApi')
+            Copy-Item $file.FullName (Join-Path $target.FullName "$name.json") -Force
+        }
+    } finally { Remove-Item $temp -Recurse -Force }
 }
 
-if (-not $Rest) { $Rest = @('--Web') }
-if ($Rest.Count -ne 1 -or $Rest[0] -notmatch '^--([A-Za-z][A-Za-z0-9_-]*)$') { throw 'Expected one --{project} argument; defaults to --Web.' }
-$project = $Matches[1]
-$webPath = Join-Path $projectRoot "Apps/$project"
-if (-not (Test-Path (Join-Path $webPath 'package.json'))) { throw "Apps/$project is not a web project." }
-$port = $settings.apps.$project
-if (-not $port) { throw "Set the $project app port in project.json first." }
-Initialize-Local
-Stop-HostWeb
-# Remove any production Web container before the host owns its port; preserve all data.
-foreach ($appName in $settings.apps.PSObject.Properties.Name) {
-    Invoke-Stack -Arguments @('stop', $appName.ToLowerInvariant())
-}
-Invoke-Stack -Dev -Arguments @('up', '-d', '--build', '--wait', '--wait-timeout', '180')
+$compose = @('compose', '--project-directory', $root, '-f', (Join-Path $root 'docker-compose.yml'))
+# A production web container would hold the port the host process needs; its data is untouched.
+docker @compose stop $project.ToLowerInvariant()
+if ($LASTEXITCODE -ne 0) { throw "Docker Compose failed ($LASTEXITCODE)." }
+Update-Migrations
+docker @compose -f (Join-Path $root 'docker-compose.dev.yml') up -d --build --wait --wait-timeout 180
+if ($LASTEXITCODE -ne 0) { throw "Docker Compose failed ($LASTEXITCODE)." }
+Save-Contracts
 Initialize-Company
+
+# The host process reaches the API and Redis on their published ports.
+$env:PORT = $port
 $env:API_INTERNAL_URL = "http://localhost:$($settings.ports.api)"
 $env:WEB_REDIS_URL = "redis://localhost:$($settings.ports.redis)"
 $env:MARKETING_URL = "http://localhost:$port"
 Push-Location $webPath
 try {
-    if (-not (Test-Path node_modules)) { npm ci; if ($LASTEXITCODE -ne 0) { throw 'npm ci failed.' } }
-    $node = (Get-Command node).Source
-    $process = Start-Process $node -ArgumentList @('node_modules/next/dist/bin/next', 'dev', '--hostname', 'localhost', '--port', $port) -WorkingDirectory $webPath -WindowStyle Hidden -RedirectStandardOutput (Join-Path $localPath 'web.log') -RedirectStandardError (Join-Path $localPath 'web-error.log') -PassThru
-    @{ Id = $process.Id; Started = $process.StartTime.ToUniversalTime().ToString('o'); Port = $port } | ConvertTo-Json | Set-Content (Join-Path $localPath 'web-process.json')
+    if (-not (Test-Path 'node_modules')) { npm ci; if ($LASTEXITCODE -ne 0) { throw 'Dependency installation failed.' } }
+    npm run dev
+    if ($LASTEXITCODE -ne 0) { throw 'Development server failed.' }
 } finally { Pop-Location }
-Wait-Url "http://localhost:$port" -TimeoutSeconds 300
-Write-Host "$($settings.name): development Web http://localhost:$port; API runs in Docker."
