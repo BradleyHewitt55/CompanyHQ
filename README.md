@@ -3,11 +3,13 @@
 Shared C# services published as NuGet packages, and a minimal company starter that consumes them.
 
 ```powershell
-node .\Scripts\companyhq.mjs create --name "My Company" --path D:\Projects\MyCompany
+npx github:BradleyHewitt55/CompanyHQ create --name "My Company" --path D:\Projects\MyCompany
 cd D:\Projects\MyCompany
 .\Scripts\StartDev.ps1
 ```
 
+No HQ checkout is needed: npx downloads this repository, so Git must be signed in to an account that
+can read it. From a checkout, node .\Scripts\companyhq.mjs create does the same.
 Creation installs exactly StartDev.ps1, StartProd.ps1, Update.ps1 and Scripts/AGENTS.md.
 StartDev defaults to --Web on the host with API/infrastructure in Docker; StartProd starts all in Docker.
 Both write the company's database migrations whenever its model changed, before building.
