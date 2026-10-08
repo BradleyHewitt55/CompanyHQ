@@ -72,6 +72,13 @@ async function create(opts) {
     });
     // npm never packs a file named .gitignore, so the starter carries it under another name.
     await rename(path.join(temporary, 'gitignore'), path.join(temporary, '.gitignore'));
+    // The development values file, and a production one with the same keys left empty.
+    const development = await readFile(path.join(temporary, 'env.dev'), 'utf8');
+    await rename(path.join(temporary, 'env.dev'), path.join(temporary, '.env.dev'));
+    await writeFile(path.join(temporary, '.env'), development
+      .replace(/^# Development values, read by StartDev\./m, '# Production values, read by StartProd.')
+      .replace(/^# Production values go in \.env, read by StartProd;/m, '# Development values go in .env.dev, read by StartDev;')
+      .replace(/^([A-Za-z_][A-Za-z0-9_]*)=.*$/gm, '$1='));
     // Pin the newest published release; the company's Update script moves it afterward. This also
     // runs from an npx download, which is not a Git checkout, so the tags are read from GitHub.
     const release = git(['ls-remote', '--tags', '--refs', repository, 'v*'], temporary).split('\n')
@@ -84,7 +91,7 @@ async function create(opts) {
     }
     if (existsSync(destination)) await rmdir(destination);
     await rename(temporary, destination);
-    console.log(`Created ${opts.name} in ${destination}. Copy .env.example to .env, fill it in, then run .\\Scripts\\StartDev.ps1`);
+    console.log(`Created ${opts.name} in ${destination}. Fill in .env.dev, then run .\\Scripts\\StartDev.ps1`);
   } catch (error) {
     await rm(temporary, { recursive: true, force: true });
     throw error;

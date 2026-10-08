@@ -32,9 +32,10 @@ services:
     depends_on:
       postgres: { condition: service_healthy }
       redis: { condition: service_healthy }
-    # The same .env Compose reads, so the database and the API share one set of credentials.
+    # The file the start script chose (.env, or .env.dev in development); Compose reads the same
+    # one, so the database and the API share one set of credentials.
     env_file:
-      - .env
+      - ${ENV_FILE:-.env}
     environment:
       ASPNETCORE_ENVIRONMENT: Production
       # Needed only to build; the running API never sees it.

@@ -14,7 +14,7 @@ Creation installs exactly StartDev.ps1, StartProd.ps1, Update.ps1 and Scripts/AG
 StartDev defaults to --Web on the host with API/infrastructure in Docker; StartProd starts all in Docker.
 Both write the company's database migrations whenever its model changed, before building.
 The destination must be empty; use --port-offset 100 if another starter occupies the default ports.
-Copy .env.example to .env and fill it in before the first start.
+Fill in .env.dev before the first StartDev, and .env before the first StartProd.
 
 A company holds no HQ source. It references the CompanyHQ packages on GitHub Packages at the one version
 pinned in its Directory.Build.props; its Update script moves that pin to the newest release or to any

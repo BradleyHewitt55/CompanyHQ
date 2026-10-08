@@ -1,4 +1,5 @@
 # Builds and starts the whole company stack in Docker.
+# Production reads .env and keeps its own database, apart from the development stack.
 #
 #   ./Scripts/StartProd.ps1
 param()
@@ -7,10 +8,11 @@ if ($args.Count) { throw 'StartProd takes no arguments; all configured services 
 $root = Split-Path $PSScriptRoot -Parent
 $settings = Get-Content (Join-Path $root 'project.json') -Raw | ConvertFrom-Json
 $envFile = Join-Path $root '.env'
-if (-not (Test-Path $envFile)) { throw '.env not found. Copy .env.example to .env and fill in the values.' }
+if (-not (Test-Path $envFile)) { throw '.env not found. It holds the production values; see README.md.' }
 
 # project.json owns the project name and ports; Compose reads .env itself for credentials.
 $env:COMPOSE_PROJECT_NAME = $settings.slug
+$env:ENV_FILE = '.env'
 $env:API_PORT = $settings.ports.api
 $env:WEB_PORT = $settings.ports.web
 $env:DATABASE_PORT = $settings.ports.database
@@ -37,6 +39,12 @@ function Update-Migrations {
         if ($LASTEXITCODE -ne 0) { throw 'Could not restore the migration tool.' }
         $built = dotnet build | Out-String
         if ($LASTEXITCODE -ne 0) { throw "The API does not build.`n$built" }
+        # Reading the model boots the host without a database, so it gets throwaway settings rather
+        # than this mode's credentials; they are removed again before Compose reads the environment.
+        $key = New-Object byte[] 32
+        [Security.Cryptography.RandomNumberGenerator]::Create().GetBytes($key)
+        $design = @{ Postgres__Password = 'migrations-only'; Postgres__AutoMigrate = 'false'; Postgres__AutoSeed = 'false'; Jwt__SigningKey = [Convert]::ToBase64String($key) }
+        foreach ($entry in $design.GetEnumerator()) { [Environment]::SetEnvironmentVariable($entry.Key, $entry.Value) }
         $pending = dotnet ef migrations has-pending-model-changes --no-build | Out-String
         if ($LASTEXITCODE -eq 0) { return }
         if ($pending -notmatch 'Changes have been made to the model') { throw "Could not compare the model with the migrations.`n$pending" }
@@ -46,7 +54,10 @@ function Update-Migrations {
         Write-Host "Wrote migration $name in Apps/Api/Migrations; commit it with the change that needed it."
         # Nothing has touched the database yet, so a migration that drops data waits for a person.
         if ($added -match 'loss of data') { throw "Migration $name may delete data. Review it in Apps/Api/Migrations, then run this script again to apply it." }
-    } finally { Pop-Location }
+    } finally {
+        foreach ($name in @('Postgres__Password', 'Postgres__AutoMigrate', 'Postgres__AutoSeed', 'Jwt__SigningKey')) { [Environment]::SetEnvironmentVariable($name, $null) }
+        Pop-Location
+    }
 }
 
 # Creates the company profile once, signed in as the administrator seeded from .env.
@@ -84,7 +95,10 @@ function Save-Contracts {
     } finally { Remove-Item $temp -Recurse -Force }
 }
 
-$compose = @('compose', '--project-directory', $root, '-f', (Join-Path $root 'docker-compose.yml'))
+$compose = @('compose', '--project-directory', $root, '--env-file', $envFile, '-f', (Join-Path $root 'docker-compose.yml'))
+# The development stack publishes the same ports; stopping it leaves its data untouched.
+docker compose -p "$($settings.slug)-dev" stop
+if ($LASTEXITCODE -ne 0) { throw "Docker Compose failed ($LASTEXITCODE)." }
 Update-Migrations
 docker @compose up -d --build --wait --wait-timeout 180
 if ($LASTEXITCODE -ne 0) { throw "Docker Compose failed ($LASTEXITCODE)." }

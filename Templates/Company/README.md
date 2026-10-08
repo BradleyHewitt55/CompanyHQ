@@ -10,15 +10,18 @@ From this project folder:
 
 The public home page, sign-in pages and admin pages belong to one Next.js app. StartDev accepts
 --{project} for a configured Node web app and keeps it in the foreground; Ctrl+C stops it. The three
-scripts are self-contained and create no local state: configuration comes from .env, and the database
-and uploaded media live in Docker volumes that survive restarts.
+scripts are self-contained and create no local state: configuration comes from .env.dev (StartDev)
+or .env (StartProd), and the database and uploaded media live in Docker volumes that survive restarts.
+Each mode has its own database, so development data never reaches production; starting one mode
+stops the other because they publish the same ports.
 
 Docker, Node and the .NET SDK must be installed.
 
 ## Configure and seed an administrator
 
-Copy .env.example to .env and fill in every value before the first start; both modes read that one
-file. Compose hands it to the database and the API, so they share one set of credentials. The seed
+Fill in every value of .env.dev before the first development start, and of .env before the first
+production start; .env is created with the same keys, all empty. Compose hands the mode's file to
+the database and the API, so they share one set of credentials. The seed
 values are Seed__Admin__Email, Seed__Admin__Password, Seed__Admin__FirstName and Seed__Admin__LastName.
 Both email and password are required. Use simple literal values; shell expansion and multiline values
 are not supported. Ports and the Compose project name come from project.json.
@@ -34,7 +37,7 @@ Generic implementations and contracts come from CompanyHQ NuGet packages on GitH
 no HQ source checkout. The company API references CompanyHQ.Api, which brings every generic service; a
 company service references only the packages it uses. Downloading them needs a GitHub token with
 read:packages: sign in to the GitHub CLI (gh auth refresh -s read:packages), or set
-COMPANYHQ_PACKAGES_TOKEN in .env. CI needs it as a repository secret.
+COMPANYHQ_PACKAGES_TOKEN in the mode's env file. CI needs it as a repository secret.
 
 The company builds against the one CompanyHQ version in Directory.Build.props until Update is run.
 Update with no argument moves to the newest published release, Update 0.1.0 pins a specific one

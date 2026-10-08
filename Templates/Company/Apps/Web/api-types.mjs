@@ -1,7 +1,7 @@
 // npm run api:types — from the running API container, refresh every company service's OpenAPI
 // contract and regenerate src/api/schema.d.ts. The documents were written when the API image was
 // built, so they always describe the C# contracts that are actually running.
-import { execFileSync, execSync } from 'node:child_process';
+import { execFileSync, execSync, spawnSync } from 'node:child_process';
 import { copyFileSync, mkdirSync, mkdtempSync, readdirSync, readFileSync, rmSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { dirname, join } from 'node:path';
@@ -13,7 +13,11 @@ const services = join(root, 'Services');
 const { slug } = JSON.parse(readFileSync(join(root, 'project.json'), 'utf8'));
 const out = mkdtempSync(join(tmpdir(), 'company-openapi-'));
 try {
-  execFileSync('docker', ['cp', `${slug}-api-1:/app/openapi/.`, out], { stdio: 'inherit' });
+  // Whichever stack is up: the development one, or failing that production.
+  const container = [`${slug}-dev-api-1`, `${slug}-api-1`]
+    .find(name => spawnSync('docker', ['ps', '-q', '--filter', `name=^${name}$`], { encoding: 'utf8' }).stdout.trim());
+  if (!container) throw new Error('The API is not running. Start the stack first.');
+  execFileSync('docker', ['cp', `${container}:/app/openapi/.`, out], { stdio: 'inherit' });
   let everything;
   for (const file of readdirSync(out)) {
     const name = /_(.+)\.json$/.exec(file)?.[1];

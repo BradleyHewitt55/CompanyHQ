@@ -21,7 +21,14 @@ try {
   for (const file of ['StartDev.ps1', 'StartProd.ps1']) assert.match(await readFile(path.join(project, 'Scripts', file), 'utf8'), /^Update-Migrations\r?$/m);
   assert.equal(existsSync(path.join(project, 'Apps/Api/Migrations')), false);
   // Generic services arrive as packages: no HQ source, local state or secrets in a new company.
-  for (const absent of ['.companyhq', '.local', '.env', 'artifacts']) assert.equal(existsSync(path.join(project, absent)), false, absent);
+  // Development values in .env.dev; .env carries the same keys, every one empty.
+  const keys = text => text.split(/\r?\n/).filter(line => /^[A-Za-z_]\w*=/.test(line)).map(line => line.split('=')[0]);
+  const development = await readFile(path.join(project, '.env.dev'), 'utf8');
+  const production = await readFile(path.join(project, '.env'), 'utf8');
+  assert.ok(keys(development).includes('Seed__Admin__Email'));
+  assert.deepEqual(keys(production), keys(development));
+  assert.doesNotMatch(production, /^[A-Za-z_]\w*=.+$/m);
+  for (const absent of ['.companyhq', '.local', '.env.example', 'env.dev', 'artifacts']) assert.equal(existsSync(path.join(project, absent)), false, absent);
   assert.match(await readFile(path.join(project, 'Apps/Api/Company.Api.csproj'), 'utf8'), /PackageReference Include="CompanyHQ\.Api"/);
   assert.match(await readFile(path.join(project, 'Directory.Build.props'), 'utf8'), /<CompanyHQVersion>\d+\.\d+\.\d+</);
   assert.match(await readFile(path.join(project, '.gitignore'), 'utf8'), /^\.env$/m);

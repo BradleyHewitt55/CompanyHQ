@@ -8,14 +8,15 @@ $ErrorActionPreference = 'Stop'
 if ($args.Count) { throw 'Update takes at most one argument: a version or --list.' }
 $root = Split-Path $PSScriptRoot -Parent
 
-# The same token the API build uses: process environment, then .env, then the GitHub CLI login.
+# The same token the API build uses: process environment, then .env.dev or .env, then the GitHub CLI login.
 $token = $env:COMPANYHQ_PACKAGES_TOKEN
-$envFile = Join-Path $root '.env'
-if (-not $token -and (Test-Path $envFile)) {
-    foreach ($line in Get-Content $envFile) { if ($line -match '^\s*COMPANYHQ_PACKAGES_TOKEN\s*=\s*(.+?)\s*$') { $token = $Matches[1] } }
+foreach ($envFile in @('.env.dev', '.env') | ForEach-Object { Join-Path $root $_ }) {
+    if (-not $token -and (Test-Path $envFile)) {
+        foreach ($line in Get-Content $envFile) { if ($line -match '^\s*COMPANYHQ_PACKAGES_TOKEN\s*=\s*(\S+)\s*$') { $token = $Matches[1] } }
+    }
 }
 if (-not $token -and (Get-Command gh -ErrorAction SilentlyContinue)) { $token = gh auth token }
-if (-not $token) { throw 'Set COMPANYHQ_PACKAGES_TOKEN in .env to a GitHub token with read:packages, or sign in with the GitHub CLI.' }
+if (-not $token) { throw 'Set COMPANYHQ_PACKAGES_TOKEN in .env.dev or .env to a GitHub token with read:packages, or sign in with the GitHub CLI.' }
 
 $feed = (([xml](Get-Content (Join-Path $root 'nuget.config') -Raw)).configuration.packageSources.add | Where-Object key -eq 'companyhq').value
 if ($feed -notmatch '^(https://.+)/index\.json$') { throw 'nuget.config has no companyhq package source.' }
