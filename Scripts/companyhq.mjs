@@ -40,8 +40,9 @@ async function copy(source, destination) {
 }
 async function create(opts) {
   validateOptions(opts, ['name', 'path', 'port-offset']);
-  if (!opts.name || !opts.path) throw new Error('create requires --name and --path.');
-  const destination = path.resolve(opts.path);
+  if (!opts.name) throw new Error('create requires --name.');
+  // Without --path the company gets a folder named after it in the current directory.
+  const destination = path.resolve(opts.path ?? opts.name.replace(/[^A-Za-z0-9]+/g, ''));
   if (existsSync(destination) && (await readdir(destination)).length) throw new Error('Create requires an empty destination; existing projects are never overwritten.');
   const slug = opts.name.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
   if (!slug) throw new Error('Company name needs at least one letter or number.');
@@ -101,7 +102,7 @@ try {
   const [command, ...args] = process.argv.slice(2);
   if (command === 'create' || command === 'init') await create(options(args));
   else {
-    console.log('CompanyHQ CLI\n  create (or init) --name "My Company" --path D:/Projects/MyCompany [--port-offset 0]');
+    console.log('CompanyHQ CLI\n  create (or init) --name "My Company" [--path D:/Projects/MyCompany] [--port-offset 0]');
     if (command && command !== 'help') process.exitCode = 1;
   }
 } catch (error) { console.error(error.message); process.exitCode = 1; }

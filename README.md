@@ -3,8 +3,8 @@
 Shared C# services published as NuGet packages, and a minimal company starter that consumes them.
 
 ```powershell
-npx github:BradleyHewitt55/CompanyHQ create --name "My Company" --path D:\Projects\MyCompany
-cd D:\Projects\MyCompany
+npx github:BradleyHewitt55/CompanyHQ create --name "My Company"
+cd MyCompany
 .\Scripts\StartDev.ps1
 ```
 
@@ -13,7 +13,8 @@ can read it. From a checkout, node .\Scripts\companyhq.mjs create does the same.
 Creation installs exactly StartDev.ps1, StartProd.ps1, Update.ps1 and Scripts/AGENTS.md.
 StartDev defaults to --Web on the host with API/infrastructure in Docker; StartProd starts all in Docker.
 Both write the company's database migrations whenever its model changed, before building.
-The destination must be empty; use --port-offset 100 if another starter occupies the default ports.
+The project lands in a folder named after the company in the current directory, or at --path. The
+destination must be empty; use --port-offset 100 if another starter occupies the default ports.
 Fill in .env.dev before the first StartDev, and .env before the first StartProd.
 
 A company holds no HQ source. It references the CompanyHQ packages on GitHub Packages at the one version
