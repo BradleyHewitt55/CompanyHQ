@@ -1,3 +1,4 @@
+#!/usr/bin/env node
 import { cp, mkdir, readFile, writeFile, readdir, rename, rm, rmdir } from 'node:fs/promises';
 import { existsSync } from 'node:fs';
 import { spawnSync } from 'node:child_process';
@@ -6,6 +7,7 @@ import { fileURLToPath } from 'node:url';
 import { randomUUID } from 'node:crypto';
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
+const repository = 'https://github.com/BradleyHewitt55/CompanyHQ.git';
 function git(args, cwd) {
   const result = spawnSync('git', args, { cwd, encoding: 'utf8', windowsHide: true });
   if (result.error) throw result.error;
@@ -32,7 +34,7 @@ function options(args) {
 function validateOptions(opts, allowed) {
   for (const key of Object.keys(opts)) if (!allowed.includes(key)) throw new Error(`Unknown option --${key}.`);
 }
-const ignored = new Set(['node_modules', '.next', 'bin', 'obj', '.git', 'artifacts', '.env', '.env.dev', '.env.local', 'tsconfig.tsbuildinfo']);
+const ignored = new Set(['node_modules', '.next', 'bin', 'obj', '.git', 'artifacts', '.env', '.env.dev', '.env.local', 'tsconfig.tsbuildinfo', 'playwright.config.ts']);
 async function copy(source, destination) {
   await cp(source, destination, { recursive: true, filter: file => !ignored.has(path.basename(file)) });
 }
@@ -68,8 +70,14 @@ async function create(opts) {
     await save(path.join(temporary, 'project.json'), {
       name: opts.name, slug, ports: { web: 3104 + offset, api: 4102 + offset, database: 55432 + offset, redis: 56379 + offset, smtp: 51025 + offset, mail: 58025 + offset }, apps: { Web: 3104 + offset },
     });
-    // Pin the newest release this checkout knows about; the company's Update script moves it afterward.
-    const release = git(['tag', '--list', 'v[0-9]*', '--sort=-v:refname'], root).split('\n')[0].trim().slice(1);
+    // npm never packs a file named .gitignore, so the starter carries it under another name.
+    await rename(path.join(temporary, 'gitignore'), path.join(temporary, '.gitignore'));
+    // Pin the newest published release; the company's Update script moves it afterward. This also
+    // runs from an npx download, which is not a Git checkout, so the tags are read from GitHub.
+    const release = git(['ls-remote', '--tags', '--refs', repository, 'v*'], temporary).split('\n')
+      .map(line => /refs\/tags\/v(\d+)\.(\d+)\.(\d+)$/.exec(line)?.slice(1).map(Number))
+      .filter(Boolean)
+      .sort((a, b) => b[0] - a[0] || b[1] - a[1] || b[2] - a[2])[0]?.join('.');
     if (release) {
       const propsFile = path.join(temporary, 'Directory.Build.props');
       await writeFile(propsFile, (await readFile(propsFile, 'utf8')).replace(/<CompanyHQVersion>[^<]+</, `<CompanyHQVersion>${release}<`));

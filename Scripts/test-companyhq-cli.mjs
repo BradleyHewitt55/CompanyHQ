@@ -24,6 +24,7 @@ try {
   for (const absent of ['.companyhq', '.local', '.env', 'artifacts']) assert.equal(existsSync(path.join(project, absent)), false, absent);
   assert.match(await readFile(path.join(project, 'Apps/Api/Company.Api.csproj'), 'utf8'), /PackageReference Include="CompanyHQ\.Api"/);
   assert.match(await readFile(path.join(project, 'Directory.Build.props'), 'utf8'), /<CompanyHQVersion>\d+\.\d+\.\d+</);
+  assert.match(await readFile(path.join(project, '.gitignore'), 'utf8'), /^\.env$/m);
   const settings = JSON.parse(await readFile(path.join(project, 'project.json'), 'utf8'));
   assert.equal(settings.slug, 'northstar-studio');
   assert.equal(settings.ports.web, 3204);
