@@ -2,7 +2,7 @@
   "name": "companyhq",
   "version": "0.0.0",
   "private": true,
-  "description": "Creates a company project that consumes the CompanyHQ packages.",
+  "description": "Creates a headless company API that consumes the generic CompanyHQ packages directly.",
   "bin": { "companyhq": "Scripts/companyhq.mjs" },
-  "files": ["Scripts/companyhq.mjs", "Templates/Company", "Apps/Web", "Assets"]
+  "files": ["Scripts/companyhq.mjs", "Templates/Company"]
 }

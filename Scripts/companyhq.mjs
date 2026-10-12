@@ -7,6 +7,8 @@ import { fileURLToPath } from 'node:url';
 import { randomUUID } from 'node:crypto';
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
+// Every CompanyHQ package shares one version. The generic Rss package is published after the other
+// generic packages, so its feed lists the complete releases; CompanyHQ.Api is deliberately not read.
 async function latestRelease() {
   let token = process.env.COMPANYHQ_PACKAGES_TOKEN?.trim();
   if (!token) {
@@ -19,7 +21,7 @@ async function latestRelease() {
   if (!feed) throw new Error('nuget.config has no companyhq package source.');
   let response;
   try {
-    response = await fetch(`${feed}/download/companyhq.api/index.json`, {
+    response = await fetch(`${feed}/download/companyhq.services.rss/index.json`, {
       headers: { Authorization: `Basic ${Buffer.from(`token:${token}`).toString('base64')}` },
       signal: AbortSignal.timeout(30000),
     });
@@ -41,7 +43,6 @@ async function latestRelease() {
   if (!versions.length) throw new Error('No released CompanyHQ version is published.');
   return versions[0];
 }
-async function json(file) { return JSON.parse(await readFile(file, 'utf8')); }
 async function save(file, value) {
   await mkdir(path.dirname(file), { recursive: true });
   const temporary = `${file}.${randomUUID()}.tmp`;
@@ -61,7 +62,7 @@ function options(args) {
 function validateOptions(opts, allowed) {
   for (const key of Object.keys(opts)) if (!allowed.includes(key)) throw new Error(`Unknown option --${key}.`);
 }
-const ignored = new Set(['node_modules', '.next', 'bin', 'obj', '.git', 'artifacts', '.env', '.env.dev', '.env.local', 'tsconfig.tsbuildinfo', 'playwright.config.ts']);
+const ignored = new Set(['node_modules', 'bin', 'obj', '.git', '.env', '.env.dev', '.env.local']);
 async function copy(source, destination) {
   await cp(source, destination, { recursive: true, filter: file => !ignored.has(path.basename(file)) });
 }
@@ -78,26 +79,9 @@ async function create(opts) {
   const temporary = `${destination}.creating-${randomUUID()}`;
   await mkdir(temporary, { recursive: true });
   try {
-    // The starter website and assets are copied once; from then on the company owns them.
+    // The starter is only the API template; any web app or assets are the company's own to add.
     await copy(path.join(root, 'Templates/Company'), temporary);
-    await copy(path.join(root, 'Apps/Web'), path.join(temporary, 'Apps/Web'));
-    await copy(path.join(root, 'Assets'), path.join(temporary, 'Assets'));
-    // Restore template-specific Docker, Next and type-generation files after the website copy.
-    await copy(path.join(root, 'Templates/Company/Apps/Web'), path.join(temporary, 'Apps/Web'));
-    const pkgFile = path.join(temporary, 'Apps/Web/package.json');
-    const pkg = await json(pkgFile);
-    pkg.name = `@${slug}/web`;
-    for (const key of ['api:document', 'api:sync', 'api:check']) delete pkg.scripts[key];
-    pkg.scripts['api:types'] = 'node api-types.mjs';
-    await save(pkgFile, pkg);
-    const npmLockFile = path.join(temporary, 'Apps/Web/package-lock.json');
-    const npmLock = await json(npmLockFile);
-    npmLock.name = pkg.name;
-    npmLock.packages[''].name = pkg.name;
-    await save(npmLockFile, npmLock);
-    await save(path.join(temporary, 'project.json'), {
-      name: opts.name, slug, ports: { web: 3104 + offset, api: 4102 + offset, database: 55432 + offset, redis: 56379 + offset, smtp: 51025 + offset, mail: 58025 + offset }, apps: { Web: 3104 + offset },
-    });
+    await save(path.join(temporary, 'project.json'), { name: opts.name, slug, ports: { api: 4102 + offset }, apps: {} });
     // npm never packs a file named .gitignore, so the starter carries it under another name.
     await rename(path.join(temporary, 'gitignore'), path.join(temporary, '.gitignore'));
     // The development values file, and a production one with the same keys left empty.
@@ -113,7 +97,7 @@ async function create(opts) {
     await writeFile(propsFile, (await readFile(propsFile, 'utf8')).replace(/<CompanyHQVersion>[^<]+</, `<CompanyHQVersion>${release}<`));
     if (existsSync(destination)) await rmdir(destination);
     await rename(temporary, destination);
-    console.log(`Created ${opts.name} in ${destination}. Fill in .env.dev, then run .\\Scripts\\StartDev.ps1`);
+    console.log(`Created ${opts.name} in ${destination}. Sign in to the GitHub CLI or set COMPANYHQ_PACKAGES_TOKEN, then run .\\Scripts\\StartDev.ps1`);
   } catch (error) {
     await rm(temporary, { recursive: true, force: true });
     throw error;

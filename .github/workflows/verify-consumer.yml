@@ -1,0 +1,78 @@
+name: Verify consumer
+# Builds and boots the starter a new company receives against an already published release, from the
+# feed rather than from source. Run it by hand to check an existing version (it never publishes or
+# touches a tag), or it is called by the publish workflow for the version just released.
+on:
+  workflow_dispatch:
+    inputs:
+      version:
+        description: Published CompanyHQ version to verify
+        required: true
+        default: 1.0.0
+  workflow_call:
+    inputs:
+      version:
+        required: true
+        type: string
+permissions:
+  contents: read
+  packages: read
+jobs:
+  consume:
+    runs-on: ubuntu-latest
+    env:
+      COMPANYHQ_PACKAGES_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      VERSION: ${{ inputs.version }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: 10.0.x
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Create the starter and pin the version under test
+        run: |
+          [[ "$VERSION" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]] || { echo 'version must be X.Y.Z'; exit 1; }
+          STARTER="$RUNNER_TEMP/companyhq-consumer"
+          node Scripts/companyhq.mjs create --name "Release Consumer" --path "$STARTER"
+          sed -i -E "s#<CompanyHQVersion>[^<]+</CompanyHQVersion>#<CompanyHQVersion>${VERSION}</CompanyHQVersion>#" "$STARTER/Directory.Build.props"
+          grep -F "<CompanyHQVersion>${VERSION}</CompanyHQVersion>" "$STARTER/Directory.Build.props"
+      - name: Restore from the published packages and check what resolved
+        working-directory: ${{ runner.temp }}/companyhq-consumer
+        run: |
+          dotnet restore Apps/Api/Company.Api.csproj
+          dotnet list Apps/Api/Company.Api.csproj package --include-transitive --format json > packages.json
+          # Exactly the two generic Rss packages, both resolved to the version under test: no host
+          # package, no other CompanyHQ package, direct or transitive.
+          node -e '
+            const version = process.env.VERSION;
+            const listed = JSON.parse(require("fs").readFileSync("packages.json", "utf8"));
+            const resolved = new Map();
+            for (const project of listed.projects ?? [])
+              for (const framework of project.frameworks ?? [])
+                for (const p of [...(framework.topLevelPackages ?? []), ...(framework.transitivePackages ?? [])])
+                  if (/^CompanyHQ\./i.test(p.id)) resolved.set(p.id, p.resolvedVersion);
+            const expected = ["CompanyHQ.Services.Rss", "CompanyHQ.Services.Rss.Contracts"];
+            const actual = [...resolved.keys()].sort();
+            console.log(JSON.stringify(Object.fromEntries(resolved)));
+            if (JSON.stringify(actual) !== JSON.stringify(expected) || [...resolved.values()].some(v => v !== version)) {
+              console.error(`expected exactly ${expected.join(", ")} at ${version}`);
+              process.exit(1);
+            }
+          '
+      - name: Build the company API
+        working-directory: ${{ runner.temp }}/companyhq-consumer
+        run: dotnet build Apps/Api/Company.Api.csproj --no-restore
+      - name: Run the API; /health is healthy and no RSS route exists
+        working-directory: ${{ runner.temp }}/companyhq-consumer
+        run: |
+          ASPNETCORE_URLS=http://127.0.0.1:5099 dotnet Apps/Api/bin/Debug/net10.0/Company.Api.dll > api.log 2>&1 &
+          pid=$!
+          trap 'kill $pid 2>/dev/null || true' EXIT
+          for _ in $(seq 1 30); do
+            curl -fsS http://127.0.0.1:5099/health && break
+            sleep 1
+          done
+          test "$(curl -s http://127.0.0.1:5099/health)" = Healthy || { cat api.log; exit 1; }
+          test "$(curl -s -o /dev/null -w '%{http_code}' http://127.0.0.1:5099/api/rss)" = 404 || { cat api.log; exit 1; }

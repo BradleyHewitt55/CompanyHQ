@@ -1,4 +1,5 @@
-# Chooses the CompanyHQ release this company builds against. Rebuild afterward.
+# Chooses the CompanyHQ release this company builds against. Rebuild afterward. Only the pin changes:
+# a newer release may need changes in the packages you added or how Program.cs registers them.
 #
 #   ./Scripts/Update.ps1            move to the newest published release
 #   ./Scripts/Update.ps1 0.1.0      pin a specific release, older or newer
@@ -21,8 +22,9 @@ if (-not $token) { throw 'Set COMPANYHQ_PACKAGES_TOKEN in .env.dev or .env to a 
 $feed = (([xml](Get-Content (Join-Path $root 'nuget.config') -Raw)).configuration.packageSources.add | Where-Object key -eq 'companyhq').value
 if ($feed -notmatch '^(https://.+)/index\.json$') { throw 'nuget.config has no companyhq package source.' }
 $headers = @{ Authorization = 'Basic ' + [Convert]::ToBase64String([Text.Encoding]::ASCII.GetBytes("token:$token")) }
-# Every CompanyHQ package shares one version, so the host library speaks for all of them.
-$published = @((Invoke-RestMethod "$($Matches[1])/download/companyhq.api/index.json" -Headers $headers).versions |
+# Every CompanyHQ package shares one version, and the generic Rss package is published after the other
+# generic packages, so its feed marks the releases that are complete. CompanyHQ.Api is not consulted.
+$published = @((Invoke-RestMethod "$($Matches[1])/download/companyhq.services.rss/index.json" -Headers $headers).versions |
     Where-Object { $_ -match '^\d+(\.\d+){1,3}$' } | Sort-Object { [version]$_ })
 if (-not $published) { throw 'No released CompanyHQ version is published.' }
 
@@ -39,4 +41,4 @@ $target = if ($Version) { $Version } else { $published[-1] }
 if ($target -notin $published) { throw "CompanyHQ $target is not published. Available: $($published -join ', ')." }
 if ($current -eq $target) { Write-Host "Already on CompanyHQ $target."; return }
 [IO.File]::WriteAllText($propsFile, $props.Replace("<CompanyHQVersion>$current</CompanyHQVersion>", "<CompanyHQVersion>$target</CompanyHQVersion>"), (New-Object Text.UTF8Encoding($false)))
-Write-Host "CompanyHQ $current -> $target. Rebuild with a startup script; it writes the migration if the generic schema differs."
+Write-Host "CompanyHQ $current -> $target. Rebuild with a startup script."

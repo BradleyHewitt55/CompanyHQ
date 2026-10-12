@@ -2,4 +2,3 @@ services:
   api:
     environment:
       ASPNETCORE_ENVIRONMENT: Development
-  web: !reset null

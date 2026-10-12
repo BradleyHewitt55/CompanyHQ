@@ -1,6 +1,6 @@
 # CompanyHQ
 
-Shared C# services published as NuGet packages, and a minimal company starter that consumes them.
+Shared C# services published as NuGet packages, and a headless company starter that consumes them.
 
 ```powershell
 npx github:BradleyHewitt55/CompanyHQ create --name "My Company"
@@ -10,24 +10,36 @@ cd MyCompany
 
 No HQ checkout is needed: npx downloads this repository, so Git must be signed in to an account that
 can read it. From a checkout, node .\Scripts\companyhq.mjs create does the same.
-Creation installs exactly StartDev.ps1, StartProd.ps1, Update.ps1 and Scripts/AGENTS.md.
-StartDev defaults to --Web on the host with API/infrastructure in Docker; StartProd starts all in Docker.
-Both write the company's database migrations whenever its model changed, before building.
+
+The starter is the company's own plain ASP.NET API. It references the generic packages it uses directly,
+beginning with CompanyHQ.Services.Rss and CompanyHQ.Services.Rss.Contracts, registered with AddRss for
+in-process use (no RSS route), and maps /health and, in Development, OpenAPI. It has no CompanyHQ.Api
+host package, demo providers, test project, website, assets, database or authentication. The company
+adds modules by referencing their packages at its pin and registering them in its own Program.cs, and
+owns whatever each module needs from its host. See [the consumer guide](Templates/Company/README.md).
+
+Creation installs exactly StartDev.ps1, StartProd.ps1, Update.ps1 and Scripts/AGENTS.md. StartDev starts
+the API in Docker and returns; --{project} additionally runs a company-owned web app on the host if the
+company has added one. StartProd starts everything in docker-compose.yml in Docker.
 The project lands in a folder named after the company in the current directory, or at --path. The
-destination must be empty; use --port-offset 100 if another starter occupies the default ports.
-Fill in .env.dev before the first StartDev, and .env before the first StartProd.
+destination must be empty; use --port-offset 100 if another starter occupies the default port.
+Configuration is environment-only: .env.dev for StartDev and .env, created with the same keys empty,
+for StartProd.
 Creation requires COMPANYHQ_PACKAGES_TOKEN in the process environment (read:packages), or a GitHub CLI
-login. It pins the newest stable version actually present in the package feed, as Update does, and
-fails if no release is available. Tags alone do not establish package availability.
+login. It pins the newest stable version present in the generic CompanyHQ.Services.Rss package feed,
+as Update does, and fails if no release is available. Tags alone do not establish package availability,
+and CompanyHQ.Api is never consulted.
 
 A company holds no HQ source. It references the CompanyHQ packages on GitHub Packages at the one version
 pinned in its Directory.Build.props; its Update script moves that pin to the newest release or to any
-older one. A release is a vX.Y.Z tag pushed here, which publishes every package at that version.
-Published versions never change, so a company that does not update keeps building.
+older one. A release is a vX.Y.Z tag pushed here, which publishes every package at that version: all
+other service and Contracts packages first, then CompanyHQ.Services.Rss as the generic completion
+marker, then the legacy CompanyHQ.Api host package for companies already pinned to it. Published
+versions never change, so a company that does not update keeps building.
 
-C# clients reference the Contracts packages; TypeScript types are generated from OpenAPI documents.
-An existing Blazor/company website can keep its UI and call the API without adopting the starter website.
-See [the consumer guide](Templates/Company/README.md) for packages, migrations, contracts and admin seeding.
+C# clients reference the Contracts packages; a company that wants TypeScript types generates them from its own
+API. Any company website, including an existing Blazor one, is the company's own and calls its API.
+See [the consumer guide](Templates/Company/README.md) for packages, adding modules and the scripts.
 
 Provider boundary upgrades and unavoidable major-version source/binary changes are documented in
 [the upgrade guide](Docs/provider-upgrade.md). The bounded two-language architecture proof, including
@@ -35,8 +47,9 @@ its repeatable disposable-database verification and real measurements, is in
 [Experiments/UniversalApi](Experiments/UniversalApi/README.md); it is not enabled in company hosts.
 
 Verification tooling belongs to HQ, not generated company folders. Run node Scripts/test-companyhq-cli.mjs
-only when validating creation changes. No consumer artifacts directory is created by startup.
-HQ CI runs generic tests, the creation regression in a fresh disposable directory, and website
-typechecking against checked-in API types; it does not regenerate those types. Release consumption
-creates the tagged starter, pins the exact published version, generates migrations without a database,
-and builds and boots the company host against disposable PostGIS and Redis.
+only when validating creation changes. HQ CI runs the generic tests, the creation regression in a fresh
+disposable directory, and website typechecking against checked-in API types (the website is HQ's own
+and is not shipped to companies). Release consumption, shared by the publish workflow and the manually
+run "Verify consumer" workflow, creates the starter, pins a published version, restores it from the
+feed, builds it, runs it and checks /health and that /api/rss does not exist. Running "Verify consumer"
+for an existing version needs no tag and publishes nothing.

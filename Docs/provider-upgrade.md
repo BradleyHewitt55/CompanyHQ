@@ -62,8 +62,13 @@ services.AddOpenStreetMap(configuration);         // new explicit adapter
 services.AddRss(configuration);                   // injectable only, no HTTP route
 ```
 
-Apps/Api and the company starter already use this composition. Custom hosts must add both adapters;
-missing required ports fail startup validation, not silently install alternate providers.
+Apps/Api and the old heavy company host already use this composition, so these instructions apply to
+**existing hosts** migrating from earlier releases. Custom hosts must add both adapters; missing
+required ports fail startup validation, not silently install alternate providers.
+
+The new company starter is not such a host: it is a minimal headless API that references only
+`CompanyHQ.Services.Rss` and `CompanyHQ.Services.Rss.Contracts` directly. It has no database provider,
+no `CompanyHQ.Api` wrapper and none of the migration or host steps in this document.
 
 ### Cache compatibility
 
@@ -115,6 +120,6 @@ uses backslash so %, _ and backslash retain their documented literal semantics.
 
 Run `dotnet test Tests/Services.IntegrationTests.csproj`, build Apps/Api, compare generated OpenAPI
 (`node Scripts/check-openapi.mjs` with validation-only startup configuration), and build an actual
-created company against **locally packed** packages at one temporary version before release. No
+created company (or an existing host) against **locally packed** packages at one temporary version before release. No
 publishing credentials/deployed databases are required for these checks. Experimental two-language
 acceptance/measurements are `python Experiments/UniversalApi/verify.py`.

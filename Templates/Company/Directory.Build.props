@@ -1,6 +1,6 @@
 <Project>
   <!-- The one CompanyHQ release every project in this company builds against. -->
   <PropertyGroup>
-    <CompanyHQVersion>0.1.1</CompanyHQVersion>
+    <CompanyHQVersion>1.0.0</CompanyHQVersion>
   </PropertyGroup>
 </Project>

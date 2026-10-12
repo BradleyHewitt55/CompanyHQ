@@ -3,15 +3,14 @@
     <TargetFramework>net10.0</TargetFramework>
     <Nullable>enable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
-    <!-- Emitting the contracts boots the host, so only the image build turns it on. -->
-    <OpenApiGenerateDocumentsOnBuild Condition=" '$(OpenApiGenerateDocumentsOnBuild)' == '' ">false</OpenApiGenerateDocumentsOnBuild>
   </PropertyGroup>
   <ItemGroup>
-    <!-- Brings every generic service, their bridges and the shared HTTP filters. -->
-    <PackageReference Include="CompanyHQ.Api" Version="[$(CompanyHQVersion)]" />
+    <!-- Exactly the generic packages this API uses, at the one pinned release. Add a module by adding
+         its package (and its Contracts package) here at the same version, then register it in Program.cs. -->
+    <PackageReference Include="CompanyHQ.Services.Rss" Version="[$(CompanyHQVersion)]" />
+    <PackageReference Include="CompanyHQ.Services.Rss.Contracts" Version="[$(CompanyHQVersion)]" />
     <PackageReference Include="Microsoft.AspNetCore.OpenApi" Version="10.0.10" />
-    <PackageReference Include="Microsoft.Extensions.ApiDescription.Server" Version="10.0.10" PrivateAssets="all" />
-    <!-- Design-time only: `dotnet ef` writes the migrations for this company's schema. -->
-    <PackageReference Include="Microsoft.EntityFrameworkCore.Design" Version="10.0.10" PrivateAssets="all" />
+    <!-- Its default transitive Microsoft.OpenApi 2.0.0 carries a high-severity advisory (NU1903). -->
+    <PackageReference Include="Microsoft.OpenApi" Version="2.7.5" />
   </ItemGroup>
 </Project>

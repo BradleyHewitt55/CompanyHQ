@@ -1,9 +1,9 @@
-name: Company services CI
+name: Company API CI
 on: [push, pull_request, workflow_dispatch]
 permissions:
   contents: read
 jobs:
-  company:
+  api:
     runs-on: ubuntu-latest
     env:
       # A token with read:packages for the account that publishes the CompanyHQ packages.
@@ -13,25 +13,6 @@ jobs:
       - uses: actions/setup-dotnet@v4
         with:
           dotnet-version: 10.0.x
-      - uses: actions/setup-node@v4
-        with:
-          node-version: 22
-      - name: Write Initial when company migrations are missing (no database)
-        env:
-          Postgres__ConnectionString: Host=127.0.0.1;Port=1;Database=migrations_only;Username=ci;Password=migrations-only
-          Postgres__Password: migrations-only
-          Postgres__AutoMigrate: 'false'
-          Postgres__AutoSeed: 'false'
-        run: |
-          if ! compgen -G 'Apps/Api/Migrations/*ModelSnapshot.cs' > /dev/null; then
-            export Jwt__SigningKey="$(openssl rand -base64 32)"
-            export Demo__StorageSigningKey="$(openssl rand -base64 32)"
-            dotnet tool restore
-            cd Apps/Api
-            dotnet ef migrations add Initial
-          fi
-      - name: Test the company services against disposable Postgres and Redis
-        run: dotnet test Tests/Company.Tests.csproj
-      - name: Typecheck the website against checked-in API types
-        working-directory: Apps/Web
-        run: npm ci && npm run typecheck
+      - name: Build the company API against the pinned packages
+        run: dotnet build Apps/Api/Company.Api.csproj -c Release
+      # When you add tests, add their step here; the starter ships none.

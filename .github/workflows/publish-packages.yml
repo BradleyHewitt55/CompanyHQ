@@ -41,14 +41,21 @@ jobs:
         env:
           COMPANYHQ_PACKAGES_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           FEED: https://nuget.pkg.github.com/${{ github.repository_owner }}/index.json
-        # Publish the host last so its feed entry cannot precede its sibling packages.
+          VERSION: ${{ steps.version.outputs.version }}
+        # Every other service and Contracts package first, then the generic Rss package: its feed is
+        # how companies find complete releases, so it must not precede its siblings. The legacy
+        # CompanyHQ.Api host package, kept for companies already pinned to it, goes last.
         # Duplicate versions fail; an immutable release must never be silently reused.
         run: |
-          find packages -name '*.nupkg' ! -name 'CompanyHQ.Api.*' -print0 |
+          RSS="CompanyHQ.Services.Rss.${VERSION}.nupkg"
+          API="CompanyHQ.Api.${VERSION}.nupkg"
+          test -f "packages/$RSS" && test -f "packages/$API" || { echo 'expected Rss and Api packages are missing'; exit 1; }
+          find packages -name '*.nupkg' ! -name "$API" ! -name "$RSS" -print0 |
             while IFS= read -r -d '' package; do
               dotnet nuget push "$package" --source "$FEED" --api-key "$COMPANYHQ_PACKAGES_TOKEN"
             done
-          dotnet nuget push 'packages/CompanyHQ.Api.*.nupkg' --source "$FEED" --api-key "$COMPANYHQ_PACKAGES_TOKEN"
+          dotnet nuget push "packages/$RSS" --source "$FEED" --api-key "$COMPANYHQ_PACKAGES_TOKEN"
+          dotnet nuget push "packages/$API" --source "$FEED" --api-key "$COMPANYHQ_PACKAGES_TOKEN"
       - uses: actions/upload-artifact@v4
         with:
           name: packages-${{ steps.version.outputs.version }}
@@ -57,49 +64,6 @@ jobs:
   # Proves the release is usable the way a company uses it: restored from the feed, not from source.
   consume:
     needs: publish
-    runs-on: ubuntu-latest
-    env:
-      COMPANYHQ_PACKAGES_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-    steps:
-      - uses: actions/checkout@v4
-        with:
-          ref: ${{ github.ref_name }}
-      - uses: actions/setup-dotnet@v4
-        with:
-          dotnet-version: 10.0.x
-      - uses: actions/setup-node@v4
-        with:
-          node-version: 22
-      - uses: actions/setup-python@v5
-        with:
-          python-version: '3.13'
-      - name: Create the actual company starter and pin this exact release
-        env:
-          VERSION: ${{ needs.publish.outputs.version }}
-        run: |
-          node Scripts/companyhq.mjs create --name "Release Consumer" --path "$RUNNER_TEMP/companyhq-consumer"
-          python - <<'PY'
-          import os, pathlib, re
-          props = pathlib.Path(os.environ['RUNNER_TEMP']) / 'companyhq-consumer/Directory.Build.props'
-          props.write_text(re.sub(r'<CompanyHQVersion>[^<]+</CompanyHQVersion>',
-              '<CompanyHQVersion>' + os.environ['VERSION'] + '</CompanyHQVersion>', props.read_text()))
-          PY
-      - name: Generate company migrations without a database
-        working-directory: ${{ runner.temp }}/companyhq-consumer
-        env:
-          Postgres__ConnectionString: Host=127.0.0.1;Port=1;Database=migrations_only;Username=ci;Password=migrations-only
-          Postgres__Password: migrations-only
-          Postgres__AutoMigrate: 'false'
-          Postgres__AutoSeed: 'false'
-        run: |
-          export Jwt__SigningKey="$(openssl rand -base64 32)"
-          export Demo__StorageSigningKey="$(openssl rand -base64 32)"
-          dotnet tool restore
-          cd Apps/Api
-          dotnet ef migrations add Initial
-      - name: Build the company host against the published packages
-        working-directory: ${{ runner.temp }}/companyhq-consumer
-        run: dotnet build Apps/Api/Company.Api.csproj
-      - name: Boot the company host on its migrations against disposable PostGIS and Redis
-        working-directory: ${{ runner.temp }}/companyhq-consumer
-        run: dotnet test Tests/Company.Tests.csproj --filter FullyQualifiedName~HostTests
+    uses: ./.github/workflows/verify-consumer.yml
+    with:
+      version: ${{ needs.publish.outputs.version }}

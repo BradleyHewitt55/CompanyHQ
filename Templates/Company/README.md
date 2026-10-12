@@ -1,102 +1,49 @@
-# Company website
+# Company API
+
+A plain ASP.NET API that uses the CompanyHQ packages directly. It starts with the generic RSS
+service as a small working example: `CompanyHQ.Services.Rss` and `CompanyHQ.Services.Rss.Contracts`,
+registered with `AddRss` for in-process use. The API maps `/health` (and OpenAPI in Development) and
+exposes no RSS route; a controller or service you write injects `IRssService` when it needs a feed.
 
 From this project folder:
 
 ```powershell
-.\Scripts\StartDev.ps1         # default --Web: Next.js on host, API and infrastructure in Docker
-.\Scripts\StartProd.ps1        # build and start the entire stack in Docker
+.\Scripts\StartDev.ps1         # API in Docker, then returns (add --Web to run your own Apps/Web on the host)
+.\Scripts\StartProd.ps1        # build and start everything in docker-compose.yml
 .\Scripts\Update.ps1           # choose the CompanyHQ release; rebuild afterward
 ```
 
-The public home page, sign-in pages and admin pages belong to one Next.js app. StartDev accepts
---{project} for a configured Node web app and keeps it in the foreground; Ctrl+C stops it. The three
-scripts are self-contained and create no local state: configuration comes from .env.dev (StartDev)
-or .env (StartProd), and the database and uploaded media live in Docker volumes that survive restarts.
-Each mode has its own database, so development data never reaches production; starting one mode
-stops the other because they publish the same ports.
-
-Docker, Node and the .NET SDK must be installed.
-
-## Configure and seed an administrator
-
-Fill in every value of .env.dev before the first development start, and of .env before the first
-production start; .env is created with the same keys, all empty. Compose hands the mode's file to
-the database and the API, so they share one set of credentials. The seed
-values are Seed__Admin__Email, Seed__Admin__Password, Seed__Admin__FirstName and Seed__Admin__LastName.
-Both email and password are required. Use simple literal values; shell expansion and multiline values
-are not supported. Ports and the Compose project name come from project.json.
-
-On API startup the HQ seeder creates a missing verified administrator with a hashed password. It
-preserves an existing administrator's password and refuses to promote an existing non-admin account.
-Changing the environment password does not reset an existing account: use its password reset flow.
-Credentials are private and must never be committed.
+Docker and a GitHub token with `read:packages` are required; the .NET SDK is only needed to build outside
+Docker. Configuration comes from `.env.dev` (StartDev) or `.env` (StartProd); `.env` is created with the same
+keys, all empty. The token is read from the process environment, then the env file, then the GitHub CLI
+login (`gh auth refresh -s read:packages`). CI needs it as the `COMPANYHQ_PACKAGES_TOKEN` repository secret.
+Ports and the Compose project name come from `project.json`. Development and production are separate
+stacks; starting one stops the other because they publish the same port.
 
 ## CompanyHQ packages
 
-Generic implementations and contracts come from CompanyHQ NuGet packages on GitHub Packages; there is
-no HQ source checkout. The company API references CompanyHQ.Api, which brings every generic service; a
-company service references only the packages it uses. Downloading them needs a GitHub token with
-read:packages: sign in to the GitHub CLI (gh auth refresh -s read:packages), or set
-COMPANYHQ_PACKAGES_TOKEN in the mode's env file. CI needs it as a repository secret. Creation reads
-the process environment first, then the GitHub CLI token, and selects the newest stable package-feed
-version; it fails when no release is published rather than falling back to a tag or template pin.
+Generic implementations and contracts come from NuGet packages on GitHub Packages, pinned to the one
+release in `Directory.Build.props`; there is no HQ source checkout and no `CompanyHQ.Api` host package.
+Creation pins the newest release present in the package feed (read through the Rss package) and fails
+when none is published. `Update` with no argument moves to the newest release, `Update 1.0.0` pins a
+specific one and `Update --list` shows what is published. It changes only the pin, never your code.
+Published releases never change, so a company that stays on an older one keeps building.
 
-The company builds against the one CompanyHQ version in Directory.Build.props until Update is run.
-Update with no argument moves to the newest published release, Update 0.1.0 pins a specific one
-(older or newer) and Update --list shows what is published; it changes nothing else. Published
-releases never change, so a company that stays on an older one keeps building. There is no automatic
-upgrade at startup.
+## Adding modules
 
-### Provider boundary upgrade
+Each module is a package plus its Contracts package, both at the pinned version. To add one:
+reference both in `Apps/Api/Company.Api.csproj` as the Rss ones are (`Version="[$(CompanyHQVersion)]"`),
+then call its `Add…` registration in `Apps/Api/Program.cs`. This API owns everything a module needs from
+its host: the database and migrations, authentication, provider adapters, configuration and any routes.
+Read the module's own documentation in the CompanyHQ repository before adding it, and read the release
+notes before moving the pin (see `Docs/provider-upgrade.md` there for the last breaking change).
 
-Custom hosts compose Cache + Redis and Geo + OpenStreetMap explicitly. The starter already does;
-existing Cache/Geo configuration, Redis keys and Geo HTTP DTOs remain unchanged. Do not flush cache
-or rewrite migrations for this split. Normal company persistence uses
-CompanyHQ.Services.Persistence; CompanyHQ.Services.Postgres is the host/EF/PostGIS adapter.
-Owning-assembly EF schema declarations remain an explicit deployment exception.
+C# clients reference a module's Contracts package. This starter generates no OpenAPI files or website
+types; add that to your API when your own client needs it.
 
-Upgrade all packages together at one immutable major release and rebuild direct concrete-service
-consumers. CacheOptions.BuildConfiguration moved to RedisOptions; concrete Geo constructors and
-Nominatim/Overpass transport namespaces changed. The historic BaseModel is type-forwarded to the
-neutral assembly and retains assignability. See CompanyHQ's Docs/provider-upgrade.md for the full
-source/binary compatibility limits. The experimental universal runtime is not part of this starter.
+## Website and tests
 
-Rss.Contracts exposes injectable server-side discovery/fetch with Changed/NotModified/Failed results
-and validators. AddRss registers no public URL endpoint, database or worker; a company feature owns
-refresh policy and sanitizes returned HTML when rendering it.
-
-## Database migrations
-
-This company owns its migrations (Apps/Api/Migrations), covering the generic tables and its own.
-StartDev and StartProd write them: when a company model changed, or a CompanyHQ update changed a
-generic one, the script adds a migration before building, and the API applies it when it starts. The
-first start writes the Initial migration. Commit every migration with the change that needed it.
-
-A migration that would delete data, such as a removed column, is written but not applied: the script
-stops so it can be reviewed, and running the script again applies it. Rolling a database back is a
-separate decision; the scripts only move forward.
-
-## Company services, contracts and tests
-
-Add a company service under Services: reference the CompanyHQ packages it uses, reference the service
-from the company API, and register it there. A CompanyHQ update never replaces company services.
-
-Building the API image writes one OpenAPI contract per company service. StartDev and StartProd copy
-each into Services/{Name}/Contracts/OpenApi/{name}.json; commit them with the C# contracts. npm run
-api:types (in Apps/Web) does the same and also generates src/api/schema.d.ts from the document
-covering every generic and company controller, so TypeScript types are never hand-copied.
-
-A Blazor or other .NET client needs no generation step: it references the C# contracts directly, the
-CompanyHQ.Services.{Name}.Contracts packages for generic DTOs and the company's own Contracts projects
-for its services. Contracts carry no database or provider code, so they are safe in a browser build.
-
-Company tests live in Tests as one xUnit project, the same flow CompanyHQ uses: dotnet test
-Tests/Company.Tests.csproj boots the company API in memory against disposable Postgres and Redis
-containers and never touches the development database. Company CI (.github/workflows/company-ci.yml)
-runs those tests and typechecks the website against checked-in API types; it does not regenerate or
-check API-document/type drift. When migrations are missing, CI writes Initial first using throwaway
-settings with AutoMigrate and AutoSeed disabled and temporary JWT/storage signing keys. Generation
-needs no database; tests then enable the normal startup behavior on their disposable infrastructure.
-Commit the company migrations generated by startup with the relevant schema changes.
-
-Local email and file storage are demo adapters. Choose real providers for deployment.
+The starter has no website and no test project. A web app is yours to add: put it in `Apps/{Name}`,
+list its port under `apps` in `project.json`, run it on the host with `StartDev.ps1 --{Name}`, and add
+its service to `docker-compose.yml` for production. Add tests to a project of your own and a step for
+them to `.github/workflows/company-ci.yml`, which only builds the API until you do.

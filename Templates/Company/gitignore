@@ -1,9 +1,6 @@
 .env
+.env.dev
 **/node_modules/
 **/.next/
 **/bin/
 **/obj/
-**/tsconfig.tsbuildinfo
-artifacts/
-
-.env.dev
