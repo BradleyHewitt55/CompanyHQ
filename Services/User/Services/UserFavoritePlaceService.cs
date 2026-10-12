@@ -1,12 +1,11 @@
-using Microsoft.EntityFrameworkCore;
-using CompanyHQ.Services.Postgres.Services;
+using CompanyHQ.Services.Persistence.Services;
 using CompanyHQ.Services.Users.Contracts.Dtos;
 using CompanyHQ.Services.Users.Contracts.Forms;
 using CompanyHQ.Services.Users.Contracts.Models;
 
 namespace CompanyHQ.Services.Users.Services;
 
-public sealed class UserFavoritePlaceService(IPostgresService<UserFavoritePlace> places) : IUserFavoritePlaceService
+public sealed class UserFavoritePlaceService(IRepository<UserFavoritePlace> places) : IUserFavoritePlaceService
 {
     public async Task<IReadOnlyList<OwnerUserFavoritePlaceDto>> ListAsync(
         Guid userId,

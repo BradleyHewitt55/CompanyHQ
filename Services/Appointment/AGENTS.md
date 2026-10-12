@@ -1,7 +1,7 @@
 # Appointment
 
 Appointment diaries. Each row belongs to one account; that account reads and edits it, and so does
-any caller whose role grants `appointments.manage`. Appointment depends on nothing but Postgres,
+any caller whose role grants `appointments.manage`. Appointment depends on neutral Persistence and shared wire contracts,
 User (the account foreign key and the permission check) and Auth's claim helpers. It knows no other
 feature service.
 

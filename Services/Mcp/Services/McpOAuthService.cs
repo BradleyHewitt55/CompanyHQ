@@ -1,19 +1,18 @@
 using System.Security.Cryptography;
 using System.Text;
 
-using Microsoft.EntityFrameworkCore;
 using Microsoft.AspNetCore.WebUtilities;
 
 using CompanyHQ.Services.Mcp.Contracts.Dtos;
 using CompanyHQ.Services.Mcp.Contracts.Enums;
 using CompanyHQ.Services.Mcp.Contracts.Forms;
 using CompanyHQ.Services.Mcp.Contracts.Models;
-using CompanyHQ.Services.Postgres.Data;
+using CompanyHQ.Services.Persistence.Services;
 
 namespace CompanyHQ.Services.Mcp.Services;
 
 public sealed class McpOAuthService(
-    PostgresDbContext context,
+    IPersistence context,
     McpOAuthOptions options,
     TimeProvider clock) : IMcpOAuthService
 {
@@ -50,7 +49,7 @@ public sealed class McpOAuthService(
                 : ["authorization_code", "refresh_token"],
             ClientName = string.IsNullOrWhiteSpace(request.ClientName) ? null : request.ClientName.Trim()
         };
-        context.Set<McpOAuthClient>().Add(client);
+        context.Add(client);
         await context.SaveChangesAsync(cancellationToken);
 
         return new McpOAuthClientDto(
@@ -68,8 +67,7 @@ public sealed class McpOAuthService(
         McpAuthorizeRequest request,
         CancellationToken cancellationToken = default)
     {
-        var registered = await context.Set<McpOAuthClient>()
-            .AsNoTracking()
+        var registered = await context.Query<McpOAuthClient>()
             .FirstOrDefaultAsync(client => client.ClientId == request.ClientId, cancellationToken);
         if (registered is null
             || !registered.RedirectUris.Any(uri => McpOAuthOptions.RedirectUrisMatch(uri, request.RedirectUri)))
@@ -89,7 +87,7 @@ public sealed class McpOAuthService(
             ExpiresAt = clock.GetUtcNow() + options.AuthorizationCodeLifetime
         };
 
-        context.Set<McpAuthorizationCode>().Add(code);
+        context.Add(code);
         await context.SaveChangesAsync(cancellationToken);
         return value;
     }
@@ -101,15 +99,11 @@ public sealed class McpOAuthService(
         var now = clock.GetUtcNow();
         var codeHash = Hash(request.Code);
 
-        // The execution strategy is required because the host enables Npgsql retries. The
-        // conditional update makes concurrent redemption single-use even when two requests race.
-        return await context.Database.CreateExecutionStrategy().ExecuteAsync(async () =>
+        // One transaction, which the provider may retry as a whole. The conditional update makes
+        // concurrent redemption single-use even when two requests race.
+        return await context.InTransactionAsync(async _ =>
         {
-            context.ChangeTracker.Clear();
-            await using var transaction = await context.Database.BeginTransactionAsync(cancellationToken);
-
-            var stored = await context.Set<McpAuthorizationCode>()
-                .AsNoTracking()
+            var stored = await context.Query<McpAuthorizationCode>()
                 .FirstOrDefaultAsync(code => code.CodeHash == codeHash, cancellationToken);
 
             if (stored is null || !stored.IsActive(now))
@@ -125,10 +119,10 @@ public sealed class McpOAuthService(
                 return McpOAuthTokenResult.Failure("invalid_grant");
             }
 
-            var consumed = await context.Set<McpAuthorizationCode>()
+            var consumed = await context.Tracked<McpAuthorizationCode>()
                 .Where(code => code.Id == stored.Id && code.ConsumedAt == null)
-                .ExecuteUpdateAsync(
-                    setters => setters.SetProperty(code => code.ConsumedAt, now),
+                .UpdateAsync(
+                    setters => setters.Set(code => code.ConsumedAt, now),
                     cancellationToken);
             if (consumed != 1)
             {
@@ -137,7 +131,7 @@ public sealed class McpOAuthService(
 
             var value = AccessTokenPrefix + WebEncoders.Base64UrlEncode(RandomNumberGenerator.GetBytes(SecretBytes));
             var expiresAt = now + options.AccessTokenLifetime;
-            context.Set<AgentKey>().Add(CreateAccessKey(
+            context.Add(CreateAccessKey(
                 value,
                 stored.UserId,
                 stored.ClientId,
@@ -145,13 +139,12 @@ public sealed class McpOAuthService(
                 expiresAt));
 
             string? refreshValue = null;
-            var registered = await context.Set<McpOAuthClient>()
-                .AsNoTracking()
+            var registered = await context.Query<McpOAuthClient>()
                 .FirstOrDefaultAsync(client => client.ClientId == stored.ClientId, cancellationToken);
             if (registered?.GrantTypes.Contains("refresh_token", StringComparer.Ordinal) is true)
             {
                 refreshValue = RefreshTokenPrefix + WebEncoders.Base64UrlEncode(RandomNumberGenerator.GetBytes(SecretBytes));
-                context.Set<McpOAuthRefreshToken>().Add(new McpOAuthRefreshToken
+                context.Add(new McpOAuthRefreshToken
                 {
                     UserId = stored.UserId,
                     TokenHash = Hash(refreshValue),
@@ -161,7 +154,6 @@ public sealed class McpOAuthService(
                 });
             }
             await context.SaveChangesAsync(cancellationToken);
-            await transaction.CommitAsync(cancellationToken);
 
             return McpOAuthTokenResult.Success(new McpOAuthTokenDto(
                 value,
@@ -169,7 +161,7 @@ public sealed class McpOAuthService(
                 checked((int)Math.Ceiling(options.AccessTokenLifetime.TotalSeconds)),
                 stored.Resource,
                 refreshValue));
-        });
+        }, cancellationToken: cancellationToken);
     }
 
     public async Task<McpOAuthTokenResult> RedeemRefreshTokenAsync(
@@ -179,17 +171,13 @@ public sealed class McpOAuthService(
         var now = clock.GetUtcNow();
         var tokenHash = Hash(request.RefreshToken);
 
-        return await context.Database.CreateExecutionStrategy().ExecuteAsync(async () =>
+        return await context.InTransactionAsync(async _ =>
         {
-            context.ChangeTracker.Clear();
-            await using var transaction = await context.Database.BeginTransactionAsync(cancellationToken);
-
-            var stored = await context.Set<McpOAuthRefreshToken>()
+            var stored = await context.Tracked<McpOAuthRefreshToken>()
                 .FirstOrDefaultAsync(token => token.TokenHash == tokenHash, cancellationToken);
             var registered = stored is null
                 ? null
-                : await context.Set<McpOAuthClient>()
-                    .AsNoTracking()
+                : await context.Query<McpOAuthClient>()
                     .FirstOrDefaultAsync(client => client.ClientId == stored.ClientId, cancellationToken);
 
             if (stored is null
@@ -205,13 +193,13 @@ public sealed class McpOAuthService(
             stored.RevokedAt = now;
             var accessValue = AccessTokenPrefix + WebEncoders.Base64UrlEncode(RandomNumberGenerator.GetBytes(SecretBytes));
             var refreshValue = RefreshTokenPrefix + WebEncoders.Base64UrlEncode(RandomNumberGenerator.GetBytes(SecretBytes));
-            context.Set<AgentKey>().Add(CreateAccessKey(
+            context.Add(CreateAccessKey(
                 accessValue,
                 stored.UserId,
                 stored.ClientId,
                 stored.Resource,
                 now + options.AccessTokenLifetime));
-            context.Set<McpOAuthRefreshToken>().Add(new McpOAuthRefreshToken
+            context.Add(new McpOAuthRefreshToken
             {
                 UserId = stored.UserId,
                 TokenHash = Hash(refreshValue),
@@ -220,7 +208,6 @@ public sealed class McpOAuthService(
                 ExpiresAt = now + options.RefreshTokenLifetime
             });
             await context.SaveChangesAsync(cancellationToken);
-            await transaction.CommitAsync(cancellationToken);
 
             return McpOAuthTokenResult.Success(new McpOAuthTokenDto(
                 accessValue,
@@ -228,7 +215,7 @@ public sealed class McpOAuthService(
                 checked((int)Math.Ceiling(options.AccessTokenLifetime.TotalSeconds)),
                 stored.Resource,
                 refreshValue));
-        });
+        }, cancellationToken: cancellationToken);
     }
 
     private static AgentKey CreateAccessKey(

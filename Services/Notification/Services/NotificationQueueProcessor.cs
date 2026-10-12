@@ -1,7 +1,6 @@
-using Microsoft.EntityFrameworkCore;
 using CompanyHQ.Services.Notifications.Contracts.Enums;
 using CompanyHQ.Services.Notifications.Contracts.Models;
-using CompanyHQ.Services.Postgres.Data;
+using CompanyHQ.Services.Persistence.Services;
 
 namespace CompanyHQ.Services.Notifications.Services;
 
@@ -11,7 +10,7 @@ namespace CompanyHQ.Services.Notifications.Services;
 /// host's build-time validation. Several API instances can run it: a claim is row-locked and leased.
 /// </summary>
 internal sealed class NotificationQueueProcessor(
-    PostgresDbContext context,
+    IPersistence context,
     INotificationDeliveryService delivery,
     TimeProvider timeProvider)
 {
@@ -23,25 +22,15 @@ internal sealed class NotificationQueueProcessor(
     {
         var now = timeProvider.GetUtcNow();
 
-        // The retrying execution strategy refuses a user-initiated transaction unless the whole
-        // claim is retriable, so the transaction opens inside the strategy rather than around it.
-        var notifications = await context.Database.CreateExecutionStrategy().ExecuteAsync(async () =>
+        // The claim is one transaction. Rows another worker has already locked are skipped rather
+        // than waited for, so two workers never deliver the same notification.
+        var notifications = await context.InTransactionAsync(async _ =>
         {
-            // A retry must not reuse entities tracked by the failed attempt.
-            context.ChangeTracker.Clear();
-
-            await using var transaction = await context.Database.BeginTransactionAsync(cancellationToken);
-
-            var claimed = await context.Set<QueuedNotification>()
-                .FromSqlInterpolated($"""
-                    SELECT *
-                    FROM queued_notification
-                    WHERE status = {nameof(QueuedNotificationStatus.Pending)}
-                      AND next_attempt_at <= {now}
-                    ORDER BY next_attempt_at, id
-                    LIMIT {BatchSize}
-                    FOR UPDATE SKIP LOCKED
-                    """)
+            var claimed = await context.Locked<QueuedNotification>(skipLocked: true)
+                .Where(notification => notification.Status == QueuedNotificationStatus.Pending && notification.NextAttemptAt <= now)
+                .OrderBy(notification => notification.NextAttemptAt)
+                .ThenBy(notification => notification.Id)
+                .Take(BatchSize)
                 .ToListAsync(cancellationToken);
 
             // The lease keeps a committed claim invisible to another worker while provider calls
@@ -53,9 +42,8 @@ internal sealed class NotificationQueueProcessor(
             }
 
             await context.SaveChangesAsync(cancellationToken);
-            await transaction.CommitAsync(cancellationToken);
             return claimed;
-        });
+        }, cancellationToken: cancellationToken);
 
         foreach (var notification in notifications)
         {

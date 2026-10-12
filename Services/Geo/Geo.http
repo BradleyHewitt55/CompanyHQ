@@ -11,7 +11,7 @@ Accept: application/json
 ### Nearby places of the configured Geo:NearbyPlaceKinds in a viewport (anonymous). ~5 km, 4 tiles.
 ### With no kinds configured the search is off and answers an empty, complete result.
 ### An empty `places` with `incomplete: false` means the area has none; 503 means nothing was cached
-### and Overpass was unavailable — retry. `address` and `phone` are null wherever OSM has no tag.
+### and the provider was unavailable — retry. `address` and `phone` are null wherever it holds none.
 GET {{Geo_HostAddress}}/api/geo/nearby-places?south=-26.15&west=28.18&north=-26.06&east=28.29
 Accept: application/json
 

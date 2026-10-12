@@ -1,4 +1,3 @@
-using Microsoft.EntityFrameworkCore;
 
 using CompanyHQ.Services.Cache.Services;
 using CompanyHQ.Services.Moderation.Contracts.Dtos;
@@ -7,15 +6,15 @@ using CompanyHQ.Services.Moderation.Contracts.Forms;
 using CompanyHQ.Services.Moderation.Contracts.Models;
 using CompanyHQ.Services.Postgres.Contracts.Dtos;
 using CompanyHQ.Services.Postgres.Contracts.Forms;
-using CompanyHQ.Services.Postgres.Services;
+using CompanyHQ.Services.Persistence.Services;
 using CompanyHQ.Services.Users.Contracts.Models;
 
 namespace CompanyHQ.Services.Moderation.Services;
 
 /// <inheritdoc cref="IBlockService" />
 public sealed class BlockService(
-    IPostgresService<UserBlock> blocks,
-    IPostgresService<User> users,
+    IRepository<UserBlock> blocks,
+    IRepository<User> users,
     ICacheService cache,
     IContentHider hider) : IBlockService
 {

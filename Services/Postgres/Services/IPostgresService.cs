@@ -6,9 +6,15 @@ using CompanyHQ.Services.Postgres.Contracts.Models;
 namespace CompanyHQ.Services.Postgres.Services;
 
 /// <summary>
-/// Generic persistence for any <see cref="BaseModel"/>. Write methods save immediately; inject
-/// <c>PostgresDbContext</c> directly when several models must commit in one transaction.
+/// Generic persistence for any <see cref="BaseModel"/>, in this provider's own terms: it hands
+/// out an <see cref="IQueryable{T}"/> and throws EF Core's exceptions. Write methods save
+/// immediately; inject <c>PostgresDbContext</c> directly when several models must commit in one
+/// transaction.
 /// </summary>
+/// <remarks>
+/// CompanyHQ's own services use the provider-neutral <c>IRepository</c> and <c>IPersistence</c>
+/// instead. This stays for code that deliberately depends on PostgreSQL and EF Core.
+/// </remarks>
 public interface IPostgresService<TModel> where TModel : BaseModel
 {
     /// <summary>Untracked queryable for reads and projections. Never use it to mutate.</summary>

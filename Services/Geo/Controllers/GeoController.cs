@@ -69,7 +69,7 @@ public sealed class GeoController(IGeoService geo) : ControllerBase
 
         // 503 only when there is nothing to show *and* a tile genuinely failed. A partial cache
         // beats an error banner, and "this area has no vets" has to stay distinguishable from an
-        // Overpass outage — that distinction is the whole point of the feature.
+        // provider outage — that distinction is the whole point of the feature.
         return result is { Places.Count: 0, Incomplete: true }
             ? StatusCode(StatusCodes.Status503ServiceUnavailable, "Nearby places are unavailable right now.")
             : Ok(result);

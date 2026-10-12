@@ -1,10 +1,9 @@
 using CompanyHQ.Services.Media.Contracts.Ports;
-using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 
 using CompanyHQ.Services.Media.Contracts.Enums;
 using CompanyHQ.Services.Media.Contracts.Models;
-using CompanyHQ.Services.Postgres.Services;
+using CompanyHQ.Services.Persistence.Services;
 using CompanyHQ.Services.Users.Contracts.Ports;
 using CompanyHQ.Services.Users.Services;
 
@@ -12,7 +11,7 @@ namespace CompanyHQ.Services.Media.Services;
 
 /// <summary>Retires owner-bound profile uploads while ignoring external and shared image URLs.</summary>
 public sealed class ProfileMediaLifecycle(
-    IPostgresService<MediaObject> mediaObjects,
+    IRepository<MediaObject> mediaObjects,
     MediaOptions options,
     IMediaObjectLifecycleStore lifecycle,
     ILogger<ProfileMediaLifecycle> logger) : IProfileMediaLifecycle

@@ -116,7 +116,7 @@ under `AuthHubs.PathPrefix` on purpose: that is where Auth accepts the browser's
 parameter, so moving it elsewhere silently makes every socket anonymous and `[Authorize]` rejects it.
 Message references Auth for that prefix and `AuthClaims.Subject`; Auth never references Message.
 
-Message references only foundation (`Postgres`, `User`, `Auth/Contracts`, `Cache`). Blocking, flags,
+Message references only foundation (`Persistence`, `Postgres.Contracts`, `User`, `Auth/Contracts`, `Cache`). Blocking, flags,
 report restrictions, notifications, and attachments are its own optional ports in
 `Contracts/Ports/` (`IMessageBlocks`, `IMessageAccountFlags`, `IMessageRestrictions`,
 `IMessageNotifier`, `IMessageAttachments`). `Apps/Api/Integrations/MessageIntegration.cs` bridges

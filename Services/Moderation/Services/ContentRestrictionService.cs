@@ -1,15 +1,14 @@
-using Microsoft.EntityFrameworkCore;
 
 using CompanyHQ.Services.Cache.Services;
 using CompanyHQ.Services.Moderation.Contracts.Enums;
 using CompanyHQ.Services.Moderation.Contracts.Models;
-using CompanyHQ.Services.Postgres.Services;
+using CompanyHQ.Services.Persistence.Services;
 
 namespace CompanyHQ.Services.Moderation.Services;
 
 /// <inheritdoc cref="IContentRestrictionService" />
 public sealed class ContentRestrictionService(
-    IPostgresService<ContentReport> reports,
+    IRepository<ContentReport> reports,
     ICacheService cache) : IContentRestrictionService
 {
     private static readonly TimeSpan CacheTtl = TimeSpan.FromMinutes(5);

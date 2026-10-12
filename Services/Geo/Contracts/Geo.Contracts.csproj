@@ -16,8 +16,6 @@
   -->
   <ItemGroup>
     <Compile Remove="Models/GeoOptions.cs" />
-    <Compile Remove="Dtos/Nominatim*.cs" />
-    <Compile Remove="Dtos/Overpass*.cs" />
   </ItemGroup>
 
   <ItemGroup>

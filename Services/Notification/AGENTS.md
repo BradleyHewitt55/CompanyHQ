@@ -53,11 +53,11 @@ boolean opt-out preferences. It accepts opaque `NotificationRequest` values thro
   notification routes. There is no read-only registration for a second host — the admin console is
   the Next.js `Apps/Web`, which reads through the API like every other client.
 - `EnqueueAsync` and `EnqueueManyAsync` add queue rows to the caller's scoped
-  `PostgresDbContext`; they deliberately do not call `SaveChangesAsync`. A domain operation that
+  `IPersistence` unit of work; they deliberately do not call `SaveChangesAsync`. A domain operation that
   enqueues notifications persists them with its own unit of work, so enqueueing cannot flush
   unrelated tracked changes at an unexpected point.
 
-The service has Postgres models; they are discovered because the API references this project.
+The service owns models mapped by the Postgres adapter; they are discovered because the API references this project.
 Firebase fills the push port (`IPushSender`) and references only Notification's contracts.
 Notification does not reference Cache — it has nothing to cache.
 

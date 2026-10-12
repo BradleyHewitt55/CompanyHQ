@@ -7,12 +7,39 @@ import { fileURLToPath } from 'node:url';
 import { randomUUID } from 'node:crypto';
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
-const repository = 'https://github.com/BradleyHewitt55/CompanyHQ.git';
-function git(args, cwd) {
-  const result = spawnSync('git', args, { cwd, encoding: 'utf8', windowsHide: true });
-  if (result.error) throw result.error;
-  if (result.status !== 0) throw new Error(`git ${args[0]} failed: ${result.stderr.trim()}`);
-  return result.stdout.trim();
+async function latestRelease() {
+  let token = process.env.COMPANYHQ_PACKAGES_TOKEN?.trim();
+  if (!token) {
+    const result = spawnSync('gh', ['auth', 'token'], { encoding: 'utf8', windowsHide: true });
+    if (result.status === 0) token = result.stdout.trim();
+  }
+  if (!token) throw new Error('Set COMPANYHQ_PACKAGES_TOKEN to a GitHub token with read:packages, or sign in with the GitHub CLI.');
+  const config = await readFile(path.join(root, 'Templates/Company/nuget.config'), 'utf8');
+  const feed = /<add key="companyhq" value="(https:\/\/[^"<>]+)\/index\.json"\s*\/>/.exec(config)?.[1];
+  if (!feed) throw new Error('nuget.config has no companyhq package source.');
+  let response;
+  try {
+    response = await fetch(`${feed}/download/companyhq.api/index.json`, {
+      headers: { Authorization: `Basic ${Buffer.from(`token:${token}`).toString('base64')}` },
+      signal: AbortSignal.timeout(30000),
+    });
+  } catch { throw new Error('Could not read the CompanyHQ package feed.'); }
+  if (!response.ok) throw new Error(`CompanyHQ package feed returned HTTP ${response.status}. Check read:packages access.`);
+  let data;
+  try { data = await response.json(); } catch { throw new Error('CompanyHQ package feed returned invalid JSON.'); }
+  // Match Update.ps1: stable numeric versions, ordered by their version components.
+  const versions = (Array.isArray(data.versions) ? data.versions : [])
+    .filter(version => typeof version === 'string' && /^\d+(\.\d+){1,3}$/.test(version))
+    .sort((a, b) => {
+      const left = a.split('.').map(BigInt), right = b.split('.').map(BigInt);
+      for (let i = 0; i < 4; i++) {
+        const difference = (right[i] ?? -1n) - (left[i] ?? -1n);
+        if (difference) return difference > 0n ? 1 : -1;
+      }
+      return 0;
+    });
+  if (!versions.length) throw new Error('No released CompanyHQ version is published.');
+  return versions[0];
 }
 async function json(file) { return JSON.parse(await readFile(file, 'utf8')); }
 async function save(file, value) {
@@ -80,16 +107,10 @@ async function create(opts) {
       .replace(/^# Development values, read by StartDev\./m, '# Production values, read by StartProd.')
       .replace(/^# Production values go in \.env, read by StartProd;/m, '# Development values go in .env.dev, read by StartDev;')
       .replace(/^([A-Za-z_][A-Za-z0-9_]*)=.*$/gm, '$1='));
-    // Pin the newest published release; the company's Update script moves it afterward. This also
-    // runs from an npx download, which is not a Git checkout, so the tags are read from GitHub.
-    const release = git(['ls-remote', '--tags', '--refs', repository, 'v*'], temporary).split('\n')
-      .map(line => /refs\/tags\/v(\d+)\.(\d+)\.(\d+)$/.exec(line)?.slice(1).map(Number))
-      .filter(Boolean)
-      .sort((a, b) => b[0] - a[0] || b[1] - a[1] || b[2] - a[2])[0]?.join('.');
-    if (release) {
-      const propsFile = path.join(temporary, 'Directory.Build.props');
-      await writeFile(propsFile, (await readFile(propsFile, 'utf8')).replace(/<CompanyHQVersion>[^<]+</, `<CompanyHQVersion>${release}<`));
-    }
+    // A tag can precede (or outlive a failed) publish; select the package feed as Update does.
+    const release = await latestRelease();
+    const propsFile = path.join(temporary, 'Directory.Build.props');
+    await writeFile(propsFile, (await readFile(propsFile, 'utf8')).replace(/<CompanyHQVersion>[^<]+</, `<CompanyHQVersion>${release}<`));
     if (existsSync(destination)) await rmdir(destination);
     await rename(temporary, destination);
     console.log(`Created ${opts.name} in ${destination}. Fill in .env.dev, then run .\\Scripts\\StartDev.ps1`);

@@ -1,10 +1,8 @@
 using System.Data;
 
-using Microsoft.EntityFrameworkCore;
 
-using CompanyHQ.Services.Postgres.Data;
+using CompanyHQ.Services.Persistence.Services;
 using CompanyHQ.Services.Postgres.Contracts;
-using CompanyHQ.Services.Postgres.Services;
 using CompanyHQ.Services.Users.Contracts.Enums;
 using CompanyHQ.Services.Users.Contracts.Models;
 using CompanyHQ.Services.Users.Contracts.Ports;
@@ -13,12 +11,12 @@ namespace CompanyHQ.Services.Users.Services;
 
 /// <inheritdoc cref="IAccountDeletionCoordinator" />
 /// <remarks>
-/// Takes <see cref="PostgresDbContext"/> because the guards' releases, the operator's row lock, and
+/// Takes <see cref="IPersistence"/> because the guards' releases, the operator's row lock, and
 /// the user delete must commit as one serializable transaction.
 /// </remarks>
 public sealed class AccountDeletionCoordinator(
-    IPostgresService<User> users,
-    PostgresDbContext context,
+    IRepository<User> users,
+    IPersistence context,
     IEnumerable<IAccountDeletionGuard> guards) : IAccountDeletionCoordinator
 {
     public Task<(AccountDeletionOutcome Result, string? Reason)> DeleteAsync(
@@ -29,27 +27,18 @@ public sealed class AccountDeletionCoordinator(
     public Task<(AccountDeletionOutcome Result, string? Reason)> DeleteAsync(
         Guid userId,
         Guid? actingAdministratorId,
-        CancellationToken cancellationToken = default)
-    {
-        var strategy = context.Database.CreateExecutionStrategy();
-        Func<Task<(AccountDeletionOutcome Result, string? Reason)>> work = async () =>
+        CancellationToken cancellationToken = default) =>
+        context.InTransactionAsync(async _ =>
         {
-            context.ChangeTracker.Clear();
-            await using var transaction = await context.Database.BeginTransactionAsync(
-                IsolationLevel.Serializable,
-                cancellationToken);
-
             if (actingAdministratorId is { } administratorId
                 && (administratorId == Guid.Empty
                     || !await CanManageUsersAsync(administratorId, userId, cancellationToken)))
             {
-                await transaction.CommitAsync(cancellationToken);
                 return (AccountDeletionOutcome.NotAuthorized, (string?)null);
             }
 
             if (!await users.ExistsAsync(userId, cancellationToken))
             {
-                await transaction.CommitAsync(cancellationToken);
                 return (AccountDeletionOutcome.NotFound, (string?)null);
             }
 
@@ -59,7 +48,6 @@ public sealed class AccountDeletionCoordinator(
             {
                 if (await guard.InspectAsync(userId, cancellationToken) is { } reason)
                 {
-                    await transaction.CommitAsync(cancellationToken);
                     return (AccountDeletionOutcome.Blocked, reason);
                 }
             }
@@ -70,37 +58,28 @@ public sealed class AccountDeletionCoordinator(
             }
 
             var deleted = await users.DeleteAsync(userId, cancellationToken);
-            await transaction.CommitAsync(cancellationToken);
 
             return deleted
                 ? (AccountDeletionOutcome.Deleted, (string?)null)
                 : (AccountDeletionOutcome.NotFound, (string?)null);
-        };
-
-        return strategy.ExecuteAsync(
-            work,
-            static async (_, operation, _) => await operation(),
-            verifySucceeded: null,
-            cancellationToken);
-    }
+        }, IsolationLevel.Serializable, cancellationToken);
 
     private async Task<bool> CanManageUsersAsync(
         Guid actorId,
         Guid targetId,
         CancellationToken cancellationToken)
     {
-        var actor = await context.Set<User>()
-            .FromSqlInterpolated($"SELECT * FROM \"user\" WHERE id = {actorId} FOR UPDATE")
-            .FirstOrDefaultAsync(cancellationToken);
+        var actor = await context.Locked<User>()
+            .FirstOrDefaultAsync(user => user.Id == actorId, cancellationToken);
 
         if (actor is null) return false;
         var actorPermissions = actor.AccessRoleId is { } roleId
-            ? await context.Set<AccessRole>().AsNoTracking().Where(role => role.Id == roleId)
+            ? await context.Query<AccessRole>().Where(role => role.Id == roleId)
                 .Select(role => role.Permissions).FirstOrDefaultAsync(cancellationToken) ?? []
             : actor.Role is UserRole.Admin ? AccessPermissions.All : AccessPermissions.Client;
         if (!actorPermissions.Contains(AccessPermissions.ManageUsers, StringComparer.Ordinal)) return false;
 
-        var target = await context.Set<User>().AsNoTracking()
+        var target = await context.Query<User>()
             .Where(user => user.Id == targetId)
             .Select(user => new { user.Role, user.AccessRoleId,
                 Permissions = user.AccessRole == null ? null : user.AccessRole.Permissions })

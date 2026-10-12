@@ -1,15 +1,14 @@
-using Microsoft.EntityFrameworkCore;
 using CompanyHQ.Services.Blogs.Contracts.Ports;
 using CompanyHQ.Services.Media.Contracts.Enums;
 using CompanyHQ.Services.Media.Contracts.Models;
 using CompanyHQ.Services.Media.Services;
-using CompanyHQ.Services.Postgres.Services;
+using CompanyHQ.Services.Persistence.Services;
 
 namespace Api.Integrations;
 
 internal sealed class BlogCoverImages(
     IMediaService media,
-    IPostgresService<MediaObject> objects,
+    IRepository<MediaObject> objects,
     IMediaObjectLifecycleStore lifecycle,
     ILogger<BlogCoverImages> logger) : IBlogCoverImages
 {

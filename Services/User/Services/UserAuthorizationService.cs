@@ -1,5 +1,4 @@
-using Microsoft.EntityFrameworkCore;
-using CompanyHQ.Services.Postgres.Services;
+using CompanyHQ.Services.Persistence.Services;
 using CompanyHQ.Services.Postgres.Contracts;
 using CompanyHQ.Services.Users.Contracts.Enums;
 using CompanyHQ.Services.Users.Contracts.Models;
@@ -7,7 +6,7 @@ using CompanyHQ.Services.Users.Contracts.Models;
 namespace CompanyHQ.Services.Users.Services;
 
 /// <summary>Reads the role row on every call; never treats a cookie or JWT claim as current authority.</summary>
-public sealed class UserAuthorizationService(IPostgresService<User> users) : IUserAuthorizationService
+public sealed class UserAuthorizationService(IRepository<User> users) : IUserAuthorizationService
 {
     public async Task<bool> HasPermissionAsync(Guid userId, string permission, CancellationToken cancellationToken = default)
     {

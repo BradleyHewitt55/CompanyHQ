@@ -44,7 +44,7 @@ member-to-member conversations (that is `Message`), or issues (that is `GitHub`)
 ## Traps and wiring
 
 - `VisitorConversationService` is one scoped instance registered three ways (itself,
-  `IVisitorConversationService`, `IInboxChannel`). It takes `PostgresDbContext`: a reply and the
+  `IVisitorConversationService`, `IInboxChannel`). It takes the neutral `IPersistence` unit: a reply and the
   conversation's activity stamp are one save.
 - A reply is saved before it is mailed, and a mail that fails to queue is logged by the bridge, not
   surfaced: the stored reply is the source of truth.

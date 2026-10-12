@@ -4,14 +4,15 @@ using CompanyHQ.Services.Cache.Services;
 using CompanyHQ.Services.Geo.Contracts.Dtos;
 using CompanyHQ.Services.Geo.Contracts.Enums;
 using CompanyHQ.Services.Geo.Contracts.Models;
+using CompanyHQ.Services.Geo.Contracts.Ports;
 
 namespace CompanyHQ.Services.Geo.Services;
 
 /// <summary>
-/// Rounding, caching, and mapping around <see cref="NominatimClient"/>.
+/// Rounding, caching, and mapping around the composed <see cref="IGeoProvider"/>.
 /// </summary>
 public sealed class GeoService(
-    NominatimClient nominatim,
+    IGeoProvider provider,
     NearbyTileStore tiles,
     NearbyTileRefresher refresher,
     ICacheService cache,
@@ -44,7 +45,9 @@ public sealed class GeoService(
             return cached;
         }
 
-        var place = await nominatim.ReverseAsync(roundedLatitude, roundedLongitude, cancellationToken);
+        var place = await provider.FindAreaAsync(
+            new GeoAreaLookup(roundedLatitude, roundedLongitude, options.AreaZoom, options.Language),
+            cancellationToken);
         if (place is null)
         {
             return null;
@@ -52,7 +55,7 @@ public sealed class GeoService(
 
         var area = Map(place, roundedLatitude, roundedLongitude);
 
-        // Only successes are written. Caching a Nominatim outage for a day would keep the app
+        // Only successes are written. Caching a provider outage for a day would keep the app
         // area-less long after the outage ended.
         await cache.SetAsync(key, area, options.CacheTtl, cancellationToken);
 
@@ -79,23 +82,20 @@ public sealed class GeoService(
             return cached;
         }
 
-        var places = await nominatim.SearchAsync(normalised, limit, cancellationToken);
+        var places = await provider.SearchAreasAsync(
+            new GeoAreaSearch(normalised, limit, options.Language),
+            cancellationToken);
         if (places.Count == 0)
         {
             return [];
         }
 
-        // A place whose coordinates will not parse is dropped rather than defaulted: a zero pair is
-        // a real position off the coast of Africa, and a picker that silently offers it is worse
-        // than one result short.
+        // A place with no usable coordinates is dropped rather than defaulted: a zero pair is a real
+        // position off the coast of Africa, and a picker that silently offers it is worse than one
+        // result short.
         var areas = places
-            .Select(place => (place, latitude: NominatimResponse.ParseCoordinate(place.Latitude),
-                longitude: NominatimResponse.ParseCoordinate(place.Longitude)))
-            .Where(candidate => candidate is { latitude: not null, longitude: not null })
-            .Select(candidate => Map(
-                candidate.place,
-                Round(candidate.latitude!.Value),
-                Round(candidate.longitude!.Value)))
+            .Where(place => place is { Latitude: not null, Longitude: not null })
+            .Select(place => Map(place, Round(place.Latitude!.Value), Round(place.Longitude!.Value)))
             .ToArray();
 
         if (areas.Length == 0)
@@ -174,21 +174,21 @@ public sealed class GeoService(
         }
 
         return new NearbyPlacesResultDto(
-            // Tiles are disjoint, so this only ever collapses the node-plus-way pairs OpenStreetMap
+            // Tiles are disjoint, so this only ever collapses the duplicate records a provider
             // sometimes carries for one real place.
             places.DistinctBy(place => (place.Latitude, place.Longitude, place.Kind, place.Name)).ToArray(),
             resolved,
             incomplete);
     }
 
-    private static AreaDto Map(NominatimResponse place, double latitude, double longitude) =>
+    private static AreaDto Map(GeoProviderArea place, double latitude, double longitude) =>
         new(
             latitude,
             longitude,
-            place.DisplayName ?? place.Address?.Locality ?? place.Address?.State ?? "Unknown area",
-            place.Address?.Locality,
-            place.Address?.State,
-            place.Address?.CountryCode?.ToUpperInvariant(),
+            place.DisplayName ?? place.Locality ?? place.Region ?? "Unknown area",
+            place.Locality,
+            place.Region,
+            place.CountryCode?.ToUpperInvariant(),
             AreaPrecision.Area);
 
     private static double Round(double value) => Math.Round(value, CoordinateDecimals, MidpointRounding.AwayFromZero);

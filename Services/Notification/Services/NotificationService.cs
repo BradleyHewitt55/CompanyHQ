@@ -1,15 +1,14 @@
 using System.Text.Json;
-using Microsoft.EntityFrameworkCore;
 using CompanyHQ.Services.Notifications.Contracts.Enums;
 using CompanyHQ.Services.Notifications.Contracts.Models;
 using CompanyHQ.Services.Notifications.Contracts.Ports;
-using CompanyHQ.Services.Postgres.Data;
+using CompanyHQ.Services.Persistence.Services;
 
 namespace CompanyHQ.Services.Notifications.Services;
 
 /// <inheritdoc cref="INotificationService" />
 public sealed class NotificationService(
-    PostgresDbContext context,
+    IPersistence context,
     TimeProvider timeProvider) : INotificationService
 {
     private const int MaxKindLength = 128;
@@ -66,7 +65,7 @@ public sealed class NotificationService(
             NextAttemptAt = now
         }).ToArray();
 
-        await context.Set<QueuedNotification>().AddRangeAsync(queued, cancellationToken);
+        context.AddRange(queued);
     }
 
     private static void Validate(NotificationRequest request)

@@ -1,7 +1,6 @@
-using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using CompanyHQ.Services.Auth.Contracts.Models;
-using CompanyHQ.Services.Postgres.Services;
+using CompanyHQ.Services.Persistence.Services;
 
 namespace CompanyHQ.Services.Auth.Services;
 
@@ -11,7 +10,7 @@ namespace CompanyHQ.Services.Auth.Services;
 /// <see cref="RefreshTokenCleanupWorker"/>.
 /// </summary>
 internal sealed class RefreshTokenCleanupProcessor(
-    IPostgresService<RefreshToken> tokens,
+    IRepository<RefreshToken> tokens,
     RefreshTokenCleanupOptions options,
     TimeProvider clock,
     ILogger<RefreshTokenCleanupProcessor> logger)

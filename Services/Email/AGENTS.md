@@ -37,7 +37,7 @@ an external provider's credentials or transport, and it never exposes arbitrary 
 
 The default catalog is compiled into the Email assembly and also copied to output/publish so the files
 remain directly inspectable. Runtime persistence stores only controlled-key overrides and metadata,
-using the shared Postgres service. Subjects and plain text stay provider-neutral catalog metadata while
+using the shared provider-neutral Persistence ports; EF declarations remain only as deployment schema mappings. Subjects and plain text stay provider-neutral catalog metadata while
 the editable HTML body lives in the packaged or persisted template.
 
 Emails are rendered when queued, not when sent, so an administrator edit does not change an email

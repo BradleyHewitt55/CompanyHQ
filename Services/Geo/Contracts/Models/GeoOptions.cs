@@ -1,28 +1,28 @@
 namespace CompanyHQ.Services.Geo.Contracts.Models;
 
 /// <summary>
-/// Configuration for the OpenStreetMap/Nominatim lookups, bound from the <see cref="SectionName"/>
-/// configuration section.
+/// Configuration for Geo's own policy — rounding granularity, cache lifetimes, which places count
+/// as nearby, and the inbound limit — bound from the <see cref="SectionName"/> configuration section.
 /// </summary>
+/// <remarks>
+/// The provider adapter the host composes binds its endpoints, identity and pacing from the same
+/// section, so a deployment keeps one <c>Geo</c> block whichever adapter it uses.
+/// </remarks>
 public sealed class GeoOptions
 {
     public const string SectionName = "Geo";
 
-    /// <summary>
-    /// Values that mean "nobody filled this in". Rejected so a deployment cannot hammer the public
-    /// instance under an identity that reaches no one.
-    /// </summary>
-    private static readonly string[] Sentinels = ["changeme", "todo", "tbd", "placeholder", "your-app"];
+    private const string MovedToProvider =
+        "Geo no longer reads this setting. The provider adapter binds the same Geo configuration key; "
+        + "read it from the adapter's options (OpenStreetMapOptions).";
 
+    [Obsolete(MovedToProvider)]
     public string BaseAddress { get; set; } = "https://nominatim.openstreetmap.org/";
 
-    /// <summary>The OpenStreetMap Overpass endpoint used only for nearby-place pins.</summary>
+    [Obsolete(MovedToProvider)]
     public string OverpassBaseAddress { get; set; } = "https://overpass-api.de/";
 
-    /// <summary>
-    /// Nominatim's usage policy requires a User-Agent that identifies the application and gives a
-    /// way to contact its operator; requests without one get blocked.
-    /// </summary>
+    [Obsolete(MovedToProvider)]
     public string UserAgent { get; set; } = string.Empty;
 
     /// <summary>
@@ -31,18 +31,19 @@ public sealed class GeoOptions
     /// </summary>
     public int AreaZoom { get; set; } = 10;
 
-    /// <summary>Sent as <c>Accept-Language</c>, so place names come back in the app's language.</summary>
+    /// <summary>The language place names come back in, so they match the app's.</summary>
     public string Language { get; set; } = "en";
 
     /// <summary>
-    /// Administrative boundaries barely move; the real constraint is the rate limit, so cache long.
+    /// Administrative boundaries barely move; the real constraint is the provider's rate limit, so
+    /// cache long.
     /// </summary>
     public int CacheTtlHours { get; set; } = 24;
 
-    /// <summary>The public instance's absolute ceiling is one request per second.</summary>
+    [Obsolete(MovedToProvider)]
     public TimeSpan MinimumRequestInterval { get; set; } = TimeSpan.FromSeconds(1);
 
-    /// <summary>Keep the public Overpass endpoint from receiving a burst when maps open together.</summary>
+    [Obsolete(MovedToProvider)]
     public TimeSpan OverpassMinimumRequestInterval { get; set; } = TimeSpan.FromSeconds(1);
 
     /// <summary>
@@ -54,14 +55,15 @@ public sealed class GeoOptions
     /// <summary>
     /// The hard TTL a tile is actually stored with. Far longer than the soft one on purpose — it is
     /// the outage budget. A place rarely moves, so a three-day-old pin is still correct, and keeping
-    /// it means the map still works through a long Overpass rate-limiting spell.
+    /// it means the map still works through a long provider rate-limiting spell.
     /// </summary>
     public int NearbyTileHardTtlHours { get; set; } = 72;
 
     /// <summary>
-    /// The OpenStreetMap <c>amenity</c> values the nearby-place search returns, e.g. <c>pharmacy</c>,
-    /// <c>hospital</c>, <c>bank</c>. Empty (the default) switches the search off: it answers with no
-    /// places and never calls Overpass. Each deployment chooses what "nearby" means for it.
+    /// The place kinds the nearby-place search returns, in the composed provider's vocabulary — for
+    /// OpenStreetMap its <c>amenity</c> values, e.g. <c>pharmacy</c>, <c>hospital</c>, <c>bank</c>.
+    /// Empty (the default) switches the search off: it answers with no places and never calls the
+    /// provider. Each deployment chooses what "nearby" means for it.
     /// </summary>
     public string[] NearbyPlaceKinds { get; set; } = [];
 
@@ -86,34 +88,10 @@ public sealed class GeoOptions
 
     public TimeSpan NearbyTileHardTtl => TimeSpan.FromHours(NearbyTileHardTtlHours);
 
-    /// <summary>Throws when the bound configuration would produce blocked or nonsense requests.</summary>
+    /// <summary>Throws when the bound configuration would produce nonsense or unbounded requests.</summary>
     public void Validate()
     {
-        if (!Uri.TryCreate(BaseAddress, UriKind.Absolute, out _))
-        {
-            throw new InvalidOperationException($"{SectionName}:BaseAddress must be an absolute URI.");
-        }
-
-        if (!Uri.TryCreate(OverpassBaseAddress, UriKind.Absolute, out _))
-        {
-            throw new InvalidOperationException($"{SectionName}:OverpassBaseAddress must be an absolute URI.");
-        }
-
-        // A contact is what the policy actually asks for, so require something reachable rather
-        // than merely non-empty.
-        var hasContact = UserAgent.Contains('@', StringComparison.Ordinal)
-            || UserAgent.Contains("http", StringComparison.OrdinalIgnoreCase);
-
-        if (string.IsNullOrWhiteSpace(UserAgent)
-            || !hasContact
-            || Sentinels.Any(sentinel => UserAgent.Contains(sentinel, StringComparison.OrdinalIgnoreCase)))
-        {
-            throw new InvalidOperationException(
-                $"{SectionName}:UserAgent must identify this deployment and include a reachable contact " +
-                "address or URL. Nominatim's usage policy blocks unidentified clients.");
-        }
-
-        // Kinds are spliced into the Overpass query, so only bare tag values are accepted.
+        // Kinds travel into the cache key and a provider's query, so only bare values are accepted.
         if (NearbyPlaceKinds.Any(kind => string.IsNullOrEmpty(kind)
             || kind.Any(character => !(char.IsAsciiLetterLower(character) || char.IsAsciiDigit(character) || character == '_'))))
         {
@@ -134,16 +112,6 @@ public sealed class GeoOptions
         if (CacheTtlHours <= 0)
         {
             throw new InvalidOperationException($"{SectionName}:CacheTtlHours must be greater than zero.");
-        }
-
-        if (MinimumRequestInterval < TimeSpan.Zero)
-        {
-            throw new InvalidOperationException($"{SectionName}:MinimumRequestInterval cannot be negative.");
-        }
-
-        if (OverpassMinimumRequestInterval < TimeSpan.Zero)
-        {
-            throw new InvalidOperationException($"{SectionName}:OverpassMinimumRequestInterval cannot be negative.");
         }
 
         if (NearbyPlaceCacheTtlHours <= 0)

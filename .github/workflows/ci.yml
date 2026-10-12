@@ -1,0 +1,25 @@
+name: CompanyHQ CI
+on: [push, pull_request, workflow_dispatch]
+permissions:
+  contents: read
+  packages: read
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    env:
+      COMPANYHQ_PACKAGES_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: 10.0.x
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Test the generic services against disposable infrastructure
+        run: dotnet test Tests/Services.IntegrationTests.csproj
+      - name: Check creation and safe cleanup in a fresh disposable directory
+        run: node Scripts/test-companyhq-cli.mjs
+      - name: Typecheck the website against checked-in API types
+        working-directory: Apps/Web
+        run: npm ci && npm run typecheck

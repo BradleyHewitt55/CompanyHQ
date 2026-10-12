@@ -1,5 +1,5 @@
-using Microsoft.EntityFrameworkCore;
 
+using CompanyHQ.Services.Persistence.Services;
 using CompanyHQ.Services.Postgres.Contracts.Enums;
 using CompanyHQ.Services.Users.Contracts.Enums;
 using CompanyHQ.Services.Users.Contracts.Models;
@@ -9,8 +9,8 @@ namespace CompanyHQ.Services.Users.Extensions;
 /// <summary>Typed filtering and ordering for public and administrative user lists.</summary>
 public static class UserListQueryExtensions
 {
-    public static IQueryable<User> FilterLookup(
-        this IQueryable<User> query,
+    public static IQuery<User> FilterLookup(
+        this IQuery<User> query,
         string? search = null)
     {
         ArgumentNullException.ThrowIfNull(query);
@@ -28,13 +28,13 @@ public static class UserListQueryExtensions
 
         return query.Where(user =>
             user.Email == email
-            || (user.FirstName != null && EF.Functions.ILike(user.FirstName, pattern))
-            || (user.LastName != null && EF.Functions.ILike(user.LastName, pattern))
-            || EF.Functions.ILike((user.FirstName ?? "") + " " + (user.LastName ?? ""), pattern));
+            || (user.FirstName != null && QueryFunctions.LikeIgnoreCase(user.FirstName, pattern))
+            || (user.LastName != null && QueryFunctions.LikeIgnoreCase(user.LastName, pattern))
+            || QueryFunctions.LikeIgnoreCase((user.FirstName ?? "") + " " + (user.LastName ?? ""), pattern));
     }
 
-    public static IQueryable<User> FilterAdminList(
-        this IQueryable<User> query,
+    public static IQuery<User> FilterAdminList(
+        this IQuery<User> query,
         string? search = null,
         UserRole? role = null)
     {
@@ -49,8 +49,8 @@ public static class UserListQueryExtensions
             : query;
     }
 
-    public static IOrderedQueryable<User> OrderPublicList(
-        this IQueryable<User> query,
+    public static IOrderedQuery<User> OrderPublicList(
+        this IQuery<User> query,
         UserSort sort = UserSort.CreatedAt,
         SortDirection direction = SortDirection.Descending)
     {
@@ -66,8 +66,8 @@ public static class UserListQueryExtensions
                 : query.OrderBy(user => user.CreatedAt).ThenBy(user => user.Id);
     }
 
-    public static IOrderedQueryable<User> OrderAdminList(
-        this IQueryable<User> query,
+    public static IOrderedQuery<User> OrderAdminList(
+        this IQuery<User> query,
         UserSort sort = UserSort.CreatedAt,
         SortDirection direction = SortDirection.Descending)
     {

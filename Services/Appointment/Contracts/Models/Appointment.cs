@@ -1,4 +1,4 @@
-using CompanyHQ.Services.Postgres.Contracts.Models;
+using CompanyHQ.Services.Persistence.Contracts.Models;
 using CompanyHQ.Services.Users.Contracts.Models;
 
 namespace CompanyHQ.Services.Appointments.Contracts.Models;

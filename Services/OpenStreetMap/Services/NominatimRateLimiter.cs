@@ -1,17 +1,17 @@
-using CompanyHQ.Services.Geo.Contracts.Models;
+using CompanyHQ.Services.OpenStreetMap.Contracts.Models;
 
-namespace CompanyHQ.Services.Geo.Services;
+namespace CompanyHQ.Services.OpenStreetMap.Services;
 
 /// <summary>
 /// Serialises every outbound Nominatim call and spaces the calls by
-/// <see cref="GeoOptions.MinimumRequestInterval"/>.
+/// <see cref="OpenStreetMapOptions.MinimumRequestInterval"/>.
 /// </summary>
 /// <remarks>
 /// Registered as a singleton because the limit is per client IP, not per request scope: a
 /// per-instance gate would let concurrent requests burst straight past it and get the deployment
 /// banned from the public instance.
 /// </remarks>
-public sealed class NominatimRateLimiter(GeoOptions options, TimeProvider time) : IDisposable
+public sealed class NominatimRateLimiter(OpenStreetMapOptions options, TimeProvider time) : IDisposable
 {
     private readonly SemaphoreSlim gate = new(1, 1);
     private long lastRequestTimestamp;

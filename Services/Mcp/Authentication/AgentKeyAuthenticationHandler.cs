@@ -6,13 +6,12 @@ using System.Text.Encodings.Web;
 
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Http;
-using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 
 using CompanyHQ.Services.Mcp.Contracts.Models;
 using CompanyHQ.Services.Postgres.Contracts;
-using CompanyHQ.Services.Postgres.Services;
+using CompanyHQ.Services.Persistence.Services;
 using CompanyHQ.Services.Users.Contracts.Models;
 using CompanyHQ.Services.Auth.Contracts.Identity;
 
@@ -28,9 +27,9 @@ public sealed class AgentKeyAuthenticationHandler(
     IOptionsMonitor<AgentKeyAuthenticationSchemeOptions> options,
     ILoggerFactory logger,
     UrlEncoder encoder,
-    IPostgresService<AgentKey> keys,
-    IPostgresService<User> users,
-    IPostgresService<AccessRole> roles,
+    IRepository<AgentKey> keys,
+    IRepository<User> users,
+    IRepository<AccessRole> roles,
     TimeProvider clock,
     McpOAuthOptions oauthOptions)
     : AuthenticationHandler<AgentKeyAuthenticationSchemeOptions>(options, logger, encoder)

@@ -22,7 +22,10 @@
          account row AgentKey's foreign key targets and the read tools' own account lookups. -->
     <ProjectReference Include="..\Auth\Contracts\Auth.Contracts.csproj" />
     <ProjectReference Include="..\User\User.csproj" />
-    <ProjectReference Include="..\Postgres\Postgres.csproj" />
+    <!-- Persisted through the provider-neutral ports; the database provider is never referenced. -->
+    <ProjectReference Include="..\Persistence\Persistence.csproj" />
+    <!-- Shared wire contracts only: paging, search, response audiences and permission names. -->
+    <ProjectReference Include="..\Postgres\Contracts\Postgres.Contracts.csproj" />
   </ItemGroup>
 
   <ItemGroup>
@@ -31,6 +34,12 @@
     <Compile Remove="Contracts/**" />
     <Compile Include="Contracts/Models/**/*.cs" />
     <ProjectReference Include="Contracts/Mcp.Contracts.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <!-- Mapping only: the entity configurations under Data/ describe this service's tables, indexes
+         and column types. Nothing outside Data/ may use EF Core, and no database driver is referenced. -->
+    <PackageReference Include="Microsoft.EntityFrameworkCore.Relational" Version="10.0.10" />
   </ItemGroup>
 
 </Project>

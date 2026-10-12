@@ -1,0 +1,49 @@
+{
+  "version": 1,
+  "service": "users",
+  "prefix": "/users",
+  "requires": "db:primary",
+  "dtos": {
+    "UserDto": {
+      "id": "uuid",
+      "name": "string",
+      "email": "string",
+      "createdAt": "datetime",
+      "updatedAt": "datetime"
+    },
+    "CreateUserDto": {
+      "name": "string",
+      "email": "string"
+    }
+  },
+  "operations": [
+    {
+      "name": "Create",
+      "method": "POST",
+      "route": "",
+      "input": "CreateUserDto",
+      "output": "UserDto",
+      "errors": [
+        400,
+        404,
+        409,
+        503
+      ],
+      "policy": "anonymous-demo"
+    },
+    {
+      "name": "Get",
+      "method": "GET",
+      "route": "/{id}",
+      "input": "uuid",
+      "output": "UserDto",
+      "errors": [
+        400,
+        404,
+        409,
+        503
+      ],
+      "policy": "anonymous-demo"
+    }
+  ]
+}

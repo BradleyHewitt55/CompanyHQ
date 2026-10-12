@@ -1,5 +1,5 @@
 using CompanyHQ.Services.Media.Contracts.Enums;
-using CompanyHQ.Services.Postgres.Contracts.Models;
+using CompanyHQ.Services.Persistence.Contracts.Models;
 
 namespace CompanyHQ.Services.Media.Contracts.Models;
 

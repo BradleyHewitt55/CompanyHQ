@@ -24,8 +24,11 @@ using CompanyHQ.Services.Media.Extensions;
 using CompanyHQ.Services.Messages.Extensions;
 using CompanyHQ.Services.Moderation.Extensions;
 using CompanyHQ.Services.Notifications.Extensions;
+using CompanyHQ.Services.OpenStreetMap.Extensions;
 using CompanyHQ.Services.Postgres.Extensions;
+using CompanyHQ.Services.Redis.Extensions;
 using CompanyHQ.Services.Resend.Extensions;
+using CompanyHQ.Services.Rss.Extensions;
 using CompanyHQ.Services.Users.Extensions;
 using CompanyHQ.Services.Widget.Extensions;
 
@@ -70,6 +73,7 @@ builder.Services.AddCors(options => options.AddPolicy(
 builder.Services.AddPostgres(builder.Configuration, System.Reflection.Assembly.GetExecutingAssembly());
 builder.Services.AddUsers(builder.Configuration);
 builder.Services.AddCache(builder.Configuration);
+builder.Services.AddRedis(builder.Configuration);
 
 // JWT bearer authentication plus /api/auth. It verifies passwords with AddUsers' IPasswordHasher.
 builder.Services.AddAuth(builder.Configuration);
@@ -87,6 +91,7 @@ builder.Services.AddContact();
 builder.Services.AddBlogs();
 builder.Services.AddFaqs();
 builder.Services.AddGeo(builder.Configuration);
+builder.Services.AddOpenStreetMap(builder.Configuration);
 builder.Services.AddGitHub(builder.Configuration);
 builder.Services.AddInbox();
 builder.Services.AddModeration();
@@ -94,6 +99,9 @@ builder.Services.AddFirebase(builder.Configuration);
 builder.Services.AddNotifications();
 builder.Services.AddMessages(builder.Configuration);
 builder.Services.AddWidget(builder.Configuration);
+
+// In-process only: any service may inject IRssService to read a feed, and no route exposes it.
+builder.Services.AddRss(builder.Configuration);
 
 // Feature services never reference each other; the host plugs their ports together here.
 builder.Services.AddIntegrations();

@@ -1,0 +1,37 @@
+{
+  "platform": "Windows-11-10.0.26200-SP0",
+  "transport": "persistent bounded JSON/TCP; public HTTP loopback",
+  "warmed": 20,
+  "measurements": {
+    "csharp_public_get": {
+      "samples": 200,
+      "median_ms": 1.424,
+      "p95_ms": 1.954,
+      "mean_ms": 1.563
+    },
+    "csharp_cached_schema": {
+      "samples": 200,
+      "median_ms": 0.286,
+      "p95_ms": 0.354,
+      "mean_ms": 0.301
+    },
+    "python_public_get": {
+      "samples": 200,
+      "median_ms": 1.411,
+      "p95_ms": 1.799,
+      "mean_ms": 1.464
+    },
+    "python_cached_schema": {
+      "samples": 200,
+      "median_ms": 0.2,
+      "p95_ms": 0.27,
+      "mean_ms": 0.205
+    },
+    "direct_db_get": {
+      "samples": 200,
+      "median_ms": 0.78,
+      "p95_ms": 0.928,
+      "mean_ms": 0.795
+    }
+  }
+}

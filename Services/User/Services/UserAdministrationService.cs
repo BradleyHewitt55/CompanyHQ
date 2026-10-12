@@ -1,11 +1,9 @@
 using System.Data;
 
 using Microsoft.AspNetCore.Identity;
-using Microsoft.EntityFrameworkCore;
 
 using CompanyHQ.Services.Postgres.Contracts;
-using CompanyHQ.Services.Postgres.Data;
-using CompanyHQ.Services.Postgres.Extensions;
+using CompanyHQ.Services.Persistence.Services;
 using CompanyHQ.Services.Users.Contracts.Dtos;
 using CompanyHQ.Services.Users.Contracts.Enums;
 using CompanyHQ.Services.Users.Contracts.Forms;
@@ -18,7 +16,7 @@ namespace CompanyHQ.Services.Users.Services;
 /// transaction as the mutation.
 /// </summary>
 public sealed class UserAdministrationService(
-    PostgresDbContext context,
+    IPersistence context,
     IPasswordHasher<User> passwordHasher) : IUserAdministrationService
 {
     public async Task<UserAdministrationOutcome> CreateAsync(
@@ -33,7 +31,7 @@ public sealed class UserAdministrationService(
             return await InAdminTransactionAsync(actingAdministratorId, async actorPermissions =>
             {
                 var email = Normalise(request.Email);
-                if (await context.Set<User>().AnyAsync(user => user.Email == email, cancellationToken))
+                if (await context.Tracked<User>().AnyAsync(user => user.Email == email, cancellationToken))
                 {
                     return UserAdministrationOutcome.Failure(UserAdministrationError.EmailTaken);
                 }
@@ -54,13 +52,13 @@ public sealed class UserAdministrationService(
                 user.AccessRole = chosenRole;
                 user.Role = LegacyRole(chosenRole.Name);
                 user.PasswordHash = passwordHasher.HashPassword(user, request.Password);
-                context.Set<User>().Add(user);
+                context.Add(user);
                 await context.SaveChangesAsync(cancellationToken);
 
                 return UserAdministrationOutcome.Success(user.AsAdmin());
             }, cancellationToken);
         }
-        catch (DbUpdateException exception) when (exception.IsUniqueConstraintViolation("ix_user_email"))
+        catch (UniqueConstraintException exception) when (exception.Is("ix_user_email"))
         {
             return UserAdministrationOutcome.Failure(UserAdministrationError.EmailTaken);
         }
@@ -78,7 +76,7 @@ public sealed class UserAdministrationService(
         {
             return await InAdminTransactionAsync(actingAdministratorId, async actorPermissions =>
             {
-                var user = await context.Set<User>()
+                var user = await context.Tracked<User>()
                     .FirstOrDefaultAsync(candidate => candidate.Id == userId, cancellationToken);
 
                 if (user is null)
@@ -87,7 +85,7 @@ public sealed class UserAdministrationService(
                 }
 
                 var targetPermissions = user.AccessRoleId is { } targetRoleId
-                    ? await context.Set<AccessRole>().Where(role => role.Id == targetRoleId)
+                    ? await context.Tracked<AccessRole>().Where(role => role.Id == targetRoleId)
                         .Select(role => role.Permissions).FirstOrDefaultAsync(cancellationToken) ?? []
                     : user.Role is UserRole.Admin ? AccessPermissions.All : AccessPermissions.Client;
                 if (targetPermissions.Except(actorPermissions, StringComparer.Ordinal).Any())
@@ -96,7 +94,7 @@ public sealed class UserAdministrationService(
                 if (request.Email is not null)
                 {
                     var email = Normalise(request.Email);
-                    if (await context.Set<User>().AnyAsync(
+                    if (await context.Tracked<User>().AnyAsync(
                             candidate => candidate.Email == email && candidate.Id != userId,
                             cancellationToken))
                     {
@@ -144,7 +142,7 @@ public sealed class UserAdministrationService(
                 return UserAdministrationOutcome.Success(user.AsAdmin());
             }, cancellationToken);
         }
-        catch (DbUpdateException exception) when (exception.IsUniqueConstraintViolation("ix_user_email"))
+        catch (UniqueConstraintException exception) when (exception.Is("ix_user_email"))
         {
             return UserAdministrationOutcome.Failure(UserAdministrationError.EmailTaken);
         }
@@ -160,38 +158,22 @@ public sealed class UserAdministrationService(
             return UserAdministrationOutcome.Failure(UserAdministrationError.NotAdministrator);
         }
 
-        var strategy = context.Database.CreateExecutionStrategy();
-        Func<Task<UserAdministrationOutcome>> work = async () =>
+        return await context.InTransactionAsync(async _ =>
         {
-            context.ChangeTracker.Clear();
-            await using var transaction = await context.Database.BeginTransactionAsync(
-                IsolationLevel.Serializable,
-                cancellationToken);
-
-            var actor = await context.Set<User>()
-                .FromSqlInterpolated($"SELECT * FROM \"user\" WHERE id = {actingAdministratorId} FOR UPDATE")
-                .FirstOrDefaultAsync(cancellationToken);
+            var actor = await context.Locked<User>()
+                .FirstOrDefaultAsync(user => user.Id == actingAdministratorId, cancellationToken);
 
             var actorPermissions = actor?.AccessRoleId is { } assignedRoleId
-                ? await context.Set<AccessRole>().Where(role => role.Id == assignedRoleId)
+                ? await context.Tracked<AccessRole>().Where(role => role.Id == assignedRoleId)
                     .Select(role => role.Permissions).FirstOrDefaultAsync(cancellationToken) ?? []
                 : actor?.Role is UserRole.Admin ? AccessPermissions.All : [];
             if (!actorPermissions.Contains(AccessPermissions.ManageUsers, StringComparer.Ordinal))
             {
-                await transaction.CommitAsync(cancellationToken);
                 return UserAdministrationOutcome.Failure(UserAdministrationError.NotAdministrator);
             }
 
-            var result = await operation(actorPermissions);
-            await transaction.CommitAsync(cancellationToken);
-            return result;
-        };
-
-        return await strategy.ExecuteAsync(
-            work,
-            static async (_, operation, _) => await operation(),
-            verifySucceeded: null,
-            cancellationToken);
+            return await operation(actorPermissions);
+        }, IsolationLevel.Serializable, cancellationToken);
     }
 
     private static string Normalise(string email) => email.Trim().ToLowerInvariant();
@@ -209,11 +191,11 @@ public sealed class UserAdministrationService(
     {
         name = name.Trim();
         if (name.Length is 0 or > 80) throw new ArgumentException("Role name must contain 1 to 80 characters.");
-        var existing = await context.Set<AccessRole>().FirstOrDefaultAsync(role => role.Name == name, cancellationToken);
+        var existing = await context.Tracked<AccessRole>().FirstOrDefaultAsync(role => role.Name == name, cancellationToken);
         if (existing is not null) return existing;
         var permissions = name == nameof(UserRole.Admin) ? AccessPermissions.All : AccessPermissions.Client;
         var created = new AccessRole { Name = name, Permissions = AccessPermissions.Normalize(permissions) };
-        context.Set<AccessRole>().Add(created);
+        context.Add(created);
         return created;
     }
 }

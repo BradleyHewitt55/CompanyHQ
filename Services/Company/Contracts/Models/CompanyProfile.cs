@@ -1,4 +1,4 @@
-using CompanyHQ.Services.Postgres.Contracts.Models;
+using CompanyHQ.Services.Persistence.Contracts.Models;
 using CompanyHQ.Services.Company.Contracts.Dtos;
 
 namespace CompanyHQ.Services.Company.Contracts.Models;

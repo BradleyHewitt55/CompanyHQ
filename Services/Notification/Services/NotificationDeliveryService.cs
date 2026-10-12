@@ -1,10 +1,9 @@
 using System.Text.Json;
-using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using CompanyHQ.Services.Notifications.Contracts.Enums;
 using CompanyHQ.Services.Notifications.Contracts.Models;
 using CompanyHQ.Services.Notifications.Contracts.Ports;
-using CompanyHQ.Services.Postgres.Data;
+using CompanyHQ.Services.Persistence.Services;
 using CompanyHQ.Services.Users.Contracts.Models;
 
 namespace CompanyHQ.Services.Notifications.Services;
@@ -14,7 +13,7 @@ namespace CompanyHQ.Services.Notifications.Services;
 /// optional port: with no email or push adapter plugged in, that channel is skipped, not failed.
 /// </summary>
 internal sealed class NotificationDeliveryService(
-    PostgresDbContext context,
+    IPersistence context,
     TimeProvider timeProvider,
     ILogger<NotificationDeliveryService> logger,
     INotificationEmailSender? email = null,
@@ -24,8 +23,7 @@ internal sealed class NotificationDeliveryService(
         QueuedNotification notification,
         CancellationToken cancellationToken = default)
     {
-        var preference = await context.Set<NotificationPreference>()
-            .AsNoTracking()
+        var preference = await context.Query<NotificationPreference>()
             .SingleOrDefaultAsync(
                 item => item.UserId == notification.RecipientUserId,
                 cancellationToken);
@@ -70,8 +68,7 @@ internal sealed class NotificationDeliveryService(
             return Sent();
         }
 
-        var user = await context.Set<User>()
-            .AsNoTracking()
+        var user = await context.Query<User>()
             .SingleOrDefaultAsync(user => user.Id == notification.RecipientUserId, cancellationToken);
 
         if (user is null)
@@ -112,7 +109,7 @@ internal sealed class NotificationDeliveryService(
             return Sent();
         }
 
-        var devices = await context.Set<PushDevice>()
+        var devices = await context.Tracked<PushDevice>()
             .Where(device => device.UserId == notification.RecipientUserId && device.DisabledAt == null)
             .ToListAsync(cancellationToken);
 

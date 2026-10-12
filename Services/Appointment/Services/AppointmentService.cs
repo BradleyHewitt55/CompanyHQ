@@ -1,4 +1,3 @@
-using Microsoft.EntityFrameworkCore;
 
 using CompanyHQ.Services.Appointments.Contracts.Dtos;
 using CompanyHQ.Services.Appointments.Contracts.Forms;
@@ -7,8 +6,7 @@ using CompanyHQ.Services.Postgres.Contracts;
 using CompanyHQ.Services.Postgres.Contracts.Dtos;
 using CompanyHQ.Services.Postgres.Contracts.Enums;
 using CompanyHQ.Services.Postgres.Contracts.Forms;
-using CompanyHQ.Services.Postgres.Extensions;
-using CompanyHQ.Services.Postgres.Services;
+using CompanyHQ.Services.Persistence.Services;
 using CompanyHQ.Services.Users.Contracts.Models;
 using CompanyHQ.Services.Users.Services;
 
@@ -16,8 +14,8 @@ namespace CompanyHQ.Services.Appointments.Services;
 
 /// <inheritdoc cref="IAppointmentService" />
 public sealed class AppointmentService(
-    IPostgresService<Appointment> appointments,
-    IPostgresService<User> users,
+    IRepository<Appointment> appointments,
+    IRepository<User> users,
     IUserAuthorizationService authorization,
     TimeProvider clock) : IAppointmentService
 {
@@ -40,15 +38,14 @@ public sealed class AppointmentService(
         }
 
         query = (upcoming ? query.Where(a => a.ScheduledAt >= now) : query.Where(a => a.ScheduledAt < now))
-            .Search(search, AppointmentProjections.Shape(audience), AppointmentProjections.SearchAliases);
+            .Search(search?.Field, search?.Keyword, AppointmentProjections.Shape(audience), AppointmentProjections.SearchAliases);
 
-        return await query.ToPagedResultAsync(
-            page,
-            AppointmentProjections.For(audience),
-            items => upcoming
-                ? items.OrderBy(a => a.ScheduledAt).ThenBy(a => a.Id)
-                : items.OrderByDescending(a => a.ScheduledAt).ThenBy(a => a.Id),
-            cancellationToken);
+        var ordered = upcoming
+            ? query.OrderBy(a => a.ScheduledAt).ThenBy(a => a.Id)
+            : query.OrderByDescending(a => a.ScheduledAt).ThenBy(a => a.Id);
+        var result = await ordered.ToPageAsync(page.Skip, page.PageSize, AppointmentProjections.For(audience), cancellationToken);
+
+        return new PagedResult<ClientAppointmentDto>(result.Items, page.Page, page.PageSize, result.Total);
     }
 
     public async Task<ClientAppointmentDto?> GetAsync(
@@ -136,7 +133,7 @@ public sealed class AppointmentService(
     }
 
     /// <summary>The owner filter is the authorization: only a manager's query goes without it.</summary>
-    private IQueryable<Appointment> Reachable(Guid actingUserId, bool manager) =>
+    private IQuery<Appointment> Reachable(Guid actingUserId, bool manager) =>
         manager ? appointments.Query() : appointments.Query().Where(a => a.UserId == actingUserId);
 
     private Task<bool> IsManagerAsync(Guid userId, CancellationToken cancellationToken) =>

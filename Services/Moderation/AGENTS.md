@@ -1,7 +1,7 @@
 # Moderation service
 
 `Services/Moderation` owns reports, source-owned hidden content, user blocks, account flags, and the
-read-only global restriction union. It references only foundation (Postgres, Cache, User, Auth
+read-only global restriction union. It references only foundation (Persistence, Postgres.Contracts, Cache, User, Auth
 contracts) and never a service that owns reportable content. A source is plugged in as an
 `IReportableContentSource` bridged in `Apps/Api/Integrations` (Message's is there); Moderation
 discovers every registered source through its scoped registry and owns only the `user` source itself.

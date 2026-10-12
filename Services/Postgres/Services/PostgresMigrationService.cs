@@ -96,14 +96,22 @@ public sealed class PostgresMigrationService(
         PostgresDbContext context,
         CancellationToken cancellationToken)
     {
-        var seeders = provider.GetServices<IDataSeeder>()
+        // Provider-neutral seeders and this provider's own run as one sequence, so Order means the
+        // same thing whichever port a seeder was written against. Both write through this context.
+        var persistence = provider.GetRequiredService<CompanyHQ.Services.Persistence.Services.IPersistence>();
+        var seeders = provider.GetServices<CompanyHQ.Services.Persistence.Services.IDataSeeder>()
+            .Select(seeder => (seeder.Order, Name: seeder.GetType().Name,
+                Run: (Func<Task>)(() => seeder.SeedAsync(persistence, cancellationToken))))
+            .Concat(provider.GetServices<IDataSeeder>()
+                .Select(seeder => (seeder.Order, Name: seeder.GetType().Name,
+                    Run: (Func<Task>)(() => seeder.SeedAsync(context, cancellationToken)))))
             .OrderBy(seeder => seeder.Order)
             .ToArray();
 
         foreach (var seeder in seeders)
         {
-            logger.LogInformation("Running seeder {Seeder}.", seeder.GetType().Name);
-            await seeder.SeedAsync(context, cancellationToken);
+            logger.LogInformation("Running seeder {Seeder}.", seeder.Name);
+            await seeder.Run();
             // A seeder must save what it stages. Clearing its now-clean entries prevents a later
             // seeder from accidentally committing state it did not create.
             context.ChangeTracker.Clear();

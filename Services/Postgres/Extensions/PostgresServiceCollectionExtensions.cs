@@ -6,6 +6,7 @@ using Microsoft.Extensions.Diagnostics.HealthChecks;
 using Microsoft.Extensions.Hosting;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Infrastructure;
 using Npgsql;
+using CompanyHQ.Services.Persistence.Services;
 using CompanyHQ.Services.Postgres.Contracts.Models;
 using CompanyHQ.Services.Postgres.Data;
 using CompanyHQ.Services.Postgres.Services;
@@ -18,8 +19,9 @@ namespace CompanyHQ.Services.Postgres.Extensions;
 public static class PostgresServiceCollectionExtensions
 {
     /// <summary>
-    /// Registers the shared data source, <see cref="PostgresDbContext"/>, the generic repository,
-    /// the startup migration service, and the <c>postgres</c> health check.
+    /// Registers the shared data source and <see cref="PostgresDbContext"/>, fills the Persistence
+    /// ports (<see cref="IPersistence"/> and <see cref="IRepository{TModel}"/>) with them, and adds
+    /// the startup migration service and the <c>postgres</c> health check.
     /// </summary>
     /// <param name="hostAssembly">
     /// The API host: it holds the migrations, and its dependency graph is where every model is
@@ -46,6 +48,12 @@ public static class PostgresServiceCollectionExtensions
             options,
             hostAssembly));
 
+        // The provider-neutral ports every CompanyHQ service persists through. They share the one
+        // scoped context, so a repository write and a unit-of-work save see each other.
+        services.AddScoped<IPersistence, PostgresPersistence>();
+        services.AddScoped(typeof(IRepository<>), typeof(PostgresRepository<>));
+
+        // This provider's own surface, for code that deliberately depends on PostgreSQL.
         services.AddScoped(typeof(IPostgresService<>), typeof(PostgresService<>));
 
         // One hosted service owns the advisory lock, migration, and seeding sequence. Registering
@@ -92,6 +100,8 @@ public static class PostgresServiceCollectionExtensions
         return dataSourceBuilder.Build();
     }
 
+    private static readonly PostgresRowLockInterceptor RowLocks = new();
+
     private static void ConfigureContext(
         DbContextOptionsBuilder contextOptions,
         NpgsqlDataSource dataSource,
@@ -112,6 +122,9 @@ public static class PostgresServiceCollectionExtensions
         // Postgres folds unquoted identifiers to lower case, so snake_case keeps hand-written SQL
         // free of quoted "PascalCase" names.
         contextOptions.UseSnakeCaseNamingConvention();
+
+        // EF Core cannot express FOR UPDATE; this adds it to the queries IPersistence.Locked marks.
+        contextOptions.AddInterceptors(RowLocks);
 
         if (options.EnableSensitiveDataLogging)
         {

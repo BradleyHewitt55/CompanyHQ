@@ -1,4 +1,3 @@
-using Microsoft.EntityFrameworkCore;
 
 using CompanyHQ.Services.Cache.Services;
 using CompanyHQ.Services.Moderation.Contracts.Dtos;
@@ -7,13 +6,13 @@ using CompanyHQ.Services.Moderation.Contracts.Forms;
 using CompanyHQ.Services.Moderation.Contracts.Models;
 using CompanyHQ.Services.Postgres.Contracts.Dtos;
 using CompanyHQ.Services.Postgres.Contracts.Forms;
-using CompanyHQ.Services.Postgres.Services;
+using CompanyHQ.Services.Persistence.Services;
 
 namespace CompanyHQ.Services.Moderation.Services;
 
 /// <inheritdoc cref="IContentHider" />
 public sealed class ContentHider(
-    IPostgresService<HiddenContent> hidden,
+    IRepository<HiddenContent> hidden,
     ICacheService cache) : IContentHider
 {
     private static readonly TimeSpan HiddenCacheTtl = TimeSpan.FromMinutes(5);

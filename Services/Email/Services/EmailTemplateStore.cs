@@ -1,10 +1,9 @@
-using Microsoft.EntityFrameworkCore;
 using CompanyHQ.Services.Email.Contracts.Models;
-using CompanyHQ.Services.Postgres.Services;
+using CompanyHQ.Services.Persistence.Services;
 
 namespace CompanyHQ.Services.Email.Services;
 
-internal sealed class EmailTemplateStore(IPostgresService<EmailTemplate> templates) : IEmailTemplateStore
+internal sealed class EmailTemplateStore(IRepository<EmailTemplate> templates) : IEmailTemplateStore
 {
     public Task<EmailTemplate?> GetAsync(string key, CancellationToken cancellationToken = default) =>
         templates.Query().SingleOrDefaultAsync(template => template.Key == key, cancellationToken);

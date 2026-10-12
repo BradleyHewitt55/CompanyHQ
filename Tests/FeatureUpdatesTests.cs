@@ -5,6 +5,7 @@ using DotNet.Testcontainers.Containers;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using CompanyHQ.Services.Auth.Extensions;
 using CompanyHQ.Services.Appointments.Contracts.Enums;
 using CompanyHQ.Services.Appointments.Contracts.Forms;
 using CompanyHQ.Services.Appointments.Contracts.Models;
@@ -36,6 +37,7 @@ using CompanyHQ.Services.Postgres.Contracts.Enums;
 using CompanyHQ.Services.Postgres.Contracts.Forms;
 using CompanyHQ.Services.Postgres.Data;
 using CompanyHQ.Services.Postgres.Extensions;
+using CompanyHQ.Services.Redis.Extensions;
 using CompanyHQ.Services.Users.Contracts.Enums;
 using CompanyHQ.Services.Users.Contracts.Models;
 using CompanyHQ.Services.Users.Extensions;
@@ -110,11 +112,13 @@ public sealed class FeatureUpdatesTests(FeatureFixture fixture) : IClassFixture<
         Assert.Equal("Sales enquiries", saved.PublicEmails[2].Description);
         Assert.Equal(saved.PublicEmails, (await companies.GetAsync())!.PublicEmails);
         db.ChangeTracker.Clear();
-        await Assert.ThrowsAsync<ArgumentException>(() => companies.UpdateAsync(request with {
+        await Assert.ThrowsAsync<ArgumentException>(() => companies.UpdateAsync(request with
+        {
             PublicEmails = [new("Support", "wrong@example.test"), new("Information", "info@example.test")]
         }, admin.Id));
         Assert.Equal(3, (await companies.GetAsync())!.PublicEmails!.Count);
-        await Assert.ThrowsAsync<ArgumentException>(() => companies.UpdateAsync(request with {
+        await Assert.ThrowsAsync<ArgumentException>(() => companies.UpdateAsync(request with
+        {
             PublicEmails = [new("Support", "support@example.test"), new("Information", "info@example.test"), new("Bad", "bad")]
         }, admin.Id));
         Assert.Null((await companies.UpdateAsync(request with { PublicEmails = null }, admin.Id)).PublicEmails);
@@ -275,23 +279,33 @@ public sealed class FeatureFixture : IAsyncLifetime
     public async Task InitializeAsync()
     {
         await Task.WhenAll(postgres.StartAsync(), redis.StartAsync());
-        var configuration = new ConfigurationBuilder().AddInMemoryCollection(new Dictionary<string, string?> {
+        var configuration = new ConfigurationBuilder().AddInMemoryCollection(new Dictionary<string, string?>
+        {
             ["Postgres:ConnectionString"] = postgres.GetConnectionString(),
-            ["Postgres:AutoMigrate"] = "false", ["Postgres:AutoSeed"] = "false",
+            ["Postgres:AutoMigrate"] = "false",
+            ["Postgres:AutoSeed"] = "false",
             ["Cache:ConnectionString"] = $"{redis.Hostname}:{redis.GetMappedPublicPort(6379)}",
             ["Media:ContentBaseUrl"] = "http://localhost:4002",
+            ["Jwt:SigningKey"] = "test-only-signing-key-at-least-thirty-two-characters",
+            ["Jwt:Issuer"] = "tests",
+            ["Jwt:Audience"] = "tests",
+            ["Auth:WebBaseAddress"] = "https://example.test",
         }).Build();
         var services = new ServiceCollection();
         services.AddLogging();
         services.AddSingleton(TimeProvider.System);
         services.AddPostgres(configuration, typeof(Program).Assembly);
         services.AddUsers(configuration);
+        services.AddAuth(configuration);
+        services.AddSingleton<CompanyHQ.Services.Auth.Services.IAuthEmailSender, RecordingAuthEmail>();
         services.AddCache(configuration);
+        services.AddRedis(configuration);
         services.AddAppointments();
         services.AddCompany();
         services.AddBlogs();
         services.AddMedia(configuration);
         services.AddMessages(configuration);
+        CompanyHQ.Services.Moderation.Extensions.ModerationServiceCollectionExtensions.AddModeration(services);
         services.AddSingleton<IMessageConversationPolicy>(Policy);
         services.AddSingleton<IMessageBroadcaster>(Broadcasts);
         services.AddSingleton<IMediaObjectStorageProvider>(storage);
@@ -307,8 +321,13 @@ public sealed class FeatureFixture : IAsyncLifetime
 
     public async Task<User> UserAsync(PostgresDbContext db, bool admin = false)
     {
-        var user = new User { Email = $"{Guid.NewGuid():N}@example.test", PasswordHash = "test-only", EmailVerified = true,
-            Role = admin ? UserRole.Admin : UserRole.Client };
+        var user = new User
+        {
+            Email = $"{Guid.NewGuid():N}@example.test",
+            PasswordHash = "test-only",
+            EmailVerified = true,
+            Role = admin ? UserRole.Admin : UserRole.Client
+        };
         db.Add(user);
         await db.SaveChangesAsync();
         db.ChangeTracker.Clear();

@@ -1,22 +1,21 @@
 using System.Security.Cryptography;
 using System.Text;
 
-using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 
 using CompanyHQ.Services.Auth.Contracts.Enums;
 using CompanyHQ.Services.Auth.Contracts.Models;
-using CompanyHQ.Services.Postgres.Data;
+using CompanyHQ.Services.Persistence.Services;
 
 namespace CompanyHQ.Services.Auth.Services;
 
 /// <inheritdoc cref="IAuthTokenService"/>
 /// <remarks>
-/// Goes through <see cref="PostgresDbContext"/> rather than <c>IPostgresService&lt;T&gt;</c>: issuing
+/// Goes through <see cref="IPersistence"/> rather than <c>IRepository&lt;T&gt;</c>: issuing
 /// a token also invalidates its siblings, and both writes need to land in one
 /// <c>SaveChangesAsync</c> or a crash between them could leave two "open" tokens for one purpose.
 /// </remarks>
-public sealed class AuthTokenService(PostgresDbContext context, AuthTokenOptions options, TimeProvider clock)
+public sealed class AuthTokenService(IPersistence context, AuthTokenOptions options, TimeProvider clock)
     : IAuthTokenService
 {
     private const int TokenBytes = 32;
@@ -43,7 +42,7 @@ public sealed class AuthTokenService(PostgresDbContext context, AuthTokenOptions
             PendingEmail = pendingEmail
         };
 
-        context.Set<AuthToken>().Add(token);
+        context.Add(token);
         await context.SaveChangesAsync(cancellationToken);
 
         return new IssuedAuthToken(token.Id, value, expiresAt);
@@ -57,7 +56,7 @@ public sealed class AuthTokenService(PostgresDbContext context, AuthTokenOptions
         var hash = Hash(token);
         var now = clock.GetUtcNow();
 
-        var stored = await context.Set<AuthToken>()
+        var stored = await context.Tracked<AuthToken>()
             .FirstOrDefaultAsync(candidate => candidate.TokenHash == hash, cancellationToken);
 
         if (stored is null || stored.Purpose != purpose || !stored.IsActive(now))
@@ -77,8 +76,7 @@ public sealed class AuthTokenService(PostgresDbContext context, AuthTokenOptions
         CancellationToken cancellationToken = default)
     {
         var hash = Hash(token);
-        var stored = await context.Set<AuthToken>()
-            .AsNoTracking()
+        var stored = await context.Query<AuthToken>()
             .FirstOrDefaultAsync(candidate => candidate.TokenHash == hash, cancellationToken);
 
         return stored is not null && stored.Purpose == purpose && stored.IsActive(clock.GetUtcNow()) ? stored : null;
@@ -104,7 +102,7 @@ public sealed class AuthTokenService(PostgresDbContext context, AuthTokenOptions
         DateTimeOffset now,
         CancellationToken cancellationToken)
     {
-        var open = await context.Set<AuthToken>()
+        var open = await context.Tracked<AuthToken>()
             .Where(token => token.UserId == userId && token.Purpose == purpose && token.ConsumedAt == null)
             .ToListAsync(cancellationToken);
 

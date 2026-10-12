@@ -17,16 +17,38 @@ jobs:
       - uses: actions/setup-dotnet@v4
         with:
           dotnet-version: 10.0.x
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
       - id: version
         run: echo "version=${GITHUB_REF_NAME#v}" >> "$GITHUB_OUTPUT"
       - name: Test the generic services
         run: dotnet test Tests/Services.IntegrationTests.csproj
+      - name: Check creation and safe cleanup
+        env:
+          COMPANYHQ_PACKAGES_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: node Scripts/test-companyhq-cli.mjs
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.13'
+      - name: Verify the bounded two-language architecture proof
+        run: python Experiments/UniversalApi/verify.py
       - name: Pack the generic services and the host library
         run: |
           find Services Apps/Api -name '*.csproj' -not -path '*/bin/*' -not -path '*/obj/*' -print0 |
             xargs -0 -n1 dotnet pack -c Release -o packages -p:Version=${{ steps.version.outputs.version }}
       - name: Publish to GitHub Packages
-        run: dotnet nuget push 'packages/*.nupkg' --source "https://nuget.pkg.github.com/${{ github.repository_owner }}/index.json" --api-key "${{ secrets.GITHUB_TOKEN }}" --skip-duplicate
+        env:
+          COMPANYHQ_PACKAGES_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          FEED: https://nuget.pkg.github.com/${{ github.repository_owner }}/index.json
+        # Publish the host last so its feed entry cannot precede its sibling packages.
+        # Duplicate versions fail; an immutable release must never be silently reused.
+        run: |
+          find packages -name '*.nupkg' ! -name 'CompanyHQ.Api.*' -print0 |
+            while IFS= read -r -d '' package; do
+              dotnet nuget push "$package" --source "$FEED" --api-key "$COMPANYHQ_PACKAGES_TOKEN"
+            done
+          dotnet nuget push 'packages/CompanyHQ.Api.*.nupkg' --source "$FEED" --api-key "$COMPANYHQ_PACKAGES_TOKEN"
       - uses: actions/upload-artifact@v4
         with:
           name: packages-${{ steps.version.outputs.version }}
@@ -36,18 +58,48 @@ jobs:
   consume:
     needs: publish
     runs-on: ubuntu-latest
+    env:
+      COMPANYHQ_PACKAGES_TOKEN: ${{ secrets.GITHUB_TOKEN }}
     steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.ref_name }}
       - uses: actions/setup-dotnet@v4
         with:
           dotnet-version: 10.0.x
-      - name: Build a host against the published packages
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.13'
+      - name: Create the actual company starter and pin this exact release
         env:
           VERSION: ${{ needs.publish.outputs.version }}
-          FEED: https://nuget.pkg.github.com/${{ github.repository_owner }}
-          TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          dotnet new web -o consumer && cd consumer
-          dotnet nuget add source "$FEED/index.json" --name companyhq --username token --password "$TOKEN" --store-password-in-clear-text
-          dotnet add package CompanyHQ.Api --version "[$VERSION]"
-          dotnet build
-          echo "Published versions:" && curl -fsS -u "token:$TOKEN" "$FEED/download/companyhq.api/index.json"
+          node Scripts/companyhq.mjs create --name "Release Consumer" --path "$RUNNER_TEMP/companyhq-consumer"
+          python - <<'PY'
+          import os, pathlib, re
+          props = pathlib.Path(os.environ['RUNNER_TEMP']) / 'companyhq-consumer/Directory.Build.props'
+          props.write_text(re.sub(r'<CompanyHQVersion>[^<]+</CompanyHQVersion>',
+              '<CompanyHQVersion>' + os.environ['VERSION'] + '</CompanyHQVersion>', props.read_text()))
+          PY
+      - name: Generate company migrations without a database
+        working-directory: ${{ runner.temp }}/companyhq-consumer
+        env:
+          Postgres__ConnectionString: Host=127.0.0.1;Port=1;Database=migrations_only;Username=ci;Password=migrations-only
+          Postgres__Password: migrations-only
+          Postgres__AutoMigrate: 'false'
+          Postgres__AutoSeed: 'false'
+        run: |
+          export Jwt__SigningKey="$(openssl rand -base64 32)"
+          export Demo__StorageSigningKey="$(openssl rand -base64 32)"
+          dotnet tool restore
+          cd Apps/Api
+          dotnet ef migrations add Initial
+      - name: Build the company host against the published packages
+        working-directory: ${{ runner.temp }}/companyhq-consumer
+        run: dotnet build Apps/Api/Company.Api.csproj
+      - name: Boot the company host on its migrations against disposable PostGIS and Redis
+        working-directory: ${{ runner.temp }}/companyhq-consumer
+        run: dotnet test Tests/Company.Tests.csproj --filter FullyQualifiedName~HostTests

@@ -1,8 +1,7 @@
-using Microsoft.EntityFrameworkCore;
 
 using CompanyHQ.Services.Messages.Contracts.Models;
 using CompanyHQ.Services.Messages.Contracts.Ports;
-using CompanyHQ.Services.Postgres.Services;
+using CompanyHQ.Services.Persistence.Services;
 
 namespace CompanyHQ.Services.Messages.Services;
 
@@ -10,7 +9,7 @@ namespace CompanyHQ.Services.Messages.Services;
 /// Reads one message with a bounded window of its neighbours. Message uses it for spam-flag evidence;
 /// the host hands it to whichever reporting service is plugged in.
 /// </summary>
-public sealed class MessageContextReader(IPostgresService<Message> messages)
+public sealed class MessageContextReader(IRepository<Message> messages)
 {
     private const int ContextMessageCount = 2;
 

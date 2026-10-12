@@ -1,0 +1,18 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <AssemblyName>CompanyHQ.Services.Persistence</AssemblyName>
+    <RootNamespace>CompanyHQ.Services.Persistence</RootNamespace>
+  </PropertyGroup>
+
+  <!--
+    The ports a service persists through, and the base every persisted model inherits. It has no
+    reference of any kind, on purpose: no database driver, no object-relational mapper and no
+    provider project, so anything may depend on it without inheriting one. A provider adapter
+    references this assembly and implements the ports; this assembly never references an adapter.
+  -->
+
+</Project>

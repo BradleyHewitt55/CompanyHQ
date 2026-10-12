@@ -1,16 +1,16 @@
 using Microsoft.Extensions.Diagnostics.HealthChecks;
-using StackExchange.Redis;
+using CompanyHQ.Services.Cache.Contracts.Ports;
 
 namespace CompanyHQ.Services.Cache.Services;
 
 /// <summary>
-/// Pings Redis through the shared multiplexer.
+/// The <c>cache</c> health entry: a round trip through the composed provider.
 /// </summary>
 /// <remarks>
-/// Degraded rather than unhealthy: the app serves traffic without a cache, so a Redis outage must
+/// Degraded rather than unhealthy: the app serves traffic without a cache, so a cache outage must
 /// not fail a readiness probe and pull the host out of rotation.
 /// </remarks>
-public sealed class CacheHealthCheck(IConnectionMultiplexer connection) : IHealthCheck
+public sealed class CacheHealthCheck(ICacheProvider provider) : IHealthCheck
 {
     public const string Name = "cache";
 
@@ -20,17 +20,17 @@ public sealed class CacheHealthCheck(IConnectionMultiplexer connection) : IHealt
     {
         try
         {
-            var latency = await connection.GetDatabase().PingAsync();
+            var latency = await provider.PingAsync(cancellationToken);
 
             return HealthCheckResult.Healthy(
-                "Redis is reachable.",
+                "The cache is reachable.",
                 new Dictionary<string, object> { ["latencyMs"] = latency.TotalMilliseconds });
         }
         catch (Exception exception) when (exception is not OperationCanceledException)
         {
             return new HealthCheckResult(
                 context.Registration.FailureStatus,
-                "Redis is unreachable.",
+                "The cache is unreachable.",
                 exception);
         }
     }

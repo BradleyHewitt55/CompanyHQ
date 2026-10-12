@@ -2,7 +2,6 @@ using System.Data;
 using System.ComponentModel.DataAnnotations;
 using CompanyHQ.Services.Messages.Contracts.Enums;
 
-using Microsoft.EntityFrameworkCore;
 
 using CompanyHQ.Services.Messages.Contracts;
 using CompanyHQ.Services.Messages.Contracts.Dtos;
@@ -12,8 +11,7 @@ using CompanyHQ.Services.Messages.Contracts.Ports;
 using CompanyHQ.Services.Postgres.Contracts;
 using CompanyHQ.Services.Postgres.Contracts.Dtos;
 using CompanyHQ.Services.Postgres.Contracts.Forms;
-using CompanyHQ.Services.Postgres.Data;
-using CompanyHQ.Services.Postgres.Extensions;
+using CompanyHQ.Services.Persistence.Services;
 using CompanyHQ.Services.Users.Contracts.Models;
 using CompanyHQ.Services.Users.Services;
 
@@ -26,7 +24,7 @@ namespace CompanyHQ.Services.Messages.Services;
 /// into it. With no attachment adapter, a send carrying an attachment is invalid.
 /// </remarks>
 internal sealed class MessageService(
-    PostgresDbContext context,
+    IPersistence context,
     IMessageBroadcaster broadcaster,
     TimeProvider timeProvider,
     MessageSpamDetector spamDetector,
@@ -76,8 +74,7 @@ internal sealed class MessageService(
             return MessageOperationResult<ClientConversationDto>.Invalid();
         }
 
-        if (!await context.Set<User>()
-                .AsNoTracking()
+        if (!await context.Query<User>()
                 .AnyAsync(candidate => candidate.Id == request.ParticipantId, cancellationToken))
         {
             return MessageOperationResult<ClientConversationDto>.NotFound();
@@ -85,7 +82,7 @@ internal sealed class MessageService(
 
         var kind = request.ContextKind?.Trim().ToLowerInvariant();
         var contextId = request.ContextId?.Trim();
-        if (!await context.Set<User>().AnyAsync(candidate => candidate.Id == userId, cancellationToken))
+        if (!await context.Tracked<User>().AnyAsync(candidate => candidate.Id == userId, cancellationToken))
             return MessageOperationResult<ClientConversationDto>.NotFound();
         if (!await rules.CanStartAsync(userId, request.ParticipantId, kind, contextId, cancellationToken))
             return MessageOperationResult<ClientConversationDto>.Forbidden();
@@ -107,8 +104,7 @@ internal sealed class MessageService(
     {
         if (!await rules.AllowsAsync(userId, conversationId, ConversationAction.Read, cancellationToken))
             return MessageOperationResult<MessagePageDto>.NotFound();
-        var participant = await context.Set<ConversationParticipant>()
-            .AsNoTracking()
+        var participant = await context.Query<ConversationParticipant>()
             .SingleOrDefaultAsync(
                 row => row.ConversationId == conversationId && row.UserId == userId,
                 cancellationToken);
@@ -118,8 +114,7 @@ internal sealed class MessageService(
             return MessageOperationResult<MessagePageDto>.NotFound();
         }
 
-        var closedAt = await context.Set<Conversation>()
-            .AsNoTracking()
+        var closedAt = await context.Query<Conversation>()
             .Where(conversation => conversation.Id == conversationId)
             .Select(conversation => conversation.ClosedAt)
             .SingleOrDefaultAsync(cancellationToken);
@@ -136,7 +131,7 @@ internal sealed class MessageService(
 
         if (!string.IsNullOrWhiteSpace(search))
         {
-            query = query.Where(message => EF.Functions.ILike(message.Body, $"%{search.Trim()}%"));
+            query = query.Where(message => QueryFunctions.LikeIgnoreCase(message.Body, $"%{search.Trim()}%"));
         }
 
         if (decodedCursor is { } key)
@@ -182,7 +177,7 @@ internal sealed class MessageService(
         if (!await rules.AllowsAsync(userId, conversationId, ConversationAction.Send, cancellationToken)
             || !await rules.AllowsAsync(userId, conversationId, ConversationAction.Read, cancellationToken))
             return MessageOperationResult<SendMessageResult>.NotFound();
-        var participants = await context.Set<ConversationParticipant>()
+        var participants = await context.Tracked<ConversationParticipant>()
             .Where(row => row.ConversationId == conversationId)
             .ToListAsync(cancellationToken);
 
@@ -203,15 +198,14 @@ internal sealed class MessageService(
             return MessageOperationResult<SendMessageResult>.NotFound();
         }
 
-        if (access.RequireVerifiedEmail && !await context.Set<User>().AnyAsync(
+        if (access.RequireVerifiedEmail && !await context.Tracked<User>().AnyAsync(
                 account => account.Id == userId && account.EmailVerified, cancellationToken))
             return MessageOperationResult<SendMessageResult>.Forbidden();
 
         if (!await rules.AllowsAsync(recipient.UserId, conversationId, ConversationAction.Read, cancellationToken))
             return MessageOperationResult<SendMessageResult>.Forbidden();
 
-        var existing = await context.Set<Message>()
-            .AsNoTracking()
+        var existing = await context.Query<Message>()
             .SingleOrDefaultAsync(
                 message => message.SenderUserId == userId
                     && message.ClientMessageId == request.ClientMessageId,
@@ -228,8 +222,7 @@ internal sealed class MessageService(
                 new SendMessageResult(ToClientMessage(existing), true));
         }
 
-        var isClosed = await context.Set<Conversation>()
-            .AsNoTracking()
+        var isClosed = await context.Query<Conversation>()
             .Where(conversation => conversation.Id == conversationId)
             .Select(conversation => conversation.ClosedAt != null)
             .SingleOrDefaultAsync(cancellationToken);
@@ -246,8 +239,7 @@ internal sealed class MessageService(
         }
 
         var now = timeProvider.GetUtcNow();
-        var hasPreviousMessage = await context.Set<Message>()
-            .AsNoTracking()
+        var hasPreviousMessage = await context.Query<Message>()
             .AnyAsync(
                 message => message.ConversationId == conversationId && message.SenderUserId == userId,
                 cancellationToken);
@@ -330,7 +322,7 @@ internal sealed class MessageService(
     {
         if (!await rules.AllowsAsync(userId, conversationId, ConversationAction.Read, cancellationToken))
             return MessageOperationResult<DateTimeOffset>.NotFound();
-        var participant = await context.Set<ConversationParticipant>()
+        var participant = await context.Tracked<ConversationParticipant>()
             .SingleOrDefaultAsync(
                 row => row.ConversationId == conversationId && row.UserId == userId,
                 cancellationToken);
@@ -344,8 +336,7 @@ internal sealed class MessageService(
         participant.LastReadAt = readAt;
         await context.SaveChangesAsync(cancellationToken);
 
-        var otherParticipantId = await context.Set<ConversationParticipant>()
-            .AsNoTracking()
+        var otherParticipantId = await context.Query<ConversationParticipant>()
             .Where(row => row.ConversationId == conversationId && row.UserId != userId)
             .Select(row => row.UserId)
             .SingleAsync(cancellationToken);
@@ -369,7 +360,7 @@ internal sealed class MessageService(
     {
         if (!await rules.AllowsAsync(userId, conversationId, ConversationAction.Read, cancellationToken))
             return MessageOperationResult<bool>.NotFound();
-        var participant = await context.Set<ConversationParticipant>()
+        var participant = await context.Tracked<ConversationParticipant>()
             .SingleOrDefaultAsync(
                 row => row.ConversationId == conversationId && row.UserId == userId,
                 cancellationToken);
@@ -391,7 +382,7 @@ internal sealed class MessageService(
     {
         if (!await rules.AllowsAsync(userId, conversationId, ConversationAction.Read, cancellationToken))
             return MessageOperationResult<bool>.NotFound();
-        var participant = await context.Set<ConversationParticipant>()
+        var participant = await context.Tracked<ConversationParticipant>()
             .SingleOrDefaultAsync(
                 row => row.ConversationId == conversationId && row.UserId == userId,
                 cancellationToken);
@@ -416,9 +407,9 @@ internal sealed class MessageService(
     {
         if (!await rules.AllowsAsync(userId, conversationId, ConversationAction.Close, cancellationToken))
             return MessageOperationResult<bool>.NotFound();
-        var conversation = await context.Set<Conversation>()
+        var conversation = await context.Tracked<Conversation>()
             .SingleOrDefaultAsync(candidate => candidate.Id == conversationId, cancellationToken);
-        var participants = await context.Set<ConversationParticipant>()
+        var participants = await context.Tracked<ConversationParticipant>()
             .Where(row => row.ConversationId == conversationId)
             .ToListAsync(cancellationToken);
         var isManager = await authorization.HasPermissionAsync(
@@ -490,13 +481,13 @@ internal sealed class MessageService(
     {
         if (!await rules.AllowsAsync(userId, conversationId, ConversationAction.Delete, cancellationToken))
             return MessageOperationResult<bool>.NotFound();
-        var conversation = await context.Set<Conversation>()
+        var conversation = await context.Tracked<Conversation>()
             .SingleOrDefaultAsync(candidate => candidate.Id == conversationId, cancellationToken);
         var isManager = await authorization.HasPermissionAsync(
             userId, AccessPermissions.ManageConversations, cancellationToken);
 
         if (conversation is null
-            || (!isManager && !await context.Set<ConversationParticipant>().AnyAsync(
+            || (!isManager && !await context.Tracked<ConversationParticipant>().AnyAsync(
                 row => row.ConversationId == conversationId && row.UserId == userId,
                 cancellationToken)))
         {
@@ -508,14 +499,14 @@ internal sealed class MessageService(
             return MessageOperationResult<bool>.Forbidden();
         }
 
-        var attached = await context.Set<Message>()
+        var attached = await context.Tracked<Message>()
             .Where(message => message.ConversationId == conversationId && message.MediaObjectId != null)
             .Select(message => message.MediaObjectId!.Value)
             .Distinct()
             .ToListAsync(cancellationToken);
 
         // Participant and message rows go with it through their cascading foreign keys.
-        context.Set<Conversation>().Remove(conversation);
+        context.Remove(conversation);
         await context.SaveChangesAsync(cancellationToken);
 
         // After the rows are gone, so a failed save never strands a message pointing at a deleted file.
@@ -539,8 +530,7 @@ internal sealed class MessageService(
         }
 
         var denied = await rules.RestrictedAsync(administratorId, ConversationAction.Read, cancellationToken);
-        var query = context.Set<Conversation>()
-            .AsNoTracking()
+        var query = context.Query<Conversation>()
             .Where(conversation => conversation.ClosedAt != null && !denied.Contains(conversation.Id));
         if (!string.IsNullOrWhiteSpace(search))
         {
@@ -548,14 +538,14 @@ internal sealed class MessageService(
             // and what was said. Paging a filtered-in-memory page would drop rows off later pages.
             var pattern = $"%{search.Trim()}%";
             query = query.Where(conversation =>
-                context.Set<Message>().Any(message =>
+                context.Tracked<Message>().Any(message =>
                     message.ConversationId == conversation.Id
-                    && EF.Functions.ILike(message.Body, pattern))
-                || context.Set<ConversationParticipant>().Any(participant =>
+                    && QueryFunctions.LikeIgnoreCase(message.Body, pattern))
+                || context.Tracked<ConversationParticipant>().Any(participant =>
                     participant.ConversationId == conversation.Id
-                    && context.Set<User>().Any(user =>
+                    && context.Tracked<User>().Any(user =>
                         user.Id == participant.UserId
-                        && EF.Functions.ILike((user.FirstName ?? "") + " " + (user.LastName ?? ""), pattern))));
+                        && QueryFunctions.LikeIgnoreCase((user.FirstName ?? "") + " " + (user.LastName ?? ""), pattern))));
         }
 
         var total = await query.CountAsync(cancellationToken);
@@ -580,18 +570,15 @@ internal sealed class MessageService(
             return new PagedResult<AdminConversationDto>([], paging.Page, paging.PageSize, total);
         }
 
-        var participantRows = await context.Set<ConversationParticipant>()
-            .AsNoTracking()
+        var participantRows = await context.Query<ConversationParticipant>()
             .Where(row => conversationIds.Contains(row.ConversationId))
             .Select(row => new { row.ConversationId, row.UserId })
             .ToListAsync(cancellationToken);
         var userIds = participantRows.Select(row => row.UserId).Distinct().ToArray();
-        var names = await context.Set<User>()
-            .AsNoTracking()
+        var names = await context.Query<User>()
             .Where(user => userIds.Contains(user.Id))
             .ToDictionaryAsync(user => user.Id, user => new { user.FirstName, user.LastName }, cancellationToken);
-        var messageRows = await context.Set<Message>()
-            .AsNoTracking()
+        var messageRows = await context.Query<Message>()
             .Where(message => conversationIds.Contains(message.ConversationId))
             .Select(message => new
             {
@@ -645,8 +632,7 @@ internal sealed class MessageService(
     {
         if (!await rules.AllowsAsync(administratorId, conversationId, ConversationAction.Read, cancellationToken)
             || !await authorization.HasPermissionAsync(administratorId, AccessPermissions.ManageConversations, cancellationToken)
-            || !await context.Set<Conversation>()
-                .AsNoTracking()
+            || !await context.Query<Conversation>()
                 .AnyAsync(
                     conversation => conversation.Id == conversationId && conversation.ClosedAt != null,
                     cancellationToken))
@@ -654,8 +640,7 @@ internal sealed class MessageService(
             return MessageOperationResult<MessagePageDto>.NotFound();
         }
 
-        var closedAt = await context.Set<Conversation>()
-            .AsNoTracking()
+        var closedAt = await context.Query<Conversation>()
             .Where(conversation => conversation.Id == conversationId)
             .Select(conversation => conversation.ClosedAt)
             .SingleOrDefaultAsync(cancellationToken);
@@ -669,12 +654,11 @@ internal sealed class MessageService(
             return MessageOperationResult<MessagePageDto>.Invalid();
         }
 
-        var query = context.Set<Message>()
-            .AsNoTracking()
+        var query = context.Query<Message>()
             .Where(message => message.ConversationId == conversationId);
         if (!string.IsNullOrWhiteSpace(search))
         {
-            query = query.Where(message => EF.Functions.ILike(message.Body, $"%{search.Trim()}%"));
+            query = query.Where(message => QueryFunctions.LikeIgnoreCase(message.Body, $"%{search.Trim()}%"));
         }
 
         if (decodedCursor is { } key)
@@ -724,8 +708,7 @@ internal sealed class MessageService(
             return MessageOperationResult<ClientConversationDto>.Invalid();
         }
 
-        if (!await context.Set<User>()
-                .AsNoTracking()
+        if (!await context.Query<User>()
                 .AnyAsync(candidate => candidate.Id == userId, cancellationToken))
         {
             return MessageOperationResult<ClientConversationDto>.NotFound();
@@ -766,25 +749,29 @@ internal sealed class MessageService(
         var restricted = await RestrictedMessagesAsync(userId, cancellationToken);
         var visibleMessages = VisibleMessages(userId, blocked, restricted);
 
-        return await (await ConversationListQueryAsync(userId, cancellationToken))
-            .SelectMany(participant => visibleMessages.Where(message =>
-                message.ConversationId == participant.ConversationId
-                && message.SenderUserId != userId
-                && (participant.ClearedAt == null || message.CreatedAt > participant.ClearedAt)
-                && (participant.LastReadAt == null || message.CreatedAt > participant.LastReadAt)))
+        var participants = await ConversationListQueryAsync(userId, cancellationToken);
+
+        // A person has one participant row per conversation (a unique index says so), so a message
+        // can match at most one of them: counting the messages that have such a row is the same
+        // count as pairing each row with its messages.
+        return await visibleMessages
+            .Where(message => message.SenderUserId != userId
+                && participants.Any(participant =>
+                    participant.ConversationId == message.ConversationId
+                    && (participant.ClearedAt == null || message.CreatedAt > participant.ClearedAt)
+                    && (participant.LastReadAt == null || message.CreatedAt > participant.LastReadAt)))
             .CountAsync(cancellationToken);
     }
 
-    private async Task<IQueryable<ConversationParticipant>> ConversationListQueryAsync(Guid userId, CancellationToken ct)
+    private async Task<IQuery<ConversationParticipant>> ConversationListQueryAsync(Guid userId, CancellationToken ct)
     {
         var denied = await rules.RestrictedAsync(userId, ConversationAction.Read, ct);
-        return context.Set<ConversationParticipant>()
-            .AsNoTracking()
+        return context.Query<ConversationParticipant>()
             .Where(participant => participant.UserId == userId && !denied.Contains(participant.ConversationId));
     }
 
-    private IQueryable<ClientConversationDto> ProjectConversationList(
-        IQueryable<ConversationParticipant> participants,
+    private IQuery<ClientConversationDto> ProjectConversationList(
+        IQuery<ConversationParticipant> participants,
         Guid userId,
         IReadOnlySet<Guid> blocked,
         IReadOnlySet<Guid> restricted)
@@ -793,7 +780,7 @@ internal sealed class MessageService(
 
         return
             from participant in participants
-            let otherUserId = context.Set<ConversationParticipant>()
+            let otherUserId = context.Tracked<ConversationParticipant>()
                 .Where(other => other.ConversationId == participant.ConversationId && other.UserId != userId)
                 .Select(other => other.UserId)
                 .FirstOrDefault()
@@ -807,11 +794,11 @@ internal sealed class MessageService(
             select new ClientConversationDto(
                 participant.ConversationId,
                 otherUserId,
-                context.Set<User>()
+                context.Tracked<User>()
                     .Where(user => user.Id == otherUserId)
                     .Select(user => user.FirstName)
                     .FirstOrDefault(),
-                context.Set<User>()
+                context.Tracked<User>()
                     .Where(user => user.Id == otherUserId)
                     .Select(user => user.LastName)
                     .FirstOrDefault(),
@@ -828,17 +815,17 @@ internal sealed class MessageService(
                         && message.SenderUserId != userId
                         && (participant.LastReadAt == null || message.CreatedAt > participant.LastReadAt))
                     .Count(),
-                context.Set<Conversation>()
+                context.Tracked<Conversation>()
                     .Where(conversation => conversation.Id == participant.ConversationId)
                     .Select(conversation => conversation.ClosedAt != null)
                     .FirstOrDefault(),
-                context.Set<Conversation>()
+                context.Tracked<Conversation>()
                     .Where(conversation => conversation.Id == participant.ConversationId)
                     .Select(conversation => conversation.ClosedAt)
                     .FirstOrDefault(),
-                context.Set<Conversation>().Where(conversation => conversation.Id == participant.ConversationId)
+                context.Tracked<Conversation>().Where(conversation => conversation.Id == participant.ConversationId)
                     .Select(conversation => conversation.ContextKind).FirstOrDefault(),
-                context.Set<Conversation>().Where(conversation => conversation.Id == participant.ConversationId)
+                context.Tracked<Conversation>().Where(conversation => conversation.Id == participant.ConversationId)
                     .Select(conversation => conversation.ContextId).FirstOrDefault());
     }
 
@@ -846,14 +833,13 @@ internal sealed class MessageService(
     /// The single visibility query used by every participant read path. A sender can see their own
     /// suppressed rows; every other suppressed or blocked sender is removed in SQL before paging.
     /// </summary>
-    private IQueryable<Message> VisibleMessages(
+    private IQuery<Message> VisibleMessages(
         Guid userId,
         IReadOnlySet<Guid> blocked,
         IReadOnlySet<Guid> restricted,
         DateTimeOffset? clearedAt = null)
     {
-        var query = context.Set<Message>()
-            .AsNoTracking()
+        var query = context.Query<Message>()
             .Where(message => message.SenderUserId == userId || message.SuppressedAt == null);
 
         if (restricted.Count > 0)
@@ -931,7 +917,7 @@ internal sealed class MessageService(
     {
         var contextKey = contextKind is null ? string.Empty : $"{contextKind}:{contextId}";
         var participantKey = BuildParticipantKey(userId, otherUserId);
-        var existing = await context.Set<Conversation>()
+        var existing = await context.Tracked<Conversation>()
             .SingleOrDefaultAsync(conversation => conversation.ParticipantKey == participantKey && conversation.ContextKey == contextKey, cancellationToken);
 
         if (existing is not null)
@@ -939,12 +925,7 @@ internal sealed class MessageService(
             return existing;
         }
 
-        // The retrying execution strategy refuses a user-initiated transaction unless the whole unit
-        // is retriable, so the transaction lives inside the strategy rather than around it. Every
-        // read below is repeated on a retry, which is what makes the second lookup safe.
-        var strategy = context.Database.CreateExecutionStrategy();
-        return await strategy.ExecuteAsync(async () =>
-            await CreateConversationAsync(userId, otherUserId, participantKey, contextKey, contextKind, contextId, cancellationToken));
+        return await CreateConversationAsync(userId, otherUserId, participantKey, contextKey, contextKind, contextId, cancellationToken);
     }
 
     private async Task<Conversation> CreateConversationAsync(
@@ -956,49 +937,46 @@ internal sealed class MessageService(
         string? contextId,
         CancellationToken cancellationToken)
     {
-        // A retry must not reuse entities tracked by the failed attempt.
-        context.ChangeTracker.Clear();
-
-        Conversation? existing;
-
-        await using var transaction = await context.Database.BeginTransactionAsync(
-            IsolationLevel.ReadCommitted,
-            cancellationToken);
-
-        existing = await context.Set<Conversation>()
-            .SingleOrDefaultAsync(conversation => conversation.ParticipantKey == participantKey && conversation.ContextKey == contextKey, cancellationToken);
-
-        if (existing is not null)
-        {
-            await transaction.CommitAsync(cancellationToken);
-            return existing;
-        }
-
-        var conversation = new Conversation
-        {
-            ParticipantKey = participantKey,
-            ContextKey = contextKey,
-            ContextKind = contextKind,
-            ContextId = contextId
-        };
-
-        context.Add(conversation);
-        context.AddRange(
-            new ConversationParticipant { ConversationId = conversation.Id, UserId = userId },
-            new ConversationParticipant { ConversationId = conversation.Id, UserId = otherUserId });
-
         try
         {
-            await context.SaveChangesAsync(cancellationToken);
-            await transaction.CommitAsync(cancellationToken);
-            return conversation;
-        }
-        catch (DbUpdateException)
-        {
-            await transaction.RollbackAsync(cancellationToken);
-            context.ChangeTracker.Clear();
+            // One transaction, which the provider may retry as a whole. The lookup inside it is
+            // repeated on a retry, which is what makes it safe.
+            return await context.InTransactionAsync(async _ =>
+            {
+                var existing = await context.Tracked<Conversation>()
+                    .SingleOrDefaultAsync(conversation => conversation.ParticipantKey == participantKey && conversation.ContextKey == contextKey, cancellationToken);
 
-            var racedConversation = await context.Set<Conversation>()
+                if (existing is not null)
+                {
+                    return existing;
+                }
+
+                var conversation = new Conversation
+                {
+                    ParticipantKey = participantKey,
+                    ContextKey = contextKey,
+                    ContextKind = contextKind,
+                    ContextId = contextId
+                };
+
+                context.Add(conversation);
+                context.AddRange<ConversationParticipant>(
+                [
+                    new ConversationParticipant { ConversationId = conversation.Id, UserId = userId },
+                    new ConversationParticipant { ConversationId = conversation.Id, UserId = otherUserId }
+                ]);
+
+                await context.SaveChangesAsync(cancellationToken);
+                return conversation;
+            }, IsolationLevel.ReadCommitted, cancellationToken);
+        }
+        catch (PersistenceException)
+        {
+            // The failed transaction is already rolled back. Whoever won the race committed the
+            // conversation this one tried to create.
+            context.Clear();
+
+            var racedConversation = await context.Tracked<Conversation>()
                 .SingleOrDefaultAsync(candidate => candidate.ParticipantKey == participantKey && candidate.ContextKey == contextKey, cancellationToken);
 
             if (racedConversation is null)

@@ -12,7 +12,7 @@ public interface IGeoService
     /// <summary>
     /// Names the area around a coordinate. The coordinate is rounded to
     /// <see cref="GeoService.CoordinateDecimals"/> decimals before it goes anywhere. Null when
-    /// Nominatim has no answer or could not be reached.
+    /// the provider has no answer or could not be reached.
     /// </summary>
     Task<AreaDto?> DescribeAreaAsync(
         double latitude,

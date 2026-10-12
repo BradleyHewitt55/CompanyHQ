@@ -1,19 +1,18 @@
 using CompanyHQ.Services.Media.Contracts.Ports;
 using System.Linq.Expressions;
-using Microsoft.EntityFrameworkCore;
 
 using CompanyHQ.Services.Media.Contracts.Dtos;
 using CompanyHQ.Services.Media.Contracts.Enums;
 using CompanyHQ.Services.Media.Contracts.Forms;
 using CompanyHQ.Services.Media.Contracts.Models;
 using CompanyHQ.Services.Postgres.Contracts.Enums;
-using CompanyHQ.Services.Postgres.Services;
+using CompanyHQ.Services.Persistence.Services;
 
 namespace CompanyHQ.Services.Media.Services;
 
 /// <inheritdoc cref="IMediaService" />
 public sealed class MediaService(
-    IPostgresService<MediaObject> mediaObjects,
+    IRepository<MediaObject> mediaObjects,
     IMediaObjectStorageProvider storage,
     MediaOptions options,
     IMediaAccessPolicyResolver accessPolicies,

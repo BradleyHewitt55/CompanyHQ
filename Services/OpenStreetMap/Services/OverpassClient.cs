@@ -4,44 +4,45 @@ using System.Text.Json;
 
 using Microsoft.Extensions.Logging;
 
-using CompanyHQ.Services.Geo.Contracts.Dtos;
 using CompanyHQ.Services.Geo.Contracts.Models;
+using CompanyHQ.Services.OpenStreetMap.Contracts.Dtos;
 
-namespace CompanyHQ.Services.Geo.Services;
+namespace CompanyHQ.Services.OpenStreetMap.Services;
 
-/// <summary>Owns the bounded OpenStreetMap Overpass request used to find nearby places.</summary>
+/// <summary>Owns the bounded OpenStreetMap Overpass request used to find places.</summary>
 public sealed class OverpassClient(
     HttpClient http,
-    GeoOptions options,
     OverpassRateLimiter limiter,
     ILogger<OverpassClient> logger)
 {
     /// <summary>
     /// What Overpass is allowed to spend before it aborts. The transport timeout in
-    /// <c>AddGeo</c> must stay above it, so a slow query fails as a logged 504 rather than as a
-    /// client-side cancellation that says nothing about why.
+    /// <c>AddOpenStreetMap</c> must stay above it, so a slow query fails as a logged 504 rather than
+    /// as a client-side cancellation that says nothing about why.
     /// </summary>
     public const int QueryTimeoutSeconds = 25;
 
     private static readonly JsonSerializerOptions SerializerOptions = new(JsonSerializerDefaults.Web);
 
-    /// <summary>Finds places of every configured kind inside a bounding box.</summary>
-    /// <remarks>
-    /// A bounding box rather than <c>around</c> so results line up exactly with the tile grid the
-    /// cache is keyed on; a radius would spill across tile edges and make an entry unusable for the
-    /// tile beside it.
-    /// </remarks>
+    /// <summary>Finds places of every given kind inside a bounding box. Null when the query failed.</summary>
     internal async Task<IReadOnlyList<OverpassElement>?> SearchBoundingBoxAsync(
         GeoViewport bounds,
+        IReadOnlyList<string> kinds,
         CancellationToken cancellationToken)
     {
+        // The kinds are spliced into a regex. Geo validates them at startup; this adapter does not
+        // rely on that, because the text goes to a public endpoint under this deployment's name.
+        if (kinds.Count == 0 || kinds.Any(kind => string.IsNullOrEmpty(kind)
+            || kind.Any(character => !(char.IsAsciiLetterLower(character) || char.IsAsciiDigit(character) || character == '_'))))
+        {
+            throw new ArgumentException("Place kinds must be lower-case OpenStreetMap amenity values (a-z, 0-9, _).", nameof(kinds));
+        }
+
         // One regex pass instead of a spatial scan per amenity: a scan per kind measured more than
-        // twice as slow, and the public endpoint culls long queries first. The kinds are validated
-        // at startup to bare tag values, so splicing them into the regex is safe.
-        var kinds = string.Join('|', options.NearbyPlaceKinds);
+        // twice as slow, and the public endpoint culls long queries first.
         var query = string.Create(
             CultureInfo.InvariantCulture,
-            $"[out:json][timeout:{QueryTimeoutSeconds}];nwr[\"amenity\"~\"^({kinds})$\"]({bounds.South},{bounds.West},{bounds.North},{bounds.East});out center;");
+            $"[out:json][timeout:{QueryTimeoutSeconds}];nwr[\"amenity\"~\"^({string.Join('|', kinds)})$\"]({bounds.South},{bounds.West},{bounds.North},{bounds.East});out center;");
 
         try
         {

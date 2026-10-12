@@ -23,15 +23,18 @@ public sealed class PostgresModelRegistry
 
     /// <summary>
     /// Scans every project library in <paramref name="hostAssembly"/>'s dependency graph that can
-    /// declare a model — this assembly and anything referencing it — for concrete
-    /// <see cref="BaseModel"/> subclasses. Ordered by full name so the model, and therefore migration
-    /// output, is stable across runs.
+    /// declare a model — anything referencing the Persistence assembly that owns
+    /// <see cref="BaseModel"/>, or this provider, which older services reference for it — for
+    /// concrete <see cref="BaseModel"/> subclasses. Ordered by full name so the model, and therefore
+    /// migration output, is stable across runs.
     /// </summary>
     public static PostgresModelRegistry Discover(Assembly hostAssembly)
     {
         ArgumentNullException.ThrowIfNull(hostAssembly);
 
-        var postgres = typeof(BaseModel).Assembly.GetName().Name;
+        // A service sees BaseModel through Persistence, or through this provider if it was written
+        // before the two were split. Missing either would silently drop its tables from the model.
+        string?[] owners = [typeof(BaseModel).Assembly.GetName().Name, typeof(PostgresModelRegistry).Assembly.GetName().Name];
         var dependencies = DependencyContext.Load(hostAssembly)
             ?? throw new InvalidOperationException(
                 $"{hostAssembly.GetName().Name} has no deps.json, so its model assemblies cannot be discovered.");
@@ -40,8 +43,8 @@ public sealed class PostgresModelRegistry
         // a package's assembly need not share its id, hence the names come from the library itself.
         var modelTypes = dependencies.RuntimeLibraries
             .Where(library => library.Type is "project" or "package"
-                && (library.Name == postgres
-                    || library.Dependencies.Any(dependency => dependency.Name == postgres)))
+                && (owners.Contains(library.Name)
+                    || library.Dependencies.Any(dependency => owners.Contains(dependency.Name))))
             .SelectMany(library => library.GetDefaultAssemblyNames(dependencies))
             .Select(Assembly.Load)
             .Append(hostAssembly)

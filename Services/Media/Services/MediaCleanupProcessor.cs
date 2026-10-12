@@ -1,10 +1,9 @@
-using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 
 using CompanyHQ.Services.Media.Contracts.Enums;
 using CompanyHQ.Services.Media.Contracts.Models;
 using CompanyHQ.Services.Media.Contracts.Ports;
-using CompanyHQ.Services.Postgres.Services;
+using CompanyHQ.Services.Persistence.Services;
 
 namespace CompanyHQ.Services.Media.Services;
 
@@ -14,7 +13,7 @@ namespace CompanyHQ.Services.Media.Services;
 /// the constructor is what lets the host's build-time validation refuse to start without one.
 /// </summary>
 internal sealed class MediaCleanupProcessor(
-    IPostgresService<MediaObject> mediaObjects,
+    IRepository<MediaObject> mediaObjects,
     IMediaObjectLifecycleStore lifecycle,
     IMediaObjectStorageProvider storage,
     MediaOptions options,

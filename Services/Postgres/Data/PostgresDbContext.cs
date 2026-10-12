@@ -6,7 +6,7 @@ namespace CompanyHQ.Services.Postgres.Data;
 
 /// <summary>
 /// The single context over every <see cref="BaseModel"/> in the application. Services do not define
-/// their own context; they define models and go through <see cref="IPostgresService{TModel}"/>.
+/// their own context; they define models and go through the Persistence ports this provider fills.
 /// </summary>
 public class PostgresDbContext(
     DbContextOptions<PostgresDbContext> options,

@@ -1,15 +1,14 @@
-using Microsoft.EntityFrameworkCore;
 using CompanyHQ.Services.Notifications.Contracts.Dtos;
 using CompanyHQ.Services.Notifications.Contracts.Enums;
 using CompanyHQ.Services.Notifications.Contracts.Forms;
 using CompanyHQ.Services.Notifications.Contracts.Models;
-using CompanyHQ.Services.Postgres.Data;
+using CompanyHQ.Services.Persistence.Services;
 
 namespace CompanyHQ.Services.Notifications.Services;
 
 /// <inheritdoc cref="INotificationAccountService" />
 public sealed class NotificationAccountService(
-    PostgresDbContext context,
+    IPersistence context,
     TimeProvider timeProvider) : INotificationAccountService
 {
     public async Task RegisterDeviceAsync(
@@ -32,19 +31,19 @@ public sealed class NotificationAccountService(
             throw new ArgumentException("A device token is required and must be at most 4096 characters.", nameof(request));
         }
 
-        var device = await context.Set<PushDevice>()
+        var device = await context.Tracked<PushDevice>()
             .SingleOrDefaultAsync(item => item.Token == token, cancellationToken);
         var now = timeProvider.GetUtcNow();
 
         if (device is null)
         {
-            await context.Set<PushDevice>().AddAsync(new PushDevice
+            context.Add(new PushDevice
             {
                 UserId = userId,
                 Token = token,
                 Platform = request.Platform,
                 LastSeenAt = now
-            }, cancellationToken);
+            });
         }
         else
         {
@@ -72,9 +71,9 @@ public sealed class NotificationAccountService(
             throw new ArgumentException("A device token must be at most 4096 characters.", nameof(token));
         }
 
-        return context.Set<PushDevice>()
+        return context.Tracked<PushDevice>()
             .Where(device => device.UserId == userId && device.Token == token.Trim())
-            .ExecuteDeleteAsync(cancellationToken);
+            .DeleteAsync(cancellationToken);
     }
 
     public async Task<NotificationPreferencesDto> GetPreferencesAsync(
@@ -83,8 +82,7 @@ public sealed class NotificationAccountService(
     {
         ValidateUserId(userId);
 
-        var preference = await context.Set<NotificationPreference>()
-            .AsNoTracking()
+        var preference = await context.Query<NotificationPreference>()
             .SingleOrDefaultAsync(item => item.UserId == userId, cancellationToken);
 
         return ToDto(preference);
@@ -98,14 +96,14 @@ public sealed class NotificationAccountService(
         ArgumentNullException.ThrowIfNull(request);
         ValidateUserId(userId);
 
-        var preference = await context.Set<NotificationPreference>()
+        var preference = await context.Tracked<NotificationPreference>()
             .SingleOrDefaultAsync(item => item.UserId == userId, cancellationToken);
 
         if (request.EmailEnabled && request.PushEnabled)
         {
             if (preference is not null)
             {
-                context.Set<NotificationPreference>().Remove(preference);
+                context.Remove(preference);
                 await context.SaveChangesAsync(cancellationToken);
             }
 
@@ -118,7 +116,7 @@ public sealed class NotificationAccountService(
             {
                 UserId = userId
             };
-            await context.Set<NotificationPreference>().AddAsync(preference, cancellationToken);
+            context.Add(preference);
         }
 
         preference.EmailEnabled = request.EmailEnabled;
@@ -134,8 +132,7 @@ public sealed class NotificationAccountService(
     {
         ValidateUserId(userId);
 
-        var devices = await context.Set<PushDevice>()
-            .AsNoTracking()
+        var devices = await context.Query<PushDevice>()
             .Where(device => device.UserId == userId)
             .OrderByDescending(device => device.LastSeenAt)
             .Select(device => new NotificationDeviceDto(
@@ -151,16 +148,11 @@ public sealed class NotificationAccountService(
     public async Task<AdminNotificationQueueHealthDto> GetQueueHealthAsync(
         CancellationToken cancellationToken = default)
     {
-        var counts = await context.Set<QueuedNotification>()
-            .AsNoTracking()
+        var countByStatus = await context.Query<QueuedNotification>()
             .Where(notification => notification.Status == QueuedNotificationStatus.Pending
                 || notification.Status == QueuedNotificationStatus.Failed
                 || notification.Status == QueuedNotificationStatus.Abandoned)
-            .GroupBy(notification => notification.Status)
-            .Select(group => new { group.Key, Count = group.Count() })
-            .ToListAsync(cancellationToken);
-
-        var countByStatus = counts.ToDictionary(item => item.Key, item => item.Count);
+            .CountByAsync(notification => notification.Status, cancellationToken);
         return new AdminNotificationQueueHealthDto(
             countByStatus.GetValueOrDefault(QueuedNotificationStatus.Pending),
             countByStatus.GetValueOrDefault(QueuedNotificationStatus.Failed),

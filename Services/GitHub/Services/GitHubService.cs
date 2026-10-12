@@ -4,7 +4,6 @@ using System.Security.Cryptography;
 using System.Text;
 using System.Text.Json;
 
-using Microsoft.EntityFrameworkCore;
 
 using CompanyHQ.Services.GitHub.Contracts.Dtos;
 using CompanyHQ.Services.GitHub.Contracts.Enums;
@@ -14,13 +13,13 @@ using CompanyHQ.Services.Postgres.Contracts;
 using CompanyHQ.Services.Postgres.Contracts.Dtos;
 using CompanyHQ.Services.Postgres.Contracts.Enums;
 using CompanyHQ.Services.Postgres.Contracts.Forms;
-using CompanyHQ.Services.Postgres.Services;
+using CompanyHQ.Services.Persistence.Services;
 using CompanyHQ.Services.Users.Services;
 
 namespace CompanyHQ.Services.GitHub.Services;
 
 public sealed class GitHubService(
-    IPostgresService<GitHubConnection> connections,
+    IRepository<GitHubConnection> connections,
     IUserAuthorizationService authorization,
     IHttpClientFactory clients,
     GitHubOptions options) : IGitHubService

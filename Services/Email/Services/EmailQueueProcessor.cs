@@ -1,9 +1,8 @@
-using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using CompanyHQ.Services.Email.Contracts.Enums;
 using CompanyHQ.Services.Email.Contracts.Models;
 using CompanyHQ.Services.Email.Contracts.Ports;
-using CompanyHQ.Services.Postgres.Data;
+using CompanyHQ.Services.Persistence.Services;
 
 namespace CompanyHQ.Services.Email.Services;
 
@@ -14,7 +13,7 @@ namespace CompanyHQ.Services.Email.Services;
 /// build-time validation refuse to start when no provider adapter is registered.
 /// </summary>
 internal sealed class EmailQueueProcessor(
-    PostgresDbContext context,
+    IPersistence context,
     IEmailProvider provider,
     TimeProvider timeProvider,
     ILogger<EmailQueueProcessor> logger)
@@ -33,23 +32,17 @@ internal sealed class EmailQueueProcessor(
     {
         var now = timeProvider.GetUtcNow();
 
-        // Same shape as NotificationWorker: the retrying execution strategy only accepts a
-        // user-initiated transaction when the whole claim runs inside it.
-        var emails = await context.Database.CreateExecutionStrategy().ExecuteAsync(async () =>
+        // Same shape as NotificationWorker: the claim is one transaction, and rows another worker
+        // has already locked are skipped rather than waited for, so two workers never send the
+        // same email.
+        var emails = await context.InTransactionAsync(async _ =>
         {
-            context.ChangeTracker.Clear();
-            await using var transaction = await context.Database.BeginTransactionAsync(cancellationToken);
-
-            var claimed = await context.Set<QueuedEmail>()
-                .FromSqlInterpolated($"""
-                    SELECT *
-                    FROM queued_email
-                    WHERE status = {nameof(QueuedEmailStatus.Pending)}
-                      AND next_attempt_at <= {now}
-                    ORDER BY is_priority DESC, next_attempt_at, id
-                    LIMIT {BatchSize}
-                    FOR UPDATE SKIP LOCKED
-                    """)
+            var claimed = await context.Locked<QueuedEmail>(skipLocked: true)
+                .Where(email => email.Status == QueuedEmailStatus.Pending && email.NextAttemptAt <= now)
+                .OrderByDescending(email => email.IsPriority)
+                .ThenBy(email => email.NextAttemptAt)
+                .ThenBy(email => email.Id)
+                .Take(BatchSize)
                 .ToListAsync(cancellationToken);
 
             foreach (var email in claimed)
@@ -58,9 +51,8 @@ internal sealed class EmailQueueProcessor(
             }
 
             await context.SaveChangesAsync(cancellationToken);
-            await transaction.CommitAsync(cancellationToken);
             return claimed;
-        });
+        }, cancellationToken: cancellationToken);
 
         foreach (var email in emails)
         {

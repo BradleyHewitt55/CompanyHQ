@@ -18,12 +18,10 @@
   </ItemGroup>
 
   <ItemGroup>
-    <!-- Contracts/ is its own client-shippable assembly. Only the persisted entities and
-         the entity-to-DTO projections under it compile into this one. -->
+    <!-- Contracts/ is its own client-shippable assembly holding the DTOs and the provider port.
+         Only the options under it compile into this one. No provider adapter is referenced here. -->
     <Compile Remove="Contracts/**" />
     <Compile Include="Contracts/Models/GeoOptions.cs" />
-    <Compile Include="Contracts/Dtos/Nominatim*.cs" />
-    <Compile Include="Contracts/Dtos/Overpass*.cs" />
     <ProjectReference Include="Contracts/Geo.Contracts.csproj" />
   </ItemGroup>
 

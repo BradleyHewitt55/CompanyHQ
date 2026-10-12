@@ -2,7 +2,6 @@ using System.Data;
 using System.Text;
 
 using Microsoft.AspNetCore.Identity;
-using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 
 using CompanyHQ.Services.Auth.Contracts.Dtos;
@@ -12,8 +11,7 @@ using CompanyHQ.Services.Auth.Contracts.Models;
 using CompanyHQ.Services.Postgres.Contracts;
 using CompanyHQ.Services.Postgres.Contracts.Dtos;
 using CompanyHQ.Services.Postgres.Contracts.Forms;
-using CompanyHQ.Services.Postgres.Data;
-using CompanyHQ.Services.Postgres.Extensions;
+using CompanyHQ.Services.Persistence.Services;
 using CompanyHQ.Services.Users.Contracts.Enums;
 using CompanyHQ.Services.Users.Contracts.Models;
 using CompanyHQ.Services.Users.Services;
@@ -22,12 +20,12 @@ namespace CompanyHQ.Services.Auth.Services;
 
 /// <inheritdoc cref="IAuthService"/>
 /// <remarks>
-/// Goes through <see cref="PostgresDbContext"/> rather than <c>IPostgresService&lt;T&gt;</c> because
+/// Goes through <see cref="IPersistence"/> rather than <c>IRepository&lt;T&gt;</c> because
 /// rotation revokes one row and inserts another: two repository calls would be two transactions,
 /// and a crash between them would strand the session.
 /// </remarks>
 public sealed class AuthService(
-    PostgresDbContext context,
+    IPersistence context,
     ITokenService tokens,
     IAuthTokenService authTokens,
     IAuthEmailSender authEmail,
@@ -62,18 +60,10 @@ public sealed class AuthService(
             return AuthOutcome.Failure(AuthError.RateLimited);
         }
 
-        var strategy = context.Database.CreateExecutionStrategy();
-
         Func<Task<(AuthOutcome Outcome, IssuedAuthToken Verification)>> work = async () =>
         {
-            context.ChangeTracker.Clear();
-            await using var transaction = await context.Database.BeginTransactionAsync(
-                IsolationLevel.Serializable,
-                cancellationToken);
-
-            if (await context.Set<User>().AnyAsync(user => user.Email == email, cancellationToken))
+            if (await context.Tracked<User>().AnyAsync(user => user.Email == email, cancellationToken))
             {
-                await transaction.CommitAsync(cancellationToken);
                 return (AuthOutcome.Failure(AuthError.EmailTaken), default);
             }
 
@@ -90,16 +80,14 @@ public sealed class AuthService(
                 user.Id,
                 AuthTokenPurpose.EmailVerification,
                 cancellationToken: cancellationToken);
-            await transaction.CommitAsync(cancellationToken);
             return (AuthOutcome.Success(session), verification);
         };
 
         try
         {
-            var (outcome, verification) = await strategy.ExecuteAsync(
-                work,
-                static async (_, operation, _) => await operation(),
-                verifySucceeded: null,
+            var (outcome, verification) = await context.InTransactionAsync(
+                _ => work(),
+                IsolationLevel.Serializable,
                 cancellationToken);
 
             if (outcome.Session is { } session)
@@ -111,7 +99,7 @@ public sealed class AuthService(
 
             return outcome;
         }
-        catch (DbUpdateException exception) when (exception.IsUniqueConstraintViolation("ix_user_email"))
+        catch (UniqueConstraintException exception) when (exception.Is("ix_user_email"))
         {
             return AuthOutcome.Failure(AuthError.EmailTaken);
         }
@@ -127,7 +115,7 @@ public sealed class AuthService(
             return AuthActionOutcome.Failure(AuthError.InvalidToken);
         }
 
-        var user = await context.Set<User>()
+        var user = await context.Tracked<User>()
             .FirstOrDefaultAsync(candidate => candidate.Id == consumed.UserId, cancellationToken);
         if (user is null)
         {
@@ -155,7 +143,7 @@ public sealed class AuthService(
             return;
         }
 
-        var user = await context.Set<User>()
+        var user = await context.Tracked<User>()
             .FirstOrDefaultAsync(
                 candidate => candidate.Email == normalised && !candidate.EmailVerified,
                 cancellationToken);
@@ -202,7 +190,7 @@ public sealed class AuthService(
             return;
         }
 
-        var user = await context.Set<User>()
+        var user = await context.Tracked<User>()
             .FirstOrDefaultAsync(candidate => candidate.Email == normalised, cancellationToken);
 
         if (user is null)
@@ -223,27 +211,18 @@ public sealed class AuthService(
         string newPassword,
         CancellationToken cancellationToken = default)
     {
-        var strategy = context.Database.CreateExecutionStrategy();
-
         Func<Task<(AuthOutcome Outcome, DateTimeOffset ChangedAt)>> work = async () =>
         {
-            context.ChangeTracker.Clear();
-            await using var transaction = await context.Database.BeginTransactionAsync(
-                IsolationLevel.ReadCommitted,
-                cancellationToken);
-
             var consumed = await authTokens.ConsumeAsync(token, AuthTokenPurpose.PasswordReset, cancellationToken);
             if (consumed is null)
             {
-                await transaction.CommitAsync(cancellationToken);
                 return (AuthOutcome.Failure(AuthError.InvalidToken), default);
             }
 
-            var user = await context.Set<User>()
+            var user = await context.Tracked<User>()
                 .FirstOrDefaultAsync(candidate => candidate.Id == consumed.UserId, cancellationToken);
             if (user is null)
             {
-                await transaction.CommitAsync(cancellationToken);
                 return (AuthOutcome.Failure(AuthError.InvalidToken), default);
             }
 
@@ -254,7 +233,7 @@ public sealed class AuthService(
             user.PasswordHash = passwordHasher.HashPassword(user, newPassword);
             user.SessionsRevokedAt = now;
 
-            var activeSessions = await context.Set<RefreshToken>()
+            var activeSessions = await context.Tracked<RefreshToken>()
                 .Where(candidate => candidate.UserId == user.Id && candidate.RevokedAt == null)
                 .ToListAsync(cancellationToken);
             foreach (var active in activeSessions)
@@ -268,14 +247,12 @@ public sealed class AuthService(
 
             // Proved control of the mailbox already; bouncing to a login form now is pointless friction.
             var session = await IssueSession(user, cancellationToken);
-            await transaction.CommitAsync(cancellationToken);
             return (AuthOutcome.Success(session), now);
         };
 
-        var (outcome, changedAt) = await strategy.ExecuteAsync(
-            work,
-            static async (_, operation, _) => await operation(),
-            verifySucceeded: null,
+        var (outcome, changedAt) = await context.InTransactionAsync(
+            _ => work(),
+            IsolationLevel.ReadCommitted,
             cancellationToken);
 
         if (outcome.Session is { } session)
@@ -310,40 +287,30 @@ public sealed class AuthService(
             return AuthOutcome.Failure(AuthError.RateLimited);
         }
 
-        var strategy = context.Database.CreateExecutionStrategy();
-
         Func<Task<(AuthOutcome Outcome, DateTimeOffset ChangedAt)>> work = async () =>
         {
-            context.ChangeTracker.Clear();
-            await using var transaction = await context.Database.BeginTransactionAsync(
-                IsolationLevel.ReadCommitted,
-                cancellationToken);
-
-            var user = await context.Set<User>()
+            var user = await context.Tracked<User>()
                 .FirstOrDefaultAsync(candidate => candidate.Id == userId, cancellationToken);
             if (user is null ||
                 passwordHasher.VerifyHashedPassword(user, user.PasswordHash, currentPassword)
                     is PasswordVerificationResult.Failed)
             {
-                await transaction.CommitAsync(cancellationToken);
                 return (AuthOutcome.Failure(AuthError.InvalidCredentials), default);
             }
 
             if (string.Equals(newPassword, currentPassword, StringComparison.Ordinal))
             {
-                await transaction.CommitAsync(cancellationToken);
                 return (AuthOutcome.Failure(AuthError.WeakPassword), default);
             }
 
             var callingHash = tokens.HashRefreshToken(callingRefreshToken);
-            var sessions = await context.Set<RefreshToken>()
+            var sessions = await context.Tracked<RefreshToken>()
                 .Where(candidate => candidate.UserId == user.Id && candidate.RevokedAt == null)
                 .ToListAsync(cancellationToken);
             var calling = sessions.FirstOrDefault(candidate => candidate.TokenHash == callingHash);
 
             if (calling is null)
             {
-                await transaction.CommitAsync(cancellationToken);
                 return (AuthOutcome.Failure(AuthError.InvalidSession), default);
             }
 
@@ -366,14 +333,12 @@ public sealed class AuthService(
             await context.SaveChangesAsync(cancellationToken);
 
             var issued = await IssueSession(user, cancellationToken, deviceLabel: deviceLabel);
-            await transaction.CommitAsync(cancellationToken);
             return (AuthOutcome.Success(issued), now);
         };
 
-        var (outcome, changedAt) = await strategy.ExecuteAsync(
-            work,
-            static async (_, operation, _) => await operation(),
-            verifySucceeded: null,
+        var (outcome, changedAt) = await context.InTransactionAsync(
+            _ => work(),
+            IsolationLevel.ReadCommitted,
             cancellationToken);
 
         if (outcome.Session is { } session)
@@ -408,7 +373,7 @@ public sealed class AuthService(
 
         var normalisedNewEmail = Normalise(newEmail);
 
-        var user = await context.Set<User>()
+        var user = await context.Tracked<User>()
             .FirstOrDefaultAsync(candidate => candidate.Id == userId, cancellationToken);
         if (user is null ||
             passwordHasher.VerifyHashedPassword(user, user.PasswordHash, currentPassword)
@@ -417,7 +382,7 @@ public sealed class AuthService(
             return AuthActionOutcome.Failure(AuthError.InvalidCredentials);
         }
 
-        if (await context.Set<User>()
+        if (await context.Tracked<User>()
             .AnyAsync(candidate => candidate.Email == normalisedNewEmail, cancellationToken))
         {
             return AuthActionOutcome.Failure(AuthError.EmailTaken);
@@ -446,8 +411,7 @@ public sealed class AuthService(
         string fullName,
         CancellationToken cancellationToken = default)
     {
-        var user = await context.Set<User>()
-            .AsNoTracking()
+        var user = await context.Query<User>()
             .Where(candidate => candidate.Id == userId)
             .Select(candidate => new { candidate.Email, candidate.FirstName, candidate.LastName })
             .FirstOrDefaultAsync(cancellationToken);
@@ -498,27 +462,18 @@ public sealed class AuthService(
         string token,
         CancellationToken cancellationToken = default)
     {
-        var strategy = context.Database.CreateExecutionStrategy();
-
         Func<Task<AuthActionOutcome>> work = async () =>
         {
-            context.ChangeTracker.Clear();
-            await using var transaction = await context.Database.BeginTransactionAsync(
-                IsolationLevel.ReadCommitted,
-                cancellationToken);
-
             var consumed = await authTokens.ConsumeAsync(token, AuthTokenPurpose.EmailChange, cancellationToken);
             if (consumed is null || string.IsNullOrWhiteSpace(consumed.PendingEmail))
             {
-                await transaction.CommitAsync(cancellationToken);
                 return AuthActionOutcome.Failure(AuthError.InvalidToken);
             }
 
-            var user = await context.Set<User>()
+            var user = await context.Tracked<User>()
                 .FirstOrDefaultAsync(candidate => candidate.Id == consumed.UserId, cancellationToken);
             if (user is null)
             {
-                await transaction.CommitAsync(cancellationToken);
                 return AuthActionOutcome.Failure(AuthError.InvalidToken);
             }
 
@@ -530,7 +485,7 @@ public sealed class AuthService(
             user.EmailVerified = true;
             user.SessionsRevokedAt = now;
 
-            var activeSessions = await context.Set<RefreshToken>()
+            var activeSessions = await context.Tracked<RefreshToken>()
                 .Where(candidate => candidate.UserId == user.Id && candidate.RevokedAt == null)
                 .ToListAsync(cancellationToken);
             foreach (var active in activeSessions)
@@ -539,19 +494,17 @@ public sealed class AuthService(
             }
 
             await context.SaveChangesAsync(cancellationToken);
-            await transaction.CommitAsync(cancellationToken);
             return AuthActionOutcome.Success();
         };
 
         try
         {
-            return await strategy.ExecuteAsync(
-                work,
-                static async (_, operation, _) => await operation(),
-                verifySucceeded: null,
+            return await context.InTransactionAsync(
+                _ => work(),
+                IsolationLevel.ReadCommitted,
                 cancellationToken);
         }
-        catch (DbUpdateException exception) when (exception.IsUniqueConstraintViolation("ix_user_email"))
+        catch (UniqueConstraintException exception) when (exception.Is("ix_user_email"))
         {
             // Two confirmations racing for the same address: the second loses, cleanly.
             return AuthActionOutcome.Failure(AuthError.EmailTaken);
@@ -577,7 +530,7 @@ public sealed class AuthService(
             return AuthOutcome.Failure(AuthError.RateLimited);
         }
 
-        var user = await context.Set<User>()
+        var user = await context.Tracked<User>()
             .FirstOrDefaultAsync(candidate => candidate.Email == email, cancellationToken);
         var verificationUser = user ?? DummyUser;
         var passwordHash = user?.PasswordHash ?? DummyPasswordHash;
@@ -605,21 +558,14 @@ public sealed class AuthService(
         string refreshToken,
         CancellationToken cancellationToken = default)
     {
-        var strategy = context.Database.CreateExecutionStrategy();
         var hash = tokens.HashRefreshToken(refreshToken);
 
         Func<Task<AuthOutcome>> work = async () =>
         {
-            context.ChangeTracker.Clear();
-            await using var transaction = await context.Database.BeginTransactionAsync(
-                IsolationLevel.ReadCommitted,
-                cancellationToken);
-
             // FOR UPDATE is the single-winner gate. A simultaneous request waits for this row,
             // then re-reads the committed revoked value instead of issuing a second session.
-            var stored = await context.Set<RefreshToken>()
-                .FromSqlInterpolated($"SELECT * FROM refresh_token WHERE token_hash = {hash} FOR UPDATE")
-                .FirstOrDefaultAsync(cancellationToken);
+            var stored = await context.Locked<RefreshToken>()
+                .FirstOrDefaultAsync(candidate => candidate.TokenHash == hash, cancellationToken);
             var now = clock.GetUtcNow();
 
             // A rotated token being replayed means either a stolen token or a client that raced
@@ -633,8 +579,7 @@ public sealed class AuthService(
             // person is actively using right after they reset their own password.
             var ownerSessionsRevokedAt = stored is null
                 ? null
-                : await context.Set<User>()
-                    .AsNoTracking()
+                : await context.Query<User>()
                     .Where(candidate => candidate.Id == stored.UserId)
                     .Select(candidate => candidate.SessionsRevokedAt)
                     .FirstOrDefaultAsync(cancellationToken);
@@ -644,7 +589,7 @@ public sealed class AuthService(
 
             if (stored is not null && stored.RevokedAt is not null && !diedInMassRevocation)
             {
-                var active = await context.Set<RefreshToken>()
+                var active = await context.Tracked<RefreshToken>()
                     .Where(candidate => candidate.UserId == stored.UserId && candidate.RevokedAt == null)
                     .ToListAsync(cancellationToken);
                 foreach (var activeSession in active)
@@ -657,35 +602,30 @@ public sealed class AuthService(
                     "Refresh token reuse detected for user {UserId}, token {TokenId}.",
                     stored.UserId,
                     stored.Id);
-                await transaction.CommitAsync(cancellationToken);
                 return AuthOutcome.Failure(AuthError.InvalidSession);
             }
 
             if (stored is null || !stored.IsActive(now))
             {
-                await transaction.CommitAsync(cancellationToken);
                 return AuthOutcome.Failure(AuthError.InvalidSession);
             }
 
-            var user = await context.Set<User>()
+            var user = await context.Tracked<User>()
                 .FirstOrDefaultAsync(candidate => candidate.Id == stored.UserId, cancellationToken);
 
             if (user is null)
             {
-                await transaction.CommitAsync(cancellationToken);
                 return AuthOutcome.Failure(AuthError.InvalidSession);
             }
 
             stored.RevokedAt = now;
             var session = await IssueSession(user, cancellationToken, deviceLabel: stored.DeviceLabel);
-            await transaction.CommitAsync(cancellationToken);
             return AuthOutcome.Success(session);
         };
 
-        return strategy.ExecuteAsync(
-            work,
-            static async (_, operation, _) => await operation(),
-            verifySucceeded: null,
+        return context.InTransactionAsync(
+            _ => work(),
+            IsolationLevel.ReadCommitted,
             cancellationToken);
     }
 
@@ -693,7 +633,7 @@ public sealed class AuthService(
     {
         var hash = tokens.HashRefreshToken(refreshToken);
 
-        var stored = await context.Set<RefreshToken>()
+        var stored = await context.Tracked<RefreshToken>()
             .FirstOrDefaultAsync(token => token.TokenHash == hash, cancellationToken);
 
         if (stored is null || stored.RevokedAt is not null)
@@ -706,7 +646,7 @@ public sealed class AuthService(
         await context.SaveChangesAsync(cancellationToken);
     }
 
-    public Task<PagedResult<AuthSessionSummaryDto>> GetSessionsAsync(
+    public async Task<PagedResult<AuthSessionSummaryDto>> GetSessionsAsync(
         Guid userId,
         Guid? currentSessionId,
         PageRequest paging,
@@ -714,19 +654,21 @@ public sealed class AuthService(
     {
         var now = clock.GetUtcNow();
 
-        return context.Set<RefreshToken>()
-            .AsNoTracking()
+        var page = await context.Query<RefreshToken>()
             .Where(candidate => candidate.UserId == userId && candidate.RevokedAt == null && candidate.ExpiresAt > now)
-            .ToPagedResultAsync(
-                paging,
+            .OrderByDescending(candidate => candidate.CreatedAt).ThenBy(candidate => candidate.Id)
+            .ToPageAsync(
+                paging.Skip,
+                paging.PageSize,
                 candidate => new AuthSessionSummaryDto(
                     candidate.Id,
                     candidate.DeviceLabel,
                     candidate.CreatedAt,
                     candidate.ExpiresAt,
                     candidate.Id == currentSessionId),
-                query => query.OrderByDescending(candidate => candidate.CreatedAt).ThenBy(candidate => candidate.Id),
                 cancellationToken);
+
+        return new PagedResult<AuthSessionSummaryDto>(page.Items, paging.Page, paging.PageSize, page.Total);
     }
 
     public async Task<bool> DeleteSessionAsync(
@@ -734,7 +676,7 @@ public sealed class AuthService(
         Guid sessionId,
         CancellationToken cancellationToken = default)
     {
-        var session = await context.Set<RefreshToken>()
+        var session = await context.Tracked<RefreshToken>()
             .FirstOrDefaultAsync(
                 candidate => candidate.Id == sessionId && candidate.UserId == userId,
                 cancellationToken);
@@ -755,7 +697,7 @@ public sealed class AuthService(
     {
         var now = clock.GetUtcNow();
 
-        var user = await context.Set<User>().FirstOrDefaultAsync(candidate => candidate.Id == userId, cancellationToken);
+        var user = await context.Tracked<User>().FirstOrDefaultAsync(candidate => candidate.Id == userId, cancellationToken);
         if (user is null)
         {
             return;
@@ -765,7 +707,7 @@ public sealed class AuthService(
         // including whichever access token is making this very call, hence the stamp.
         user.SessionsRevokedAt = now;
 
-        var sessions = await context.Set<RefreshToken>()
+        var sessions = await context.Tracked<RefreshToken>()
             .Where(candidate => candidate.UserId == userId && candidate.RevokedAt == null)
             .ToListAsync(cancellationToken);
         foreach (var session in sessions)
@@ -778,8 +720,7 @@ public sealed class AuthService(
 
     public async Task<AuthUserDto?> GetUserAsync(Guid id, CancellationToken cancellationToken = default)
     {
-        var user = await context.Set<User>()
-            .AsNoTracking()
+        var user = await context.Query<User>()
             .Where(user => user.Id == id)
             .Select(user => new
             {
@@ -827,7 +768,7 @@ public sealed class AuthService(
             ExpiresAt = refresh.ExpiresAt,
             DeviceLabel = deviceLabel
         };
-        context.Set<RefreshToken>().Add(row);
+        context.Add(row);
 
         await context.SaveChangesAsync(cancellationToken);
 
@@ -901,13 +842,13 @@ public sealed class AuthService(
             LastName = lastName?.Trim(),
             Bio = bio?.Trim(),
             Role = UserRole.Client,
-            AccessRoleId = await context.Set<AccessRole>().Where(role => role.Name == "Client")
+            AccessRoleId = await context.Tracked<AccessRole>().Where(role => role.Name == "Client")
                 .Select(role => role.Id).SingleAsync(cancellationToken)
         };
 
         // Hashed against the entity because IPasswordHasher<T> takes the user as context.
         user.PasswordHash = passwordHasher.HashPassword(user, password);
-        context.Set<User>().Add(user);
+        context.Add(user);
         await context.SaveChangesAsync(cancellationToken);
         return user;
     }

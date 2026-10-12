@@ -1,9 +1,9 @@
-using CompanyHQ.Services.Geo.Contracts.Models;
+using CompanyHQ.Services.OpenStreetMap.Contracts.Models;
 
-namespace CompanyHQ.Services.Geo.Services;
+namespace CompanyHQ.Services.OpenStreetMap.Services;
 
 /// <summary>Serialises Overpass calls so the shared public endpoint is not burst by concurrent maps.</summary>
-public sealed class OverpassRateLimiter(GeoOptions options, TimeProvider time) : IDisposable
+public sealed class OverpassRateLimiter(OpenStreetMapOptions options, TimeProvider time) : IDisposable
 {
     private readonly SemaphoreSlim gate = new(1, 1);
     private long lastRequestTimestamp;

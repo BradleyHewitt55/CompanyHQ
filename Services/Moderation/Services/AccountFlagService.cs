@@ -1,4 +1,3 @@
-using Microsoft.EntityFrameworkCore;
 
 using CompanyHQ.Services.Cache.Services;
 using CompanyHQ.Services.Moderation.Contracts.Dtos;
@@ -9,15 +8,14 @@ using CompanyHQ.Services.Postgres.Contracts;
 using CompanyHQ.Services.Postgres.Contracts.Dtos;
 using CompanyHQ.Services.Postgres.Contracts.Enums;
 using CompanyHQ.Services.Postgres.Contracts.Forms;
-using CompanyHQ.Services.Postgres.Extensions;
-using CompanyHQ.Services.Postgres.Services;
+using CompanyHQ.Services.Persistence.Services;
 using CompanyHQ.Services.Users.Services;
 
 namespace CompanyHQ.Services.Moderation.Services;
 
 /// <inheritdoc cref="IAccountFlagService" />
 public sealed class AccountFlagService(
-    IPostgresService<AccountFlag> flags,
+    IRepository<AccountFlag> flags,
     IUserAuthorizationService authorization,
     ICacheService cache) : IAccountFlagService
 {
@@ -52,8 +50,8 @@ public sealed class AccountFlagService(
                     Evidence = normalizedEvidence
                 }, ct);
             }
-            catch (DbUpdateException exception) when (
-                exception.IsUniqueConstraintViolation("ix_account_flag_user_id_kind"))
+            catch (UniqueConstraintException exception) when (
+                exception.Is("ix_account_flag_user_id_kind"))
             {
                 // A detector race is the same idempotent outcome as observing the live row first.
             }
@@ -97,7 +95,7 @@ public sealed class AccountFlagService(
             query = query.Where(flag => flag.Kind == normalizedKind);
         }
 
-        query = query.Search(search, audience is ResponseAudience.Admin ? typeof(AdminAccountFlagDto) : typeof(ClientAccountFlagDto));
+        query = query.Search(search?.Field, search?.Keyword, audience is ResponseAudience.Admin ? typeof(AdminAccountFlagDto) : typeof(ClientAccountFlagDto));
 
         return await query.ToPagedResultAsync(
             paging,

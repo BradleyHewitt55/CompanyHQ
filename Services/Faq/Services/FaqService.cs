@@ -1,4 +1,3 @@
-using Microsoft.EntityFrameworkCore;
 using CompanyHQ.Services.Faqs.Contracts.Dtos;
 using CompanyHQ.Services.Faqs.Contracts.Forms;
 using CompanyHQ.Services.Faqs.Contracts.Models;
@@ -6,14 +5,13 @@ using CompanyHQ.Services.Postgres.Contracts.Dtos;
 using CompanyHQ.Services.Postgres.Contracts;
 using CompanyHQ.Services.Postgres.Contracts.Enums;
 using CompanyHQ.Services.Postgres.Contracts.Forms;
-using CompanyHQ.Services.Postgres.Extensions;
-using CompanyHQ.Services.Postgres.Services;
+using CompanyHQ.Services.Persistence.Services;
 using CompanyHQ.Services.Users.Services;
 
 namespace CompanyHQ.Services.Faqs.Services;
 
 public sealed class FaqService(
-    IPostgresService<FaqEntry> entries,
+    IRepository<FaqEntry> entries,
     IUserAuthorizationService authorization) : IFaqService
 {
     public async Task<PagedResult<ClientFaqEntryDto>> ListAsync(
@@ -26,7 +24,8 @@ public sealed class FaqService(
         var effectiveAudience = await EffectiveAudienceAsync(audience, actingUserId, McpCapabilityCatalog.ListFaqEntries, cancellationToken);
         // The searchable fields are the ones this caller's shape carries, so a reader cannot probe a draft-only field.
         var query = entries.Query()
-            .Search(search, effectiveAudience is ResponseAudience.Admin ? typeof(AdminFaqEntryDto) : typeof(ClientFaqEntryDto));
+            .Search(search?.Field, search?.Keyword,
+                effectiveAudience is ResponseAudience.Admin ? typeof(AdminFaqEntryDto) : typeof(ClientFaqEntryDto));
 
         if (effectiveAudience is not ResponseAudience.Admin)
         {
@@ -35,14 +34,13 @@ public sealed class FaqService(
                                          entry.PublishedAt <= DateTimeOffset.UtcNow);
         }
 
-        return await query.ToPagedResultAsync(
-            page,
-            FaqEntryProjections.For(effectiveAudience),
-            ordered => ordered
-                .OrderBy(entry => entry.SortOrder)
-                .ThenBy(entry => entry.Category)
-                .ThenBy(entry => entry.Key),
-            cancellationToken);
+        var result = await query
+            .OrderBy(entry => entry.SortOrder)
+            .ThenBy(entry => entry.Category)
+            .ThenBy(entry => entry.Key)
+            .ToPageAsync(page.Skip, page.PageSize, FaqEntryProjections.For(effectiveAudience), cancellationToken);
+
+        return new PagedResult<ClientFaqEntryDto>(result.Items, page.Page, page.PageSize, result.Total);
     }
 
     public async Task<ClientFaqEntryDto?> GetAsync(
@@ -95,7 +93,7 @@ public sealed class FaqService(
         {
             await entries.AddAsync(entry, cancellationToken);
         }
-        catch (DbUpdateException exception) when (exception.IsUniqueConstraintViolation("ix_faq_entry_key"))
+        catch (UniqueConstraintException exception) when (exception.Is("ix_faq_entry_key"))
         {
             throw new FaqKeyConflictException();
         }

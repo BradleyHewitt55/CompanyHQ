@@ -2,7 +2,6 @@ using System.Security.Claims;
 using System.Text;
 
 using Microsoft.AspNetCore.Authentication.JwtBearer;
-using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.IdentityModel.JsonWebTokens;
@@ -10,7 +9,7 @@ using Microsoft.IdentityModel.Tokens;
 
 using CompanyHQ.Services.Auth.Contracts.Models;
 using CompanyHQ.Services.Auth.Services;
-using CompanyHQ.Services.Postgres.Services;
+using CompanyHQ.Services.Persistence.Services;
 using CompanyHQ.Services.Postgres.Contracts;
 using CompanyHQ.Services.Users.Contracts.Models;
 using CompanyHQ.Services.Auth.Contracts.Identity;
@@ -97,7 +96,7 @@ public static class AuthServiceCollectionExtensions
                         }
 
                         var users = validationContext.HttpContext.RequestServices
-                            .GetRequiredService<IPostgresService<User>>();
+                            .GetRequiredService<IRepository<User>>();
                         var user = await users.Query()
                             .Where(candidate => candidate.Id == userId)
                             .Select(candidate => new

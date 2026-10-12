@@ -27,6 +27,8 @@
     <Compile Remove="Contracts/**" />
     <Compile Include="Contracts/Models/**/*.cs" />
     <ProjectReference Include="Contracts/Postgres.Contracts.csproj" />
+    <!-- The adapter implements Persistence's ports. Persistence never references this project. -->
+    <ProjectReference Include="..\Persistence\Persistence.csproj" />
   </ItemGroup>
 
 </Project>

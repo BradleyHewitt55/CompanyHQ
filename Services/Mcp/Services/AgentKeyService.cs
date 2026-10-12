@@ -1,7 +1,6 @@
 using System.Security.Cryptography;
 using System.Text;
 
-using Microsoft.EntityFrameworkCore;
 using Microsoft.AspNetCore.WebUtilities;
 
 using CompanyHQ.Services.Mcp.Contracts.Dtos;
@@ -11,17 +10,16 @@ using CompanyHQ.Services.Mcp.Contracts.Models;
 using CompanyHQ.Services.Postgres.Contracts;
 using CompanyHQ.Services.Postgres.Contracts.Dtos;
 using CompanyHQ.Services.Postgres.Contracts.Forms;
-using CompanyHQ.Services.Postgres.Extensions;
-using CompanyHQ.Services.Postgres.Services;
+using CompanyHQ.Services.Persistence.Services;
 using CompanyHQ.Services.Users.Contracts.Models;
 
 namespace CompanyHQ.Services.Mcp.Services;
 
 /// <inheritdoc cref="IAgentKeyService"/>
 public sealed class AgentKeyService(
-    IPostgresService<AgentKey> keys,
-    IPostgresService<User> users,
-    IPostgresService<AccessRole> roles,
+    IRepository<AgentKey> keys,
+    IRepository<User> users,
+    IRepository<AccessRole> roles,
     TimeProvider clock) : IAgentKeyService
 {
     private const int KeyBytes = 32;
@@ -75,14 +73,17 @@ public sealed class AgentKeyService(
             new IssuedAgentKeyDto(key.Id, key.Name, secret, key.Access, key.CreatedAt, key.ExpiresAt, key.McpDisabledTools, key.AccessRoleId));
     }
 
-    public Task<PagedResult<ClientAgentKeyDto>> ListMineAsync(
+    public async Task<PagedResult<ClientAgentKeyDto>> ListMineAsync(
         Guid userId,
         PageRequest paging,
-        CancellationToken cancellationToken = default) =>
-        keys.Query()
+        CancellationToken cancellationToken = default)
+    {
+        var page = await keys.Query()
             .Where(key => key.UserId == userId && key.RevokedAt == null)
-            .ToPagedResultAsync(
-                paging,
+            .OrderByDescending(key => key.CreatedAt).ThenBy(key => key.Id)
+            .ToPageAsync(
+                paging.Skip,
+                paging.PageSize,
                 key => new ClientAgentKeyDto(
                     key.Id,
                     key.Name,
@@ -94,8 +95,10 @@ public sealed class AgentKeyService(
                     key.RevokedAt,
                     key.McpDisabledTools,
                     key.AccessRoleId),
-                query => query.OrderByDescending(key => key.CreatedAt).ThenBy(key => key.Id),
                 cancellationToken);
+
+        return new PagedResult<ClientAgentKeyDto>(page.Items, paging.Page, paging.PageSize, page.Total);
+    }
 
     public async Task<PagedResult<AdminAgentKeyDto>> ListForUserAsync(
         Guid targetUserId,

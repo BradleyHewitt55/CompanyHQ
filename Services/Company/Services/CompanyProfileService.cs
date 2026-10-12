@@ -1,15 +1,14 @@
-using Microsoft.EntityFrameworkCore;
 using CompanyHQ.Services.Company.Contracts.Dtos;
 using CompanyHQ.Services.Company.Contracts.Forms;
 using CompanyHQ.Services.Company.Contracts.Models;
 using CompanyHQ.Services.Postgres.Contracts;
-using CompanyHQ.Services.Postgres.Services;
+using CompanyHQ.Services.Persistence.Services;
 using CompanyHQ.Services.Users.Services;
 
 namespace CompanyHQ.Services.Company.Services;
 
 public sealed class CompanyProfileService(
-    IPostgresService<CompanyProfile> profiles,
+    IRepository<CompanyProfile> profiles,
     IUserAuthorizationService authorization) : ICompanyProfileService
 {
     public Task<ClientCompanyProfileDto?> GetAsync(CancellationToken cancellationToken = default) =>

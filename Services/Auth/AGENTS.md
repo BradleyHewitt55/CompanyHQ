@@ -5,13 +5,14 @@ trusts, and owns every entity that makes a credential revocable or single-use: `
 `AuthToken`.
 
 It owns **no account data** — `Services/User` owns the `User` record, the password hasher, and the
-deletion path — so it reads users through `PostgresDbContext`, never through a `User`-shaped API of
+deletion path — so it reads users through the neutral `IPersistence` unit, never through a `User`-shaped API of
 its own, but it **does** write two columns on that row: `EmailVerified` and `SessionsRevokedAt` (see
 `Services/User/AGENTS.md` for which flow stamps which). It decides **no
 access rule**: it registers one authorization policy per name in `AccessPermissions.All`, plus
 `AuthPolicies.RequireVerifiedEmail`, configures the bearer scheme, hands other controllers
 `[Authorize]` / `User.GetUserId()` / `User.HasPermission()`, and stays out of the way otherwise.
-Its mail goes through its own `IAuthEmailSender` port.
+Its mail goes through its own `IAuthEmailSender` port. EF dependencies are allowed only for
+owning-assembly relationship/index declarations, never normal auth operations.
 
 ## Two tokens, on purpose
 
@@ -117,7 +118,7 @@ and change-email. That, not a collation, is what makes the unique index case-ins
 - **Order matters twice.** `AddAuth` after `AddUsers` and `AddEmail` (password hasher, deletion
   coordinator, and `IEmailTemplateService`), and `UseAuthentication` before `UseAuthorization` or every
   `[Authorize]` endpoint sees an anonymous caller.
-- `AuthService` injects `PostgresDbContext` rather than `IPostgresService<T>` — rotation, in-place
+- `AuthService` injects `IPersistence` rather than `IRepository<T>` — rotation, in-place
   rehash, and every mass-revocation flow are multi-row writes, and two repository calls are two
   transactions. Every write that issues a session funnels through `IssueSession`, which commits with
   whatever the caller already staged.
@@ -191,7 +192,7 @@ decisions, not deployment knobs, so they are not configurable the way `LoginRate
 - Rotation is one `SaveChangesAsync`, or a crash strands the session.
 - **`ITokenService` never says no.** It mints and digests; whether a caller *deserves* a token is
   `IAuthService`'s business. A token service that can refuse is a second, invisible authz layer.
-- **Auth references only foundation (`User`, `Postgres`, `Cache`) and no feature service.** Its mail
+- **Auth references only foundation (`User`, `Persistence`, `Postgres.Contracts`, `Cache`) and no feature service.** Its mail
   goes through its own `IAuthEmailSender` port; `Apps/Api/Integrations/AuthEmailSender.cs` fills it
   with Email's templates. The port is required, so a host without that bridge fails at startup.
 - `User.Audience(permission)` stays in `Services/User/Extensions/`. Moving it here would be a cycle.

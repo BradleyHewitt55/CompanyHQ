@@ -1,7 +1,6 @@
 using System.Data;
 using System.Linq.Expressions;
 
-using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 
 using CompanyHQ.Services.Moderation.Contracts.Ports;
@@ -15,9 +14,7 @@ using CompanyHQ.Services.Postgres.Contracts;
 using CompanyHQ.Services.Postgres.Contracts.Dtos;
 using CompanyHQ.Services.Postgres.Contracts.Enums;
 using CompanyHQ.Services.Postgres.Contracts.Forms;
-using CompanyHQ.Services.Postgres.Data;
-using CompanyHQ.Services.Postgres.Extensions;
-using CompanyHQ.Services.Postgres.Services;
+using CompanyHQ.Services.Persistence.Services;
 using CompanyHQ.Services.Users.Contracts.Models;
 using CompanyHQ.Services.Users.Services;
 
@@ -25,8 +22,8 @@ namespace CompanyHQ.Services.Moderation.Services;
 
 /// <inheritdoc cref="IContentReportService" />
 public sealed class ContentReportService(
-    PostgresDbContext context,
-    IPostgresService<ContentReport> reports,
+    IPersistence context,
+    IRepository<ContentReport> reports,
     IUserAuthorizationService authorization,
     ICacheService cache,
     IContentRestrictionService restrictions,
@@ -104,15 +101,10 @@ public sealed class ContentReportService(
 
         try
         {
-            var strategy = context.Database.CreateExecutionStrategy();
-            (report, duplicate) = await strategy.ExecuteAsync(async () =>
+            (report, duplicate) = await context.InTransactionAsync(async token =>
             {
-                context.ChangeTracker.Clear();
-                await using var transaction = await context.Database.BeginTransactionAsync(
-                    IsolationLevel.Serializable,
-                    ct);
 
-                var concurrent = await context.Set<ContentReport>().FirstOrDefaultAsync(
+                var concurrent = await context.Tracked<ContentReport>().FirstOrDefaultAsync(
                     candidate => candidate.ReporterUserId == reporterUserId
                         && candidate.TargetKind == target.TargetKind
                         && candidate.TargetId == request.TargetId
@@ -121,7 +113,6 @@ public sealed class ContentReportService(
 
                 if (concurrent is not null)
                 {
-                    await transaction.CommitAsync(ct);
                     return (concurrent, true);
                 }
 
@@ -136,8 +127,8 @@ public sealed class ContentReportService(
                     Status = ReportStatus.Pending
                 };
 
-                context.Set<ContentReport>().Add(created);
-                context.Set<ReportedContentSnapshot>().AddRange(
+                context.Add(created);
+                context.AddRange(
                     snapshots.Select(snapshot => new ReportedContentSnapshot
                     {
                         ContentReportId = created.Id,
@@ -146,7 +137,7 @@ public sealed class ContentReportService(
                         OccurredAt = snapshot.OccurredAt,
                         IsTarget = snapshot.IsTarget
                     }));
-                context.Set<HiddenContent>().Add(new HiddenContent
+                context.Add(new HiddenContent
                 {
                     UserId = reporterUserId,
                     TargetKind = target.TargetKind,
@@ -156,12 +147,11 @@ public sealed class ContentReportService(
                 });
 
                 await context.SaveChangesAsync(ct);
-                await transaction.CommitAsync(ct);
                 return (created, false);
-            });
+            }, IsolationLevel.Serializable, ct);
         }
-        catch (DbUpdateException exception) when (
-            exception.IsUniqueConstraintViolation("ix_content_report_reporter_user_id_target_kind_target_id"))
+        catch (UniqueConstraintException exception) when (
+            exception.Is("ix_content_report_reporter_user_id_target_kind_target_id"))
         {
             return ReportResult.Fail(ReportFailure.Duplicate);
         }
@@ -213,7 +203,7 @@ public sealed class ContentReportService(
             query = query.Where(report => report.Reason == reportReason);
         }
 
-        query = query.Search(search, audience is ResponseAudience.Admin ? typeof(AdminContentReportDto) : typeof(ClientContentReportDto));
+        query = query.Search(search?.Field, search?.Keyword, audience is ResponseAudience.Admin ? typeof(AdminContentReportDto) : typeof(ClientContentReportDto));
 
         return await query.ToPagedResultAsync(
             paging,
@@ -237,8 +227,7 @@ public sealed class ContentReportService(
             return report;
         }
 
-        var linkedReports = await context.Set<ContentReport>()
-            .AsNoTracking()
+        var linkedReports = await context.Query<ContentReport>()
             .Where(candidate => candidate.TargetKind == adminReport.TargetKind
                 && candidate.TargetId == adminReport.TargetId)
             .OrderBy(candidate => candidate.CreatedAt)
@@ -251,8 +240,7 @@ public sealed class ContentReportService(
                 candidate.Status,
                 candidate.CreatedAt))
             .ToListAsync(ct);
-        var snapshots = await context.Set<ReportedContentSnapshot>()
-            .AsNoTracking()
+        var snapshots = await context.Query<ReportedContentSnapshot>()
             .Where(snapshot => snapshot.ContentReportId == reportId)
             .OrderBy(snapshot => snapshot.OccurredAt)
             .ThenBy(snapshot => snapshot.Id)
@@ -262,8 +250,7 @@ public sealed class ContentReportService(
                 snapshot.OccurredAt,
                 snapshot.IsTarget))
             .ToListAsync(ct);
-        var history = await context.Set<ContentReportDecision>()
-            .AsNoTracking()
+        var history = await context.Query<ContentReportDecision>()
             .Where(decision => decision.ContentReportId == reportId)
             .OrderBy(decision => decision.DecidedAt)
             .ThenBy(decision => decision.Id)
@@ -315,15 +302,10 @@ public sealed class ContentReportService(
             return false;
         }
 
-        var strategy = context.Database.CreateExecutionStrategy();
-        var withdrawn = await strategy.ExecuteAsync(async () =>
+        var withdrawn = await context.InTransactionAsync(async token =>
         {
-            context.ChangeTracker.Clear();
-            await using var transaction = await context.Database.BeginTransactionAsync(
-                IsolationLevel.Serializable,
-                ct);
 
-            var report = await context.Set<ContentReport>().FirstOrDefaultAsync(
+            var report = await context.Tracked<ContentReport>().FirstOrDefaultAsync(
                 candidate => candidate.ReporterUserId == reporterUserId
                     && candidate.TargetKind == normalizedKind
                     && candidate.TargetId == targetId
@@ -332,12 +314,11 @@ public sealed class ContentReportService(
 
             if (report is null)
             {
-                await transaction.CommitAsync(ct);
                 return false;
             }
 
             report.Status = ReportStatus.Withdrawn;
-            var reportHide = await context.Set<HiddenContent>().FirstOrDefaultAsync(
+            var reportHide = await context.Tracked<HiddenContent>().FirstOrDefaultAsync(
                 hidden => hidden.UserId == reporterUserId
                     && hidden.TargetKind == normalizedKind
                     && hidden.TargetId == targetId
@@ -346,13 +327,12 @@ public sealed class ContentReportService(
                 ct);
             if (reportHide is not null)
             {
-                context.Set<HiddenContent>().Remove(reportHide);
+                context.Remove(reportHide);
             }
 
             await context.SaveChangesAsync(ct);
-            await transaction.CommitAsync(ct);
             return true;
-        });
+        }, IsolationLevel.Serializable, ct);
 
         if (withdrawn)
         {
@@ -381,19 +361,13 @@ public sealed class ContentReportService(
         }
 
         var note = string.IsNullOrWhiteSpace(request.ReviewNote) ? null : request.ReviewNote.Trim();
-        var strategy = context.Database.CreateExecutionStrategy();
-        var decision = await strategy.ExecuteAsync(async () =>
+        var decision = await context.InTransactionAsync(async token =>
         {
-            context.ChangeTracker.Clear();
-            await using var transaction = await context.Database.BeginTransactionAsync(
-                IsolationLevel.Serializable,
-                ct);
 
-            var selectedReport = await context.Set<ContentReport>()
+            var selectedReport = await context.Tracked<ContentReport>()
                 .FirstOrDefaultAsync(candidate => candidate.Id == reportId, ct);
             if (selectedReport is null)
             {
-                await transaction.CommitAsync(ct);
                 return (
                     Found: false,
                     TargetKind: string.Empty,
@@ -410,7 +384,7 @@ public sealed class ContentReportService(
 
             var targetReports = request.Status is ReportStatus.Reviewed
                 ? [selectedReport]
-                : await context.Set<ContentReport>()
+                : await context.Tracked<ContentReport>()
                     .Where(candidate => candidate.TargetKind == selectedReport.TargetKind
                         && candidate.TargetId == selectedReport.TargetId
                         && candidate.Status != ReportStatus.Withdrawn)
@@ -453,7 +427,7 @@ public sealed class ContentReportService(
                 report.ReviewedByUserId = actingAdministratorId;
                 report.ReviewedAt = decidedAt;
                 report.ReviewNote = note;
-                context.Set<ContentReportDecision>().Add(new ContentReportDecision
+                context.Add(new ContentReportDecision
                 {
                     ContentReportId = report.Id,
                     AdministratorUserId = actingAdministratorId,
@@ -467,24 +441,24 @@ public sealed class ContentReportService(
             var targetReportIds = targetReports.Select(report => report.Id).ToArray();
             if (request.Status is ReportStatus.Dismissed)
             {
-                var reportHides = await context.Set<HiddenContent>()
+                var reportHides = await context.Tracked<HiddenContent>()
                     .Where(hidden => hidden.TargetKind == selectedReport.TargetKind
                         && hidden.TargetId == selectedReport.TargetId
                         && hidden.Source == HiddenContentSource.Report
                         && targetReportIds.Contains(hidden.SourceId))
                     .ToListAsync(ct);
-                context.Set<HiddenContent>().RemoveRange(reportHides);
+                context.RemoveRange(reportHides);
             }
             else if (request.Status is ReportStatus.ActionTaken)
             {
-                var existingHideSourceIds = await context.Set<HiddenContent>()
+                var existingHideSourceIds = await context.Tracked<HiddenContent>()
                     .Where(hidden => hidden.TargetKind == selectedReport.TargetKind
                         && hidden.TargetId == selectedReport.TargetId
                         && hidden.Source == HiddenContentSource.Report
                         && targetReportIds.Contains(hidden.SourceId))
                     .Select(hidden => hidden.SourceId)
                     .ToHashSetAsync(ct);
-                context.Set<HiddenContent>().AddRange(targetReports
+                context.AddRange(targetReports
                     .Where(report => !existingHideSourceIds.Contains(report.Id))
                     .Select(report => new HiddenContent
                     {
@@ -497,7 +471,6 @@ public sealed class ContentReportService(
             }
 
             await context.SaveChangesAsync(ct);
-            await transaction.CommitAsync(ct);
             return (
                 Found: true,
                 selectedReport.TargetKind,
@@ -505,7 +478,7 @@ public sealed class ContentReportService(
                 Reports: targetReports
                     .Select(report => (ReportId: report.Id, ReporterUserId: report.ReporterUserId))
                     .ToArray());
-        });
+        }, IsolationLevel.Serializable, ct);
 
         if (!decision.Found)
         {
@@ -625,9 +598,9 @@ public sealed class ContentReportService(
             report.ReviewedByUserId,
             report.ReviewedAt,
             report.ReviewNote,
-            context.Set<ContentReport>().Count(candidate =>
+            context.Tracked<ContentReport>().Count(candidate =>
                 candidate.TargetKind == report.TargetKind && candidate.TargetId == report.TargetId),
-            context.Set<ContentReport>().Any(candidate =>
+            context.Tracked<ContentReport>().Any(candidate =>
                 candidate.TargetKind == report.TargetKind
                     && candidate.TargetId == report.TargetId
                     && candidate.Status == ReportStatus.ActionTaken));

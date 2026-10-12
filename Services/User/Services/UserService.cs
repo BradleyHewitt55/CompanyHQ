@@ -1,11 +1,8 @@
-using Microsoft.EntityFrameworkCore;
 
 using CompanyHQ.Services.Postgres.Contracts.Dtos;
 using CompanyHQ.Services.Postgres.Contracts.Enums;
 using CompanyHQ.Services.Postgres.Contracts.Forms;
-using CompanyHQ.Services.Postgres.Data;
-using CompanyHQ.Services.Postgres.Extensions;
-using CompanyHQ.Services.Postgres.Services;
+using CompanyHQ.Services.Persistence.Services;
 using CompanyHQ.Services.Users.Contracts.Dtos;
 using CompanyHQ.Services.Users.Contracts.Enums;
 using CompanyHQ.Services.Users.Contracts.Forms;
@@ -17,12 +14,12 @@ namespace CompanyHQ.Services.Users.Services;
 
 /// <inheritdoc cref="IUserService" />
 /// <remarks>
-/// The profile write takes <see cref="PostgresDbContext"/> because it and the optional media release
-/// must commit together; every read goes through <see cref="IPostgresService{TModel}"/>.
+/// The profile write takes <see cref="IPersistence"/> because it and the optional media release
+/// must commit together; every read goes through <see cref="IRepository{TModel}"/>.
 /// </remarks>
 public sealed class UserService(
-    IPostgresService<User> users,
-    PostgresDbContext context,
+    IRepository<User> users,
+    IPersistence context,
     IProfileMediaLifecycle? profileMedia = null) : IUserService
 {
     public async Task<PagedResult<ClientUserDto>?> ListAsync(
@@ -46,28 +43,29 @@ public sealed class UserService(
             ? users.Query()
             : string.IsNullOrWhiteSpace(search?.Field)
                 ? users.Query().FilterAdminList(search?.Keyword, role)
-                : users.Query().FilterAdminList(role: role).Search<User, AdminUserDto>(search, UserProjections.SearchAliases);
+                : users.Query().FilterAdminList(role: role)
+                    .Search(search.Field, search.Keyword, typeof(AdminUserDto), UserProjections.SearchAliases);
 
-        return await query.ToPagedResultAsync(
-            paging,
-            UserProjections.For(audience),
-            items => administrator ? items.OrderAdminList(sort, direction) : items.OrderPublicList(sort, direction),
-            cancellationToken);
+        var page = await (administrator ? query.OrderAdminList(sort, direction) : query.OrderPublicList(sort, direction))
+            .ToPageAsync(paging.Skip, paging.PageSize, UserProjections.For(audience), cancellationToken);
+
+        return new PagedResult<ClientUserDto>(page.Items, paging.Page, paging.PageSize, page.Total);
     }
 
-    public Task<PagedResult<ClientUserLookupDto>> LookupAsync(
+    public async Task<PagedResult<ClientUserLookupDto>> LookupAsync(
         PageRequest paging,
         string? search,
         UserSort sort,
         SortDirection direction,
-        CancellationToken cancellationToken = default) =>
-        users.Query()
+        CancellationToken cancellationToken = default)
+    {
+        var page = await users.Query()
             .FilterLookup(search)
-            .ToPagedResultAsync(
-                paging,
-                UserProjections.ToLookup,
-                items => items.OrderPublicList(sort, direction),
-                cancellationToken);
+            .OrderPublicList(sort, direction)
+            .ToPageAsync(paging.Skip, paging.PageSize, UserProjections.ToLookup, cancellationToken);
+
+        return new PagedResult<ClientUserLookupDto>(page.Items, paging.Page, paging.PageSize, page.Total);
+    }
 
     public Task<ClientUserDto?> GetAsync(
         string slug,
@@ -86,11 +84,8 @@ public sealed class UserService(
     {
         ArgumentNullException.ThrowIfNull(request);
 
-        return context.Database.CreateExecutionStrategy().ExecuteAsync(async () =>
+        return context.InTransactionAsync(async _ =>
         {
-            context.ChangeTracker.Clear();
-            await using var transaction = await context.Database.BeginTransactionAsync(cancellationToken);
-
             var user = await users.GetAsync(userId, cancellationToken);
             if (user is null)
             {
@@ -115,8 +110,6 @@ public sealed class UserService(
                     cancellationToken);
             }
 
-            await transaction.CommitAsync(cancellationToken);
-
             // The owner shape, not the client one: they are allowed their own identifier back.
             return new OwnerUserDto(
                 user.Id,
@@ -125,10 +118,10 @@ public sealed class UserService(
                 user.Bio,
                 user.ProfileImageUrl,
                 user.CreatedAt);
-        });
+        }, cancellationToken: cancellationToken);
     }
 
-    private IQueryable<User> Resolve(string slug, Guid? actingUserId, bool administrator)
+    private IQuery<User> Resolve(string slug, Guid? actingUserId, bool administrator)
     {
         var identifier = slug.Trim();
 
@@ -143,12 +136,12 @@ public sealed class UserService(
         if (!administrator)
         {
             return users.Query().Where(user =>
-                EF.Functions.ILike(((user.FirstName ?? "") + " " + (user.LastName ?? "")).Trim(), identifier));
+                QueryFunctions.LikeIgnoreCase(((user.FirstName ?? "") + " " + (user.LastName ?? "")).Trim(), identifier));
         }
 
         var email = identifier.ToLowerInvariant();
         return users.Query().Where(user =>
             user.Email == email
-            || EF.Functions.ILike(((user.FirstName ?? "") + " " + (user.LastName ?? "")).Trim(), identifier));
+            || QueryFunctions.LikeIgnoreCase(((user.FirstName ?? "") + " " + (user.LastName ?? "")).Trim(), identifier));
     }
 }

@@ -1,6 +1,6 @@
 // Creation regression: the starter a company receives, and the refusal to overwrite one.
 import assert from 'node:assert/strict';
-import { readFile, readdir, rm } from 'node:fs/promises';
+import { readFile, readdir, rm, mkdir, lstat } from 'node:fs/promises';
 import { existsSync } from 'node:fs';
 import { spawnSync } from 'node:child_process';
 import { fileURLToPath } from 'node:url';
@@ -9,6 +9,15 @@ import { randomUUID } from 'node:crypto';
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const project = path.resolve(process.argv[2] ?? path.join(root, '.testagent', `cli-${randomUUID()}`));
+// Reject even empty directories and dangling symlinks before entering the cleanup block.
+const occupied = await lstat(project).then(() => true, error => {
+  if (error.code === 'ENOENT') return false;
+  throw error;
+});
+if (occupied) throw new Error('CLI regression requires a nonexistent destination; existing paths are never removed.');
+await mkdir(path.dirname(project), { recursive: true });
+// Reserve this run's directory exclusively. A failed reservation never enters cleanup.
+await mkdir(project);
 function cli(args, expected = 0) {
   const result = spawnSync(process.execPath, [path.join(root, 'Scripts/companyhq.mjs'), ...args], { cwd: root, encoding: 'utf8', windowsHide: true });
   if (result.error) throw result.error;
@@ -39,6 +48,10 @@ try {
   assert.equal(scripts['api:types'], 'node api-types.mjs');
   assert.ok(existsSync(path.join(project, 'Apps/Web/api-types.mjs')));
   cli(['create', '--name', 'Overwrite', '--path', project], 1);
+  const guard = spawnSync(process.execPath, [fileURLToPath(import.meta.url), project], { encoding: 'utf8', windowsHide: true });
+  assert.equal(guard.status, 1);
+  assert.match(guard.stderr, /requires a nonexistent destination/);
+  assert.equal(JSON.parse(await readFile(path.join(project, 'project.json'), 'utf8')).slug, 'northstar-studio');
   console.log('companyhq create: passed');
 } finally {
   await rm(project, { recursive: true, force: true });

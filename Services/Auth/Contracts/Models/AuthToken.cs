@@ -1,5 +1,5 @@
 using CompanyHQ.Services.Auth.Contracts.Enums;
-using CompanyHQ.Services.Postgres.Contracts.Models;
+using CompanyHQ.Services.Persistence.Contracts.Models;
 
 namespace CompanyHQ.Services.Auth.Contracts.Models;
 

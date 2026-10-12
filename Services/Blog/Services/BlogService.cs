@@ -1,4 +1,3 @@
-using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using CompanyHQ.Services.Blogs.Contracts.Dtos;
 using CompanyHQ.Services.Blogs.Contracts.Forms;
@@ -8,14 +7,13 @@ using CompanyHQ.Services.Postgres.Contracts.Dtos;
 using CompanyHQ.Services.Postgres.Contracts;
 using CompanyHQ.Services.Postgres.Contracts.Enums;
 using CompanyHQ.Services.Postgres.Contracts.Forms;
-using CompanyHQ.Services.Postgres.Extensions;
-using CompanyHQ.Services.Postgres.Services;
+using CompanyHQ.Services.Persistence.Services;
 using CompanyHQ.Services.Users.Services;
 
 namespace CompanyHQ.Services.Blogs.Services;
 
 public sealed class BlogService(
-    IPostgresService<BlogPost> posts,
+    IRepository<BlogPost> posts,
     IUserAuthorizationService authorization,
     ILogger<BlogService> logger,
     IBlogCoverImages? covers = null) : IBlogService
@@ -30,7 +28,8 @@ public sealed class BlogService(
         var effectiveAudience = await EffectiveAudienceAsync(audience, actingUserId, McpCapabilityCatalog.ListBlogPosts, cancellationToken);
         // The searchable fields are the ones this caller's shape carries, so a reader cannot probe a draft-only field.
         var query = posts.Query()
-            .Search(search, effectiveAudience is ResponseAudience.Admin ? typeof(AdminBlogPostDto) : typeof(ClientBlogPostDto));
+            .Search(search?.Field, search?.Keyword,
+                effectiveAudience is ResponseAudience.Admin ? typeof(AdminBlogPostDto) : typeof(ClientBlogPostDto));
 
         if (effectiveAudience is not ResponseAudience.Admin)
         {
@@ -39,14 +38,13 @@ public sealed class BlogService(
                                         post.PublishedAt <= DateTimeOffset.UtcNow);
         }
 
-        return await query.ToPagedResultAsync(
-            page,
-            BlogPostProjections.For(effectiveAudience),
-            ordered => ordered
-                .OrderByDescending(post => post.PublishedAt)
-                .ThenBy(post => post.SortOrder)
-                .ThenBy(post => post.Id),
-            cancellationToken);
+        var result = await query
+            .OrderByDescending(post => post.PublishedAt)
+            .ThenBy(post => post.SortOrder)
+            .ThenBy(post => post.Id)
+            .ToPageAsync(page.Skip, page.PageSize, BlogPostProjections.For(effectiveAudience), cancellationToken);
+
+        return new PagedResult<ClientBlogPostDto>(result.Items, page.Page, page.PageSize, result.Total);
     }
 
     public async Task<ClientBlogPostDto?> GetAsync(
@@ -102,7 +100,7 @@ public sealed class BlogService(
         {
             await posts.AddAsync(post, cancellationToken);
         }
-        catch (DbUpdateException exception) when (exception.IsUniqueConstraintViolation("ix_blog_post_slug"))
+        catch (UniqueConstraintException exception) when (exception.Is("ix_blog_post_slug"))
         {
             throw new BlogSlugConflictException();
         }

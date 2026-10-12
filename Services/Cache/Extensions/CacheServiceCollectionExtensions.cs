@@ -2,8 +2,8 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Diagnostics.HealthChecks;
 using CompanyHQ.Services.Cache.Contracts.Models;
+using CompanyHQ.Services.Cache.Contracts.Ports;
 using CompanyHQ.Services.Cache.Services;
-using StackExchange.Redis;
 
 namespace CompanyHQ.Services.Cache.Extensions;
 
@@ -13,8 +13,9 @@ namespace CompanyHQ.Services.Cache.Extensions;
 public static class CacheServiceCollectionExtensions
 {
     /// <summary>
-    /// Registers the shared Redis multiplexer, <see cref="ICacheService"/>, and the <c>cache</c>
-    /// health check.
+    /// Registers <see cref="ICacheService"/> and the <c>cache</c> health check. The host registers
+    /// the provider adapter that fills <see cref="ICacheProvider"/> beside it; without one the host
+    /// fails validation at startup.
     /// </summary>
     public static IServiceCollection AddCache(this IServiceCollection services, IConfiguration configuration)
     {
@@ -28,18 +29,17 @@ public static class CacheServiceCollectionExtensions
 
         services.AddSingleton(options);
         services.AddSingleton<CacheSerializer>();
-
-        // Connecting lazily keeps a cold Redis from blocking host startup; AbortOnConnectFail is
-        // off, so the multiplexer reconnects on its own once Redis is up.
-        services.AddSingleton<IConnectionMultiplexer>(_ =>
-            ConnectionMultiplexer.Connect(options.BuildConfiguration()));
-
         services.AddSingleton<ICacheService, CacheService>();
 
-        services.AddHealthChecks().AddCheck<CacheHealthCheck>(
-            CacheHealthCheck.Name,
-            failureStatus: HealthStatus.Degraded,
-            tags: ["cache", "redis"]);
+        // Added when the health options are first built rather than here, so the entry carries the
+        // composed provider's own tag whichever of the two registrations the host calls first.
+        services.AddHealthChecks();
+        services.AddOptions<HealthCheckServiceOptions>().Configure<ICacheProvider>((health, provider) =>
+            health.Registrations.Add(new HealthCheckRegistration(
+                CacheHealthCheck.Name,
+                _ => new CacheHealthCheck(provider),
+                failureStatus: HealthStatus.Degraded,
+                tags: ["cache", provider.Name])));
 
         return services;
     }

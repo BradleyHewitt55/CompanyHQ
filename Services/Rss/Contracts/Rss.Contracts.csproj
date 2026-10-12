@@ -1,0 +1,20 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <AssemblyName>CompanyHQ.Services.Rss.Contracts</AssemblyName>
+    <RootNamespace>CompanyHQ.Services.Rss.Contracts</RootNamespace>
+  </PropertyGroup>
+
+  <!--
+    The port and the shapes a consumer of the RSS service speaks, with no dependency of any kind:
+    a service that reads feeds references this assembly and never the fetcher behind it. The
+    options stay compiled into the service.
+  -->
+  <ItemGroup>
+    <Compile Remove="Models/**" />
+  </ItemGroup>
+
+</Project>

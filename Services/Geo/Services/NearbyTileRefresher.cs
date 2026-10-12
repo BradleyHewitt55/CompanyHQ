@@ -10,7 +10,7 @@ namespace CompanyHQ.Services.Geo.Services;
 /// <summary>Refreshes cached tiles that are past their soft TTL, out of band.</summary>
 /// <remarks>
 /// This exists for outage resilience, not freshness. A place rarely moves, so a
-/// six-hour-old pin is still correct — what matters is that the map keeps working while Overpass is
+/// six-hour-old pin is still correct — what matters is that the map keeps working while the provider is
 /// rate-limiting, which it only can if a stale entry is served rather than discarded and refetched
 /// on the request path.
 /// </remarks>

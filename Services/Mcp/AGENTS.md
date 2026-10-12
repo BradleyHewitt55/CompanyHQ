@@ -37,9 +37,9 @@ permission, and agent-facing description through `McpActionAttribute`.
 
 ## Traps and wiring
 
-- Mcp references only `Auth/Contracts`, `User` and `Postgres`. Key and OAuth secrets are encoded with
+- Mcp references only `Auth/Contracts`, `User`, `Persistence` and shared `Postgres.Contracts`. Key and OAuth secrets are encoded with
   `WebEncoders.Base64UrlEncode` from the shared framework; do not pull in the JWT package for it.
-- Agent keys go through `IPostgresService<T>`. Only `McpOAuthService` takes `PostgresDbContext`,
+- Agent keys go through `IRepository<T>`. Only `McpOAuthService` takes `IPersistence`,
   because code exchange and refresh rotation are guarded single-use updates inside a transaction.
 - Call `AddMcp` after controller modules register their MVC application parts; action discovery reads
   those parts. The host maps the endpoint with `app.MapMcpEndpoint()`, which keeps `/mcp` outside

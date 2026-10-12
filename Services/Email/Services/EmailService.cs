@@ -1,8 +1,7 @@
-using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using CompanyHQ.Services.Email.Contracts.Models;
 using CompanyHQ.Services.Email.Contracts.Ports;
-using CompanyHQ.Services.Postgres.Services;
+using CompanyHQ.Services.Persistence.Services;
 
 namespace CompanyHQ.Services.Email.Services;
 
@@ -21,7 +20,7 @@ public sealed class EmailService(IServiceScopeFactory scopeFactory, TimeProvider
 
         // Its own scope: saving on the caller's context would flush whatever else that context tracks.
         await using var scope = scopeFactory.CreateAsyncScope();
-        var queue = scope.ServiceProvider.GetRequiredService<IPostgresService<QueuedEmail>>();
+        var queue = scope.ServiceProvider.GetRequiredService<IRepository<QueuedEmail>>();
 
         // The same business event queues once, which also absorbs an at-least-once caller's repeat.
         if (await QueuedIdAsync(queue, message.IdempotencyKey, cancellationToken) is { } existingId)
@@ -45,7 +44,7 @@ public sealed class EmailService(IServiceScopeFactory scopeFactory, TimeProvider
             await queue.AddAsync(queued, cancellationToken);
             return EmailSendResult.Sent(queued.Id.ToString());
         }
-        catch (DbUpdateException)
+        catch (PersistenceException)
         {
             // A concurrent send of the same event won the unique index; theirs is the queued row.
             return await QueuedIdAsync(queue, message.IdempotencyKey, cancellationToken) is { } racedId
@@ -55,7 +54,7 @@ public sealed class EmailService(IServiceScopeFactory scopeFactory, TimeProvider
     }
 
     private static Task<Guid?> QueuedIdAsync(
-        IPostgresService<QueuedEmail> queue,
+        IRepository<QueuedEmail> queue,
         string idempotencyKey,
         CancellationToken cancellationToken) =>
         queue.Query()

@@ -1,21 +1,20 @@
-using Microsoft.EntityFrameworkCore;
 
 using CompanyHQ.Services.Appointments.Contracts.Dtos;
 using CompanyHQ.Services.Appointments.Contracts.Forms;
 using CompanyHQ.Services.Appointments.Contracts.Models;
 using CompanyHQ.Services.Appointments.Contracts.Ports;
 using CompanyHQ.Services.Postgres.Contracts.Enums;
-using CompanyHQ.Services.Postgres.Services;
+using CompanyHQ.Services.Persistence.Services;
 
 namespace CompanyHQ.Services.Appointments.Services;
 
 /// <inheritdoc cref="IAppointmentScheduler" />
 /// <remarks>
-/// <see cref="IPostgresService{TModel}"/> shares the scoped context with its caller, so a caller
+/// <see cref="IRepository{TModel}"/> shares the scoped context with its caller, so a caller
 /// already inside a transaction gets the scheduled appointment committed or rolled back with the
 /// change that caused it. Do not open another transaction here or that stops being true.
 /// </remarks>
-public sealed class AppointmentScheduler(IPostgresService<Appointment> appointments) : IAppointmentScheduler
+public sealed class AppointmentScheduler(IRepository<Appointment> appointments) : IAppointmentScheduler
 {
     public async Task<ClientAppointmentDto> ScheduleAsync(
         Guid ownerUserId,

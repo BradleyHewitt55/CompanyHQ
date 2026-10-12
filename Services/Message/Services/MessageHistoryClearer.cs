@@ -1,7 +1,6 @@
-using Microsoft.EntityFrameworkCore;
 
 using CompanyHQ.Services.Messages.Contracts.Models;
-using CompanyHQ.Services.Postgres.Data;
+using CompanyHQ.Services.Persistence.Services;
 
 namespace CompanyHQ.Services.Messages.Services;
 
@@ -10,10 +9,10 @@ namespace CompanyHQ.Services.Messages.Services;
 /// after a report is filed against a message or an account.
 /// </summary>
 /// <remarks>
-/// Takes <see cref="PostgresDbContext"/> because every affected participant row is cleared in one
+/// Takes <see cref="IPersistence"/> because every affected participant row is cleared in one
 /// save; one repository update per row would be one transaction per row.
 /// </remarks>
-public sealed class MessageHistoryClearer(PostgresDbContext context, TimeProvider timeProvider)
+public sealed class MessageHistoryClearer(IPersistence context, TimeProvider timeProvider)
 {
     /// <summary>Clears the reporter's view of the conversation holding <paramref name="messageId"/>.</summary>
     public async Task ClearForMessageAsync(
@@ -21,8 +20,7 @@ public sealed class MessageHistoryClearer(PostgresDbContext context, TimeProvide
         Guid messageId,
         CancellationToken cancellationToken = default)
     {
-        var conversationIds = await context.Set<Message>()
-            .AsNoTracking()
+        var conversationIds = await context.Query<Message>()
             .Where(message => message.Id == messageId)
             .Select(message => message.ConversationId)
             .ToListAsync(cancellationToken);
@@ -36,12 +34,11 @@ public sealed class MessageHistoryClearer(PostgresDbContext context, TimeProvide
         Guid otherUserId,
         CancellationToken cancellationToken = default)
     {
-        var reporterConversations = context.Set<ConversationParticipant>()
+        var reporterConversations = context.Tracked<ConversationParticipant>()
             .Where(participant => participant.UserId == reporterUserId)
             .Select(participant => participant.ConversationId);
 
-        var conversationIds = await context.Set<ConversationParticipant>()
-            .AsNoTracking()
+        var conversationIds = await context.Query<ConversationParticipant>()
             .Where(participant => participant.UserId == otherUserId
                 && reporterConversations.Contains(participant.ConversationId))
             .Select(participant => participant.ConversationId)
@@ -60,7 +57,7 @@ public sealed class MessageHistoryClearer(PostgresDbContext context, TimeProvide
             return;
         }
 
-        var participants = await context.Set<ConversationParticipant>()
+        var participants = await context.Tracked<ConversationParticipant>()
             .Where(participant => participant.UserId == reporterUserId
                 && conversationIds.Contains(participant.ConversationId))
             .ToListAsync(cancellationToken);

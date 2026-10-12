@@ -1,32 +1,21 @@
 using System.Text.Json;
 using Microsoft.Extensions.Logging;
 using CompanyHQ.Services.Cache.Contracts.Models;
-using StackExchange.Redis;
+using CompanyHQ.Services.Cache.Contracts.Ports;
 
 namespace CompanyHQ.Services.Cache.Services;
 
 /// <summary>
-/// Redis-backed <see cref="ICacheService"/>. Every Redis failure is swallowed and reported as a
-/// miss when <c>Cache:FailSilently</c> is on, so a cache outage degrades reads instead of
-/// surfacing as a 500.
+/// <see cref="ICacheService"/> over whichever <see cref="ICacheProvider"/> the host composes. Every
+/// provider failure is swallowed and reported as a miss when <c>Cache:FailSilently</c> is on, so a
+/// cache outage degrades reads instead of surfacing as a 500.
 /// </summary>
 public sealed class CacheService(
-    IConnectionMultiplexer connection,
+    ICacheProvider provider,
     CacheOptions options,
     CacheSerializer serializer,
     ILogger<CacheService> logger) : ICacheService
 {
-    private const string IncrementScript = """
-        local count = redis.call('INCR', KEYS[1])
-        if count == 1 then
-            redis.call('EXPIRE', KEYS[1], ARGV[1])
-        end
-        local ttl = redis.call('TTL', KEYS[1])
-        return { count, ttl }
-        """;
-
-    private IDatabase Database => connection.GetDatabase();
-
     public async Task<T?> GetAsync<T>(string key, CancellationToken cancellationToken = default)
     {
         var (_, value) = await TryGetAsync<T>(key, cancellationToken);
@@ -44,7 +33,7 @@ public sealed class CacheService(
 
         try
         {
-            await Database.StringSetAsync(Qualify(key), serializer.Serialize(value), ttl ?? options.DefaultTtl);
+            await provider.SetAsync(Qualify(key), serializer.Serialize(value), ttl ?? options.DefaultTtl, cancellationToken);
         }
         catch (Exception exception) when (ShouldSwallow(exception))
         {
@@ -80,7 +69,7 @@ public sealed class CacheService(
 
         try
         {
-            return await Database.KeyDeleteAsync(Qualify(key));
+            return await provider.RemoveAsync(Qualify(key), cancellationToken);
         }
         catch (Exception exception) when (ShouldSwallow(exception))
         {
@@ -93,42 +82,15 @@ public sealed class CacheService(
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(prefix);
 
-        var pattern = $"{Qualify(prefix)}*";
+        var qualified = Qualify(prefix);
         var removed = 0L;
 
         try
         {
-            foreach (var endpoint in connection.GetEndPoints())
+            // Counted batch by batch, so a failure part way still reports what was already removed.
+            await foreach (var batch in provider.RemoveByPrefixAsync(qualified, options.ScanPageSize, cancellationToken))
             {
-                var server = connection.GetServer(endpoint);
-
-                // Replicas mirror the primary, so deleting through them is both refused and pointless.
-                if (server.IsReplica || !server.IsConnected)
-                {
-                    continue;
-                }
-
-                var batch = new List<RedisKey>(options.ScanPageSize);
-
-                await foreach (var key in server
-                    .KeysAsync(pattern: pattern, pageSize: options.ScanPageSize)
-                    .WithCancellation(cancellationToken))
-                {
-                    batch.Add(key);
-
-                    if (batch.Count < options.ScanPageSize)
-                    {
-                        continue;
-                    }
-
-                    removed += await Database.KeyDeleteAsync([.. batch]);
-                    batch.Clear();
-                }
-
-                if (batch.Count > 0)
-                {
-                    removed += await Database.KeyDeleteAsync([.. batch]);
-                }
+                removed += batch;
             }
         }
         catch (Exception exception) when (ShouldSwallow(exception))
@@ -145,7 +107,7 @@ public sealed class CacheService(
 
         try
         {
-            return await Database.KeyExistsAsync(Qualify(key));
+            return await provider.ExistsAsync(Qualify(key), cancellationToken);
         }
         catch (Exception exception) when (ShouldSwallow(exception))
         {
@@ -165,18 +127,13 @@ public sealed class CacheService(
 
         try
         {
-            var result = await Database.ScriptEvaluateAsync(
-                IncrementScript,
-                [Qualify(key)],
-                [Math.Max(1, (long)Math.Ceiling(window.TotalSeconds))]);
-            var values = (RedisResult[])result!;
-            var count = (long)values[0];
-            var ttlSeconds = Math.Max(1, (long)values[1]);
+            var counter = await provider.IncrementAsync(Qualify(key), window, cancellationToken);
 
             return new CacheCounterResult(
                 IsAvailable: true,
-                Count: count,
-                RetryAfter: TimeSpan.FromSeconds(ttlSeconds));
+                Count: counter.Count,
+                // A provider reports a missing or already-lapsed window as zero or less.
+                RetryAfter: TimeSpan.FromSeconds(Math.Max(1, (long)counter.TimeToLive.TotalSeconds)));
         }
         catch (Exception exception) when (exception is not OperationCanceledException)
         {
@@ -193,9 +150,9 @@ public sealed class CacheService(
 
         try
         {
-            var value = await Database.StringGetAsync(Qualify(key));
+            var payload = await provider.GetAsync(Qualify(key), cancellationToken);
 
-            return value.IsNullOrEmpty ? (false, default) : (true, serializer.Deserialize<T>(value!));
+            return string.IsNullOrEmpty(payload) ? (false, default) : (true, serializer.Deserialize<T>(payload));
         }
         catch (Exception exception) when (ShouldSwallow(exception))
         {
@@ -211,6 +168,8 @@ public sealed class CacheService(
         return options.KeyPrefix + key;
     }
 
+    // An outage is the provider's to name; an unreadable payload or a timeout is one whoever threw it.
     private bool ShouldSwallow(Exception exception) =>
-        options.FailSilently && exception is RedisException or JsonException or TimeoutException;
+        options.FailSilently
+        && (exception is JsonException or TimeoutException || provider.IsTransportFailure(exception));
 }

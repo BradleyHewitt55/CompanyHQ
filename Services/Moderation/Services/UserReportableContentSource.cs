@@ -1,16 +1,15 @@
-using Microsoft.EntityFrameworkCore;
 
 using CompanyHQ.Services.Moderation.Contracts.Ports;
 using CompanyHQ.Services.Moderation.Contracts.Captures;
 using CompanyHQ.Services.Moderation.Contracts.Enums;
-using CompanyHQ.Services.Postgres.Services;
+using CompanyHQ.Services.Persistence.Services;
 using CompanyHQ.Services.Users.Contracts.Models;
 
 namespace CompanyHQ.Services.Moderation.Services;
 
 /// <summary>Resolves accounts and captures only public, operator-safe profile evidence.</summary>
 public sealed class UserReportableContentSource(
-    IPostgresService<User> users) : IReportableContentSource
+    IRepository<User> users) : IReportableContentSource
 {
     public string TargetKind => "user";
 
@@ -29,7 +28,6 @@ public sealed class UserReportableContentSource(
         CancellationToken ct = default)
     {
         var user = await users.Query()
-            .AsNoTracking()
             .Where(candidate => candidate.Id == targetId)
             .Select(candidate => new { candidate.Id, candidate.FirstName, candidate.LastName, candidate.Bio })
             .SingleOrDefaultAsync(ct);

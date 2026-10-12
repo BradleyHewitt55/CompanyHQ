@@ -1,9 +1,7 @@
 using Microsoft.AspNetCore.Identity;
-using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
-using CompanyHQ.Services.Postgres.Data;
+using CompanyHQ.Services.Persistence.Services;
 using CompanyHQ.Services.Postgres.Contracts;
-using CompanyHQ.Services.Postgres.Services;
 using CompanyHQ.Services.Users.Contracts.Enums;
 using CompanyHQ.Services.Users.Contracts.Models;
 
@@ -19,14 +17,14 @@ public sealed class AdminSeeder(
 {
     public int Order => 0;
 
-    public async Task SeedAsync(PostgresDbContext context, CancellationToken cancellationToken)
+    public async Task SeedAsync(IPersistence context, CancellationToken cancellationToken)
     {
         var clientRole = await EnsureRoleAsync(context, "Client", AccessPermissions.Client, cancellationToken);
         var adminRole = await EnsureRoleAsync(context, "Admin", AccessPermissions.All, cancellationToken);
-        await context.Set<User>().Where(user => user.AccessRoleId == null && user.Role == UserRole.Client)
-            .ExecuteUpdateAsync(update => update.SetProperty(user => user.AccessRoleId, clientRole.Id), cancellationToken);
-        await context.Set<User>().Where(user => user.AccessRoleId == null && user.Role == UserRole.Admin)
-            .ExecuteUpdateAsync(update => update.SetProperty(user => user.AccessRoleId, adminRole.Id), cancellationToken);
+        await context.Tracked<User>().Where(user => user.AccessRoleId == null && user.Role == UserRole.Client)
+            .UpdateAsync(update => update.Set(user => user.AccessRoleId, clientRole.Id), cancellationToken);
+        await context.Tracked<User>().Where(user => user.AccessRoleId == null && user.Role == UserRole.Admin)
+            .UpdateAsync(update => update.Set(user => user.AccessRoleId, adminRole.Id), cancellationToken);
 
         if (!options.IsConfigured)
         {
@@ -37,7 +35,7 @@ public sealed class AdminSeeder(
 
         var email = options.Email!.Trim().ToLowerInvariant();
 
-        var existing = await context.Set<User>()
+        var existing = await context.Tracked<User>()
             .SingleOrDefaultAsync(user => user.Email == email, cancellationToken);
         if (existing is not null)
         {
@@ -78,17 +76,17 @@ public sealed class AdminSeeder(
 
         admin.PasswordHash = passwordHasher.HashPassword(admin, options.Password!);
 
-        context.Set<User>().Add(admin);
+        context.Add(admin);
         await context.SaveChangesAsync(cancellationToken);
 
         logger.LogInformation("Seeded admin {Email}.", email);
     }
 
     private static async Task<AccessRole> EnsureRoleAsync(
-        PostgresDbContext context, string name, IReadOnlyList<string> permissions, CancellationToken cancellationToken)
+        IPersistence context, string name, IReadOnlyList<string> permissions, CancellationToken cancellationToken)
     {
         var normalized = AccessPermissions.Normalize(permissions);
-        var existing = await context.Set<AccessRole>().FirstOrDefaultAsync(role => role.Name == name, cancellationToken);
+        var existing = await context.Tracked<AccessRole>().FirstOrDefaultAsync(role => role.Name == name, cancellationToken);
         if (existing is not null)
         {
             // The built-in rows cannot be edited, so a permission added in code reaches them here.
@@ -102,7 +100,7 @@ public sealed class AdminSeeder(
         }
 
         var role = new AccessRole { Name = name, Permissions = normalized };
-        context.Set<AccessRole>().Add(role);
+        context.Add(role);
         await context.SaveChangesAsync(cancellationToken);
         return role;
     }

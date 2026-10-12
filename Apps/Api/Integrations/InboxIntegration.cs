@@ -1,4 +1,3 @@
-using Microsoft.EntityFrameworkCore;
 
 using CompanyHQ.Services.Email.Contracts.Ports;
 using CompanyHQ.Services.GitHub.Contracts.Dtos;
@@ -14,7 +13,7 @@ using CompanyHQ.Services.Postgres.Contracts;
 using CompanyHQ.Services.Postgres.Contracts.Dtos;
 using CompanyHQ.Services.Postgres.Contracts.Enums;
 using CompanyHQ.Services.Postgres.Contracts.Forms;
-using CompanyHQ.Services.Postgres.Services;
+using CompanyHQ.Services.Persistence.Services;
 using CompanyHQ.Services.Users.Contracts.Models;
 
 namespace Api.Integrations;
@@ -156,7 +155,7 @@ internal sealed class GitHubInboxChannel(IGitHubService github) : IInboxChannel
 /// </summary>
 internal sealed class ConversationInboxChannel(
     IMessageService messages,
-    IPostgresService<User> users) : IInboxChannel
+    IRepository<User> users) : IInboxChannel
 {
     /// <summary>Message pages are ten rows; this bounds how much of a long thread one read loads.</summary>
     private const int MaxPages = 20;

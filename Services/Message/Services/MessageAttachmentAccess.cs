@@ -1,10 +1,9 @@
-using Microsoft.EntityFrameworkCore;
 
 using CompanyHQ.Services.Messages.Contracts.Models;
 using CompanyHQ.Services.Messages.Contracts.Enums;
 using CompanyHQ.Services.Messages.Contracts.Ports;
 using CompanyHQ.Services.Postgres.Contracts;
-using CompanyHQ.Services.Postgres.Services;
+using CompanyHQ.Services.Persistence.Services;
 using CompanyHQ.Services.Users.Services;
 
 namespace CompanyHQ.Services.Messages.Services;
@@ -15,9 +14,9 @@ namespace CompanyHQ.Services.Messages.Services;
 /// it to whichever media service is plugged in as that service's read policy.
 /// </summary>
 public sealed class MessageAttachmentAccess(
-    IPostgresService<Message> messages,
-    IPostgresService<ConversationParticipant> participants,
-    IPostgresService<Conversation> conversations,
+    IRepository<Message> messages,
+    IRepository<ConversationParticipant> participants,
+    IRepository<Conversation> conversations,
     IUserAuthorizationService authorization,
     MessageConversationRules rules,
     IMessageRestrictions? restrictions = null)
