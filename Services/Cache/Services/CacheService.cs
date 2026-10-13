@@ -6,7 +6,7 @@ using CompanyHQ.Services.Cache.Contracts.Ports;
 namespace CompanyHQ.Services.Cache.Services;
 
 /// <summary>
-/// <see cref="ICacheService"/> over whichever <see cref="ICacheProvider"/> the host composes. Every
+/// <see cref="ICacheService"/> over the registered <see cref="ICacheProvider"/>. Every
 /// provider failure is swallowed and reported as a miss when <c>Cache:FailSilently</c> is on, so a
 /// cache outage degrades reads instead of surfacing as a 500.
 /// </summary>

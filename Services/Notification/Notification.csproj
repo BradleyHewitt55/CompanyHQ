@@ -35,6 +35,12 @@
   </ItemGroup>
 
   <ItemGroup>
+    <!-- Push goes through the official Firebase Admin SDK. This service builds the FirebaseApp from
+         the optional Firebase section; without credentials push is disabled. -->
+    <PackageReference Include="FirebaseAdmin" Version="3.6.0" />
+  </ItemGroup>
+
+  <ItemGroup>
     <!-- Mapping only: the entity configurations under Data/ describe this service's tables, indexes
          and column types. Nothing outside Data/ may use EF Core, and no database driver is referenced. -->
     <PackageReference Include="Microsoft.EntityFrameworkCore.Relational" Version="10.0.10" />

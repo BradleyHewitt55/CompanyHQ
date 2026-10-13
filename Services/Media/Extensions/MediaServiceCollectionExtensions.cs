@@ -8,9 +8,13 @@ using CompanyHQ.Services.Users.Contracts.Ports;
 
 namespace CompanyHQ.Services.Media.Extensions;
 
-/// <summary>Registers Media's provider-neutral object lifecycle and domain services.</summary>
+/// <summary>Registers Media's object lifecycle, domain services, and S3 object storage.</summary>
 public static class MediaServiceCollectionExtensions
 {
+    /// <summary>
+    /// The host registers its <c>IAmazonS3</c> client first (the <c>AWSSDK.S3</c> package, pointed
+    /// at its S3-compatible store); without it the host fails its build-time validation.
+    /// </summary>
     public static IServiceCollection AddMedia(this IServiceCollection services, IConfiguration configuration)
     {
         ArgumentNullException.ThrowIfNull(services);
@@ -20,6 +24,7 @@ public static class MediaServiceCollectionExtensions
         options.Validate();
 
         services.AddSingleton(options);
+        services.AddSingleton<IMediaObjectStorageProvider, S3MediaObjectStorageProvider>();
         services.AddScoped<IMediaAccessPolicyResolver, MediaAccessPolicyResolver>();
         services.AddScoped<IMediaObjectLifecycleStore, MediaObjectLifecycleStore>();
         services.AddScoped<IProfileMediaLifecycle, ProfileMediaLifecycle>();

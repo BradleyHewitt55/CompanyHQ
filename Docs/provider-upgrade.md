@@ -6,7 +6,7 @@ These changes must ship in a **new major release**, not a replacement of any exi
 No release/tag/version is selected by this implementation. All service and Contracts packages plus
 CompanyHQ.Api are discovered automatically by `.github/workflows/publish-packages.yml`, packed at
 one immutable tag version and consumed at a single pinned version. Persistence, Cache.Contracts,
-Redis, OpenStreetMap, Rss and Rss.Contracts are included by that discovery. The UniversalApi experiment
+OpenStreetMap, Rss and Rss.Contracts are included by that discovery. The UniversalApi experiment
 is outside the package tree, not shipped or automatically enabled in production.
 
 Upgrade every CompanyHQ package together and rebuild the host and any source consumer. Do not mix old
@@ -55,16 +55,37 @@ subtype remains catchable while also deriving from the neutral exception used by
 
 ```csharp
 services.AddPostgres(configuration, hostAssembly); // supplies Persistence too
+services.AddSingleton<IConnectionMultiplexer>(...); // the host's own StackExchange.Redis client
 services.AddCache(configuration);
-services.AddRedis(configuration);                 // new explicit adapter
 services.AddGeo(configuration);
 services.AddOpenStreetMap(configuration);         // new explicit adapter
 services.AddRss(configuration);                   // injectable only, no HTTP route
 ```
 
 Apps/Api and the old heavy company host already use this composition, so these instructions apply to
-**existing hosts** migrating from earlier releases. Custom hosts must add both adapters; missing
-required ports fail startup validation, not silently install alternate providers.
+**existing hosts** migrating from earlier releases. Custom hosts must add the OpenStreetMap adapter
+and register the vendor clients the services take; a missing one fails startup validation, not
+silently install alternate providers.
+
+### Vendor clients
+
+CompanyHQ no longer publishes packages that only wrap a vendor SDK. `CompanyHQ.Services.Redis`,
+`CompanyHQ.Services.Cloudflare`, `CompanyHQ.Services.Firebase` and `CompanyHQ.Services.Resend` are
+not released again; drop those references and their `AddRedis`, `AddCloudflare`, `AddFirebase` and
+CompanyHQ `AddResend(configuration)` calls. The owning service references the official package and
+the host registers the vendor's client before the service:
+
+| Service | Official package | Host registers first | Registration |
+| --- | --- | --- | --- |
+| Cache | `StackExchange.Redis` | `IConnectionMultiplexer`, with `AbortOnConnectFail = false` | `AddCache(configuration)` |
+| Media | `AWSSDK.S3` | `IAmazonS3`, pointed at the S3-compatible store | `AddMedia(configuration)` |
+| Email | `Resend` | the package's `AddResend(apiKey)` | `AddEmail(configuration)` |
+| Notification | `FirebaseAdmin` | nothing; push stays optional | `AddNotifications(configuration)` |
+
+Configuration that moved: `Cloudflare:R2:Bucket` is now `Media:Bucket`, and `Resend:From` is now
+`Email:From`. `Cache:ConnectionString`, the remaining `Cloudflare:R2` credentials (read by the HQ
+host for its S3 client), `Resend:ApiKey` and the `Firebase` section keep their names. Stored
+objects, cache entries and device tokens are untouched.
 
 The new company starter is not such a host: it is a minimal headless API that references only
 `CompanyHQ.Services.Rss` and `CompanyHQ.Services.Rss.Contracts` directly. It has no database provider,
@@ -73,12 +94,10 @@ no `CompanyHQ.Api` wrapper and none of the migration or host steps in this docum
 ### Cache compatibility
 
 ICacheService, CacheOptions properties/config keys, JSON/null payloads, existing namespaces, TTLs,
-cache-aside and exception policy are unchanged. Redis owns connection parsing/multiplexer/SCAN/Lua.
-Do not flush Redis. `CacheOptions.BuildConfiguration()` **cannot remain an instance method returning
-StackExchange.Redis.ConfigurationOptions while Cache has no Redis SDK reference**; it was removed.
-Code using that provider-specific method must use
-`CompanyHQ.Services.Redis.Contracts.Models.RedisOptions.BuildConfiguration()` with the same
-ConnectionString (or preferably AddRedis). Direct CacheService/CacheHealthCheck construction now takes
+cache-aside and exception policy are unchanged. Cache owns SCAN/Lua; the host owns connection
+parsing and the multiplexer. Do not flush Redis. `CacheOptions.BuildConfiguration()` was removed:
+a host parses the same ConnectionString with `StackExchange.Redis.ConfigurationOptions.Parse` and
+sets `AbortOnConnectFail = false` itself. Direct CacheService/CacheHealthCheck construction takes
 ICacheProvider rather than the SDK multiplexer. This is a deliberate major-version source/binary break.
 
 Web continues using its own Node Redis client and `companyhq:web:refresh:*` coordination on the same

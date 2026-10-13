@@ -9,8 +9,9 @@ public sealed class CacheOptions
     public const string SectionName = "Cache";
 
     /// <summary>
-    /// Where the cache lives. Cache never interprets it: the provider adapter the host composes
-    /// binds the same key and owns its format, e.g. <c>redis:6379,password=…,defaultDatabase=0</c>.
+    /// Where the cache lives, as a StackExchange.Redis configuration string, e.g.
+    /// <c>redis:6379,password=…,defaultDatabase=0</c>. The host builds its
+    /// <c>IConnectionMultiplexer</c> from it; Cache only requires that it is set.
     /// </summary>
     public string ConnectionString { get; set; } = "localhost:6379";
 

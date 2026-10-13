@@ -13,8 +13,8 @@ namespace CompanyHQ.Services.Cache.Extensions;
 public static class CacheServiceCollectionExtensions
 {
     /// <summary>
-    /// Registers <see cref="ICacheService"/> and the <c>cache</c> health check. The host registers
-    /// the provider adapter that fills <see cref="ICacheProvider"/> beside it; without one the host
+    /// Registers <see cref="ICacheService"/> over Redis and the <c>cache</c> health check. The host
+    /// registers its StackExchange.Redis <c>IConnectionMultiplexer</c> first; without it the host
     /// fails validation at startup.
     /// </summary>
     public static IServiceCollection AddCache(this IServiceCollection services, IConfiguration configuration)
@@ -29,10 +29,11 @@ public static class CacheServiceCollectionExtensions
 
         services.AddSingleton(options);
         services.AddSingleton<CacheSerializer>();
+        services.AddSingleton<ICacheProvider, RedisCacheProvider>();
         services.AddSingleton<ICacheService, CacheService>();
 
         // Added when the health options are first built rather than here, so the entry carries the
-        // composed provider's own tag whichever of the two registrations the host calls first.
+        // tag of the provider that is actually resolved.
         services.AddHealthChecks();
         services.AddOptions<HealthCheckServiceOptions>().Configure<ICacheProvider>((health, provider) =>
             health.Registrations.Add(new HealthCheckRegistration(

@@ -4,11 +4,11 @@ using Microsoft.Extensions.Logging;
 
 using CompanyHQ.Services.Notifications.Contracts.Ports;
 
-namespace CompanyHQ.Services.Firebase.Services;
+namespace CompanyHQ.Services.Notifications.Services;
 
 /// <summary>Notification's push port, implemented with data-only Firebase Cloud Messaging multicasts.</summary>
-public sealed class FcmSender(
-    IFirebaseCredentialProvider credentials,
+internal sealed class FcmSender(
+    FirebaseCredentialProvider credentials,
     ILogger<FcmSender> logger) : IPushSender
 {
     private const int MaxTokensPerRequest = 500;

@@ -2,12 +2,9 @@ name: CompanyHQ CI
 on: [push, pull_request, workflow_dispatch]
 permissions:
   contents: read
-  packages: read
 jobs:
   verify:
     runs-on: ubuntu-latest
-    env:
-      COMPANYHQ_PACKAGES_TOKEN: ${{ secrets.GITHUB_TOKEN }}
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-dotnet@v4

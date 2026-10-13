@@ -156,7 +156,7 @@ Every lifetime is computed against the injected `TimeProvider`, so a test substi
 instead of sleeping for however many minutes or hours the flow under test needs.
 
 **A real `.env` value silently wins over a test's `ConfigureAppConfiguration` in-memory override for
-any eagerly-validated option.** `AddAuth`, `AddResend`, and friends validate their options *before*
+any eagerly-validated option.** `AddAuth`, `AddEmail`, and friends validate their options *before*
 `WebApplicationFactory`'s `ConfigureWebHost` overrides are spliced in — the same class of "startup
 throws before the test harness gets a say" that made `Resend:ApiKey`'s in-memory override in
 `ApiFactory` dead code too (the real `Resend__ApiKey` in `.env` satisfies it instead). `Auth:WebBaseAddress`

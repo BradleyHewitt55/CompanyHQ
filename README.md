@@ -25,12 +25,12 @@ The project lands in a folder named after the company in the current directory, 
 destination must be empty; use --port-offset 100 if another starter occupies the default port.
 Configuration is environment-only: .env.dev for StartDev and .env, created with the same keys empty,
 for StartProd.
-Creation requires COMPANYHQ_PACKAGES_TOKEN in the process environment (read:packages), or a GitHub CLI
-login. It pins the newest stable version present in the generic CompanyHQ.Services.Rss package feed,
+Creation needs no token: the packages are public on nuget.org. It pins the newest stable version
+present in the generic CompanyHQ.Services.Rss package feed,
 as Update does, and fails if no release is available. Tags alone do not establish package availability,
 and CompanyHQ.Api is never consulted.
 
-A company holds no HQ source. It references the CompanyHQ packages on GitHub Packages at the one version
+A company holds no HQ source. It references the CompanyHQ packages on nuget.org at the one version
 pinned in its Directory.Build.props; its Update script moves that pin to the newest release or to any
 older one. A release is a vX.Y.Z tag pushed here, which publishes every package at that version: all
 other service and Contracts packages first, then CompanyHQ.Services.Rss as the generic completion

@@ -18,7 +18,7 @@ public static class GitHubServiceCollectionExtensions
         options.Validate();
 
         services.AddSingleton(options);
-        services.AddHttpClient(GitHubService.HttpClientName, client => client.Timeout = TimeSpan.FromSeconds(10));
+        services.AddHttpClient(GitHubService.HttpClientName);
         services.AddScoped<IGitHubService, GitHubService>();
 
         services.AddControllers().AddApplicationPart(typeof(GitHubServiceCollectionExtensions).Assembly);

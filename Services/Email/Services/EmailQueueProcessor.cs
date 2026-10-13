@@ -10,7 +10,7 @@ namespace CompanyHQ.Services.Email.Services;
 /// Claims one due batch of <c>queued_email</c> and sends it through the active
 /// <see cref="IEmailProvider"/>, priority rows first. Scoped, and resolved per batch by
 /// <see cref="EmailWorker"/>: taking the provider in the constructor is what lets the host's
-/// build-time validation refuse to start when no provider adapter is registered.
+/// build-time validation refuse to start when the host has not registered the Resend client.
 /// </summary>
 internal sealed class EmailQueueProcessor(
     IPersistence context,
@@ -23,7 +23,7 @@ internal sealed class EmailQueueProcessor(
     private const int BatchSize = 10;
     private const int MaxAttempts = 5;
 
-    // Comfortably longer than a batch can take with the provider's own retries, so a live worker
+    // Comfortably longer than a batch can take at the provider's request timeout, so a live worker
     // never loses its claim; an expired lease makes a crashed worker's rows eligible again.
     private static readonly TimeSpan ClaimLease = TimeSpan.FromMinutes(10);
 

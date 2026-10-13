@@ -2,13 +2,13 @@ using DotNet.Testcontainers.Builders;
 using DotNet.Testcontainers.Containers;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.DependencyInjection.Extensions;
 using Microsoft.Extensions.Diagnostics.HealthChecks;
 using Microsoft.Extensions.Options;
 using CompanyHQ.Services.Cache.Contracts.Models;
 using CompanyHQ.Services.Cache.Contracts.Ports;
 using CompanyHQ.Services.Cache.Extensions;
 using CompanyHQ.Services.Cache.Services;
-using CompanyHQ.Services.Redis.Extensions;
 using StackExchange.Redis;
 using Xunit;
 
@@ -199,7 +199,7 @@ public sealed class CacheFixture : IAsyncLifetime
         connection = await ConnectionMultiplexer.ConnectAsync(ConnectionString);
     }
 
-    /// <summary>Composes Cache with its provider the way a host does.</summary>
+    /// <summary>Composes Cache with its Redis connection the way a host does.</summary>
     public ServiceProvider Host(params (string Key, string Value)[] settings)
     {
         var values = new Dictionary<string, string?> { ["Cache:ConnectionString"] = ConnectionString };
@@ -207,8 +207,8 @@ public sealed class CacheFixture : IAsyncLifetime
         var configuration = new ConfigurationBuilder().AddInMemoryCollection(values).Build();
         var services = new ServiceCollection();
         services.AddLogging();
+        services.AddRedisConnection(configuration);
         services.AddCache(configuration);
-        services.AddRedis(configuration);
         return services.BuildServiceProvider(new ServiceProviderOptions { ValidateOnBuild = true });
     }
 
@@ -217,6 +217,18 @@ public sealed class CacheFixture : IAsyncLifetime
         if (connection is not null) await connection.DisposeAsync();
         await redis.DisposeAsync();
     }
+}
+
+internal static class RedisConnection
+{
+    /// <summary>The multiplexer a host registers before <c>AddCache</c>, lazy and reconnecting.</summary>
+    public static IServiceCollection AddRedisConnection(this IServiceCollection services, IConfiguration configuration) =>
+        services.AddSingleton<IConnectionMultiplexer>(_ =>
+        {
+            var redis = ConfigurationOptions.Parse(configuration["Cache:ConnectionString"]!);
+            redis.AbortOnConnectFail = false;
+            return ConnectionMultiplexer.Connect(redis);
+        });
 }
 
 /// <summary>
@@ -281,9 +293,18 @@ public sealed class CacheProviderSeamTests
         var services = new ServiceCollection();
         services.AddLogging();
         services.AddCache(configuration);
-        services.AddSingleton<ICacheProvider>(provider);
+        services.Replace(ServiceDescriptor.Singleton<ICacheProvider>(provider));
         var built = services.BuildServiceProvider(new ServiceProviderOptions { ValidateOnBuild = true });
         return (built.GetRequiredService<ICacheService>(), provider, built);
+    }
+
+    [Fact]
+    public void WithoutTheHostsRedisConnection_HostValidationFails()
+    {
+        var services = new ServiceCollection();
+        services.AddLogging();
+        services.AddCache(new ConfigurationBuilder().Build());
+        Assert.Throws<AggregateException>(() => services.BuildServiceProvider(new ServiceProviderOptions { ValidateOnBuild = true }));
     }
 
     [Fact]

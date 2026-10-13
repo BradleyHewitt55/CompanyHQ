@@ -1,8 +1,8 @@
 namespace CompanyHQ.Services.Email.Contracts.Ports;
 
 /// <summary>
-/// Provider-neutral delivery port. An adapter service (Resend) implements it by referencing this
-/// Contracts assembly only. Required: without an adapter the host fails its build-time validation.
+/// Delivery port between the outbox and the transport. Email fills it itself with the host's Resend
+/// client; it stays a port so the queue can be exercised without calling Resend.
 /// </summary>
 public interface IEmailProvider
 {

@@ -1,12 +1,12 @@
 namespace CompanyHQ.Services.Notifications.Contracts.Ports;
 
 /// <summary>
-/// Provider-neutral push delivery. An adapter service (Firebase) implements it by referencing this
-/// Contracts assembly only. Optional: without one, the push channel is skipped.
+/// Push delivery port between the queue and the transport. Notification fills it itself with
+/// Firebase Cloud Messaging; it stays a port so delivery can be exercised without calling Firebase.
 /// </summary>
 public interface IPushSender
 {
-    /// <summary>False when the adapter is plugged in but has no credentials; push is then skipped.</summary>
+    /// <summary>False when no Firebase credentials are configured; push is then skipped.</summary>
     bool IsConfigured { get; }
 
     /// <summary>Returns exactly one outcome per token in <paramref name="message"/>.</summary>

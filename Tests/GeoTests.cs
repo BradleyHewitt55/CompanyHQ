@@ -17,7 +17,6 @@ using CompanyHQ.Services.Geo.Controllers;
 using CompanyHQ.Services.Geo.Extensions;
 using CompanyHQ.Services.Geo.Services;
 using CompanyHQ.Services.OpenStreetMap.Extensions;
-using CompanyHQ.Services.Redis.Extensions;
 using StackExchange.Redis;
 using Xunit;
 
@@ -575,8 +574,8 @@ public sealed class GeoFixture : IAsyncLifetime
         var services = new ServiceCollection();
         services.AddLogging();
         services.AddSingleton(TimeProvider.System);
+        services.AddRedisConnection(configuration);
         services.AddCache(configuration);
-        services.AddRedis(configuration);
         services.AddGeo(configuration);
         addProvider(services, configuration);
         // MVC needs a web host to validate on build; scope validation still applies.

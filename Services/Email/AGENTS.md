@@ -1,8 +1,9 @@
 # Email service
 
-Email owns CompanyHQ's provider-neutral transactional message contract, controlled template catalog,
-HTML rendering and validation, packaged defaults, and active administrator overrides. It does not own
-an external provider's credentials or transport, and it never exposes arbitrary public sending.
+Email owns CompanyHQ's transactional message contract, controlled template catalog, HTML rendering
+and validation, packaged defaults, active administrator overrides, and delivery through the official
+`Resend` package. It does not own the Resend API key or client registration, which the host supplies,
+and it never exposes arbitrary public sending.
 
 ## Rules
 
@@ -23,6 +24,12 @@ an external provider's credentials or transport, and it never exposes arbitrary 
 - The worker claims `BatchSize` (10) due rows with `FOR UPDATE SKIP LOCKED`, priority first, under a
   10-minute lease, and saves each row's outcome as soon as its send returns. Retryable failures back
   off (1s doubling to 5 min) and are abandoned after five attempts; a rejection fails at once.
+- A send is one Resend call. Network failures, timeouts, 429, quota and 5xx results are retryable and
+  go back to the outbox; nothing retries inside the send. Failures log the status code and error type
+  only, never the Resend message, recipients, subject or bodies.
+- `EmailSendPacer` starts every send at least `1 / Email:MaxSendsPerSecond` after the previous one
+  (default 10; a Resend team is limited to 2/s unless raised). It is per process and `Retry-After`
+  is ignored.
 - **Bodies are wiped when a row leaves `Pending`.** They carry reset links and temporary passwords.
   Recipients, subject, status, and the provider id stay as the send log.
 - Persisted HTML overrides are active at send time. Missing overrides use the packaged `.html` default;
@@ -44,14 +51,19 @@ Emails are rendered when queued, not when sent, so an administrator edit does no
 already waiting. Sent rows are kept (bodies wiped) as the send log and for idempotency; nothing
 purges them yet.
 
+There is no CompanyHQ Resend package: wrapping a client Resend already publishes only repeated it.
+Email references the `Resend` package and takes its `IResend` from the host, so the key, base
+address and HTTP pipeline stay the host's to configure. `IEmailProvider` remains as the seam between
+the queue and Resend so the queue can be tested without sending.
+
 ## Traps and wiring
 
-`Services/Resend` supplies `IEmailProvider`; it must reference Email while Email must not reference
-Resend. No other service references Email: Auth, Contact and Notification each declare their own
+The host calls the package's `AddResend(apiKey)` before `AddEmail(configuration)`; `Email:From` is
+the verified sender. No other service references Email: Auth, Contact and Notification each declare their own
 mail port, and `Apps/Api/Integrations` fills it with `IEmailTemplateSender`. Their template keys
 still live in `EmailTemplateKeys`, because the catalog is Email's. **The processor is scoped and takes the provider in its constructor on purpose:** that is what
-lets the host's build-time validation refuse to start with no provider registered. Resolving the
-provider from a scope inside the worker would hide a missing adapter until the first queued email.
+lets the host's build-time validation refuse to start when the Resend client is not registered.
+Resolving the provider from a scope inside the worker would hide that until the first queued email.
 Generate a migration whenever the template or queue model changes; the model itself is discovered.
 Test hosts can replace only `IEmailService` and still exercise real template rendering; the worker
 then finds an empty queue. In-memory test contexts must discover models from the API assembly

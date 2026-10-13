@@ -36,4 +36,10 @@
     <PackageReference Include="Microsoft.EntityFrameworkCore.Relational" Version="10.0.10" />
   </ItemGroup>
 
+  <ItemGroup>
+    <!-- GitHub's own client. The token is stored per connection, so the service builds a client per
+         call rather than taking one from the host. -->
+    <PackageReference Include="Octokit" Version="14.0.0" />
+  </ItemGroup>
+
 </Project>

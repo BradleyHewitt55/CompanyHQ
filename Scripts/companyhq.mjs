@@ -1,7 +1,6 @@
 #!/usr/bin/env node
 import { cp, mkdir, readFile, writeFile, readdir, rename, rm, rmdir } from 'node:fs/promises';
 import { existsSync } from 'node:fs';
-import { spawnSync } from 'node:child_process';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { randomUUID } from 'node:crypto';
@@ -10,23 +9,15 @@ const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 // Every CompanyHQ package shares one version. The generic Rss package is published after the other
 // generic packages, so its feed lists the complete releases; CompanyHQ.Api is deliberately not read.
 async function latestRelease() {
-  let token = process.env.COMPANYHQ_PACKAGES_TOKEN?.trim();
-  if (!token) {
-    const result = spawnSync('gh', ['auth', 'token'], { encoding: 'utf8', windowsHide: true });
-    if (result.status === 0) token = result.stdout.trim();
-  }
-  if (!token) throw new Error('Set COMPANYHQ_PACKAGES_TOKEN to a GitHub token with read:packages, or sign in with the GitHub CLI.');
-  const config = await readFile(path.join(root, 'Templates/Company/nuget.config'), 'utf8');
-  const feed = /<add key="companyhq" value="(https:\/\/[^"<>]+)\/index\.json"\s*\/>/.exec(config)?.[1];
-  if (!feed) throw new Error('nuget.config has no companyhq package source.');
   let response;
   try {
-    response = await fetch(`${feed}/download/companyhq.services.rss/index.json`, {
-      headers: { Authorization: `Basic ${Buffer.from(`token:${token}`).toString('base64')}` },
+    response = await fetch('https://api.nuget.org/v3-flatcontainer/companyhq.services.rss/index.json', {
       signal: AbortSignal.timeout(30000),
     });
   } catch { throw new Error('Could not read the CompanyHQ package feed.'); }
-  if (!response.ok) throw new Error(`CompanyHQ package feed returned HTTP ${response.status}. Check read:packages access.`);
+  // nuget.org answers 404 for a package that has no version yet.
+  if (response.status === 404) throw new Error('No released CompanyHQ version is published.');
+  if (!response.ok) throw new Error(`CompanyHQ package feed returned HTTP ${response.status}.`);
   let data;
   try { data = await response.json(); } catch { throw new Error('CompanyHQ package feed returned invalid JSON.'); }
   // Match Update.ps1: stable numeric versions, ordered by their version components.
@@ -97,7 +88,7 @@ async function create(opts) {
     await writeFile(propsFile, (await readFile(propsFile, 'utf8')).replace(/<CompanyHQVersion>[^<]+</, `<CompanyHQVersion>${release}<`));
     if (existsSync(destination)) await rmdir(destination);
     await rename(temporary, destination);
-    console.log(`Created ${opts.name} in ${destination}. Sign in to the GitHub CLI or set COMPANYHQ_PACKAGES_TOKEN, then run .\\Scripts\\StartDev.ps1`);
+    console.log(`Created ${opts.name} in ${destination}. Run .\\Scripts\\StartDev.ps1`);
   } catch (error) {
     await rm(temporary, { recursive: true, force: true });
     throw error;

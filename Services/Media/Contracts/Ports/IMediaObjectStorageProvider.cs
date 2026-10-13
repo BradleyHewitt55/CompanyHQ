@@ -3,9 +3,8 @@ using CompanyHQ.Services.Media.Contracts.Enums;
 namespace CompanyHQ.Services.Media.Contracts.Ports;
 
 /// <summary>
-/// Provider-neutral storage operations for image and video objects. An adapter service (Cloudflare)
-/// implements it by referencing this Contracts assembly only. Required: without an adapter the host
-/// fails its build-time validation.
+/// Storage operations for image and video objects. Media fills it itself with the host's S3 client;
+/// it stays a port so the lifecycle can be exercised without an object store.
 /// </summary>
 public interface IMediaObjectStorageProvider
 {

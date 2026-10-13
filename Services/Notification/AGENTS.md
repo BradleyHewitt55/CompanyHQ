@@ -1,8 +1,10 @@
 # Notification service
 
-`Services/Notification` owns CompanyHQ's durable notification queue, registered devices, and two
-boolean opt-out preferences. It accepts opaque `NotificationRequest` values through
-`INotificationService`; it references only foundation and no feature service.
+`Services/Notification` owns CompanyHQ's durable notification queue, registered devices, two
+boolean opt-out preferences, and push delivery through the official `FirebaseAdmin` package,
+including the optional service-account credential and the named `FirebaseApp`. It accepts opaque
+`NotificationRequest` values through `INotificationService`; it references only foundation and no
+feature service.
 
 ## Rules
 
@@ -33,6 +35,16 @@ boolean opt-out preferences. It accepts opaque `NotificationRequest` values thro
   Revisit the lease length before any latency-sensitive kind is added.
 - Firebase `TokenDead` disables that device immediately and never retries it. Unconfigured Firebase
   skips push rather than creating a retry storm.
+- Missing or invalid Firebase credentials log one warning and disable sending; they never prevent
+  the host from starting. An unconfigured send returns `PermanentFailure` for every token:
+  retrying an unconfigured provider is a retry storm, not resilience.
+- Push payloads are data-only. Title and body are fields in the data map, never an FCM notification
+  payload, so Android foreground and background delivery use the same deep-link path.
+- Push requests are chunked at the 500-token multicast limit and return one outcome per token.
+  `UNREGISTERED` or `NotFound` becomes `TokenDead`, network or timeout or provider 5xx becomes
+  `TransientFailure`, other provider failures become `PermanentFailure`. Malformed caller input
+  throws `ArgumentException`.
+- Never log tokens, credential JSON, message bodies, or file contents.
 - Every kind goes to push and email, filtered only by the recipient's preferences. No notification
   route accepts a location, radius, or distance.
 - Email render is per kind with a generic fallback (the kind-to-template choice is in the host's
@@ -46,11 +58,12 @@ boolean opt-out preferences. It accepts opaque `NotificationRequest` values thro
   personal message content.
 - Device summaries never include the FCM token. Tokens are accepted only by the authenticated
   register/delete routes and are never rendered in admin UI or written to logs.
-- Keep the authenticated controller inside this project. `AddNotifications()` mounts this assembly
+- Keep the authenticated controller inside this project. `AddNotifications(configuration)` mounts this assembly
   as an application part; putting the controller in a host or repository-level folder silently
   leaves the four documented routes out of the API.
-- `Apps/Api` is the only host and calls `AddNotifications()` once; it owns the live queue worker and
-  notification routes. There is no read-only registration for a second host — the admin console is
+- `Apps/Api` is the only host and calls `AddNotifications(configuration)` once; it owns the live
+  queue worker and notification routes. The named `FirebaseApp` is created there, and a second
+  registration under the same app name throws, so never call it from another service's registration. There is no read-only registration for a second host — the admin console is
   the Next.js `Apps/Web`, which reads through the API like every other client.
 - `EnqueueAsync` and `EnqueueManyAsync` add queue rows to the caller's scoped
   `IPersistence` unit of work; they deliberately do not call `SaveChangesAsync`. A domain operation that
@@ -58,8 +71,16 @@ boolean opt-out preferences. It accepts opaque `NotificationRequest` values thro
   unrelated tracked changes at an unexpected point.
 
 The service owns models mapped by the Postgres adapter; they are discovered because the API references this project.
-Firebase fills the push port (`IPushSender`) and references only Notification's contracts.
 Notification does not reference Cache — it has nothing to cache.
+
+There is no CompanyHQ Firebase package: it only wrapped the SDK Google already publishes.
+Notification references `FirebaseAdmin` and builds the app itself rather than taking one from the
+host, because push is optional and a required host-registered client would make it mandatory.
+`IPushSender` remains as the seam between the queue and FCM so delivery can be tested without
+sending. `Firebase:ServiceAccountJson` (`Firebase__ServiceAccountJson`) accepts raw JSON or a path;
+relative paths resolve from the repository root beside `.env`, not the process working directory.
+The service-account JSON belongs at a gitignored `.key/` or `.keys/` path; `google-services.json`
+is client configuration and stays with the mobile app.
 
 ## Deliberately not built
 

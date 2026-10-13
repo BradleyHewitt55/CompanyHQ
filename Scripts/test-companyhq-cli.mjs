@@ -36,7 +36,6 @@ try {
   const keys = text => text.split(/\r?\n/).filter(line => /^[A-Za-z_]\w*=/.test(line)).map(line => line.split('=')[0]);
   const development = await readFile(path.join(project, '.env.dev'), 'utf8');
   const production = await readFile(path.join(project, '.env'), 'utf8');
-  assert.ok(keys(development).includes('COMPANYHQ_PACKAGES_TOKEN'));
   assert.deepEqual(keys(production), keys(development));
   assert.doesNotMatch(production, /^[A-Za-z_]\w*=.+$/m);
   // Generic services arrive as exact-pinned packages referenced directly, never through CompanyHQ.Api.

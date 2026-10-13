@@ -3,7 +3,6 @@
   <PropertyGroup>
     <Version>0.1.0</Version>
     <Authors>CompanyHQ</Authors>
-    <!-- GitHub Packages attaches a package to the repository named here. -->
     <RepositoryUrl>https://github.com/BradleyHewitt55/CompanyHQ</RepositoryUrl>
   </PropertyGroup>
 </Project>

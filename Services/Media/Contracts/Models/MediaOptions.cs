@@ -1,9 +1,12 @@
 namespace CompanyHQ.Services.Media.Contracts.Models;
 
-/// <summary>Provider-neutral media delivery, lifecycle, and validation settings.</summary>
+/// <summary>Media storage, delivery, lifecycle, and validation settings.</summary>
 public sealed class MediaOptions
 {
     public const string SectionName = "Media";
+
+    /// <summary>The bucket every object lives in, on the store the host's S3 client points at.</summary>
+    public string Bucket { get; set; } = string.Empty;
 
     /// <summary>
     /// The HTTPS custom domain that exposes durable <c>user/</c> objects. Optional: when it is not set, public objects are addressed through this API's own
@@ -66,6 +69,11 @@ public sealed class MediaOptions
     /// <summary>Throws during host registration so invalid media settings never reach a request.</summary>
     public void Validate()
     {
+        if (string.IsNullOrWhiteSpace(Bucket))
+        {
+            throw new InvalidOperationException("Media:Bucket is required.");
+        }
+
         if (HasPublicDomain)
         {
             if (!Uri.TryCreate(PublicBaseUrl, UriKind.Absolute, out var publicUri)

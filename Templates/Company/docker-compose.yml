@@ -4,21 +4,15 @@ services:
     build:
       context: .
       dockerfile: Apps/Api/Dockerfile
-      secrets: [packages_token]
     # The file the start script chose (.env, or .env.dev in development). Add the API's own settings
     # there, using the standard .NET form Section__Key.
     env_file:
       - ${ENV_FILE:-.env}
     environment:
       ASPNETCORE_ENVIRONMENT: Production
-      # Needed only to build; the running API never sees it.
-      COMPANYHQ_PACKAGES_TOKEN: ""
     ports: ["127.0.0.1:${API_PORT:-4102}:8080"]
     healthcheck:
       test: ["CMD-SHELL", "bash -c 'exec 3<>/dev/tcp/127.0.0.1/8080; printf \"GET /health HTTP/1.1\\r\\nHost: localhost\\r\\nConnection: close\\r\\n\\r\\n\" >&3; cat <&3 | grep -q Healthy'"]
       interval: 3s
       timeout: 5s
       retries: 40
-secrets:
-  packages_token:
-    environment: COMPANYHQ_PACKAGES_TOKEN

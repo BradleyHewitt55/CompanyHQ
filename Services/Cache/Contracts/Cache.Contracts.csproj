@@ -9,8 +9,8 @@
   </PropertyGroup>
 
   <!--
-    The port a cache provider adapter implements, with no dependency of any kind. An adapter
-    references this assembly and nothing else of Cache. The options stay compiled into the service.
+    The port between Cache's policy and its transport, with no dependency of any kind. The Redis
+    client and the options stay compiled into the service.
   -->
   <ItemGroup>
     <Compile Remove="Models/**" />

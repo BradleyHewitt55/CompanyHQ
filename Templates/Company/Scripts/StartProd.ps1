@@ -15,15 +15,6 @@ $env:COMPOSE_PROJECT_NAME = $settings.slug
 $env:ENV_FILE = '.env'
 $env:API_PORT = $settings.ports.api
 
-# Downloading the CompanyHQ packages needs a GitHub token with read:packages: the one in .env, or
-# failing that the GitHub CLI login, so a broad personal token never has to be stored in a file.
-if (-not $env:COMPANYHQ_PACKAGES_TOKEN) {
-    foreach ($line in Get-Content $envFile) { if ($line -match '^\s*COMPANYHQ_PACKAGES_TOKEN\s*=\s*(\S+)\s*$') { $env:COMPANYHQ_PACKAGES_TOKEN = $Matches[1] } }
-}
-if (-not $env:COMPANYHQ_PACKAGES_TOKEN -and (Get-Command gh -ErrorAction SilentlyContinue)) {
-    $env:COMPANYHQ_PACKAGES_TOKEN = gh auth token
-}
-
 $compose = @('compose', '--project-directory', $root, '--env-file', $envFile, '-f', (Join-Path $root 'docker-compose.yml'))
 # The development stack publishes the same port; stopping it leaves its data untouched.
 docker compose -p "$($settings.slug)-dev" stop

@@ -50,4 +50,10 @@
     <PackageReference Include="ModelContextProtocol.Core" Version="2.2.0" />
   </ItemGroup>
 
+  <ItemGroup>
+    <!-- Delivery goes through the official Resend client. The host registers it (AddResend) before
+         AddEmail; this service never holds the API key. -->
+    <PackageReference Include="Resend" Version="0.23.0" />
+  </ItemGroup>
+
 </Project>

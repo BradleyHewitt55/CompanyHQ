@@ -16,8 +16,14 @@
   </ItemGroup>
 
   <ItemGroup>
+    <!-- Entries are stored through the official Redis client. The host registers its
+         IConnectionMultiplexer before AddCache; this service never builds the connection. -->
+    <PackageReference Include="StackExchange.Redis" Version="2.13.17" />
+  </ItemGroup>
+
+  <ItemGroup>
     <!-- Contracts/ is its own assembly holding the provider port; only the options under it
-         compile into this one. No provider SDK or adapter project is referenced here. -->
+         compile into this one. -->
     <Compile Remove="Contracts/**" />
     <Compile Include="Contracts/Models/**/*.cs" />
     <ProjectReference Include="Contracts/Cache.Contracts.csproj" />

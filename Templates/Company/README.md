@@ -13,16 +13,15 @@ From this project folder:
 .\Scripts\Update.ps1           # choose the CompanyHQ release; rebuild afterward
 ```
 
-Docker and a GitHub token with `read:packages` are required; the .NET SDK is only needed to build outside
-Docker. Configuration comes from `.env.dev` (StartDev) or `.env` (StartProd); `.env` is created with the same
-keys, all empty. The token is read from the process environment, then the env file, then the GitHub CLI
-login (`gh auth refresh -s read:packages`). CI needs it as the `COMPANYHQ_PACKAGES_TOKEN` repository secret.
+Docker is required; the .NET SDK is only needed to build outside Docker. Configuration comes from
+`.env.dev` (StartDev) or `.env` (StartProd); `.env` is created with the same keys, all empty. The
+CompanyHQ packages are public on nuget.org, so no token or sign-in is needed, locally or in CI.
 Ports and the Compose project name come from `project.json`. Development and production are separate
 stacks; starting one stops the other because they publish the same port.
 
 ## CompanyHQ packages
 
-Generic implementations and contracts come from NuGet packages on GitHub Packages, pinned to the one
+Generic implementations and contracts come from public NuGet packages on nuget.org, pinned to the one
 release in `Directory.Build.props`; there is no HQ source checkout and no `CompanyHQ.Api` host package.
 Creation pins the newest release present in the package feed (read through the Rss package) and fails
 when none is published. `Update` with no argument moves to the newest release, `Update 1.0.0` pins a

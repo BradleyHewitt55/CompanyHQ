@@ -1,5 +1,7 @@
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 
+using CompanyHQ.Services.Email.Contracts.Models;
 using CompanyHQ.Services.Email.Contracts.Ports;
 using CompanyHQ.Services.Email.Services;
 
@@ -8,12 +10,21 @@ namespace CompanyHQ.Services.Email.Extensions;
 public static class EmailServiceCollectionExtensions
 {
     /// <summary>
-    /// Registers the email outbox, its worker, and template management. A provider adapter (Resend)
-    /// supplies <see cref="IEmailProvider"/>; without one the host fails its build-time validation.
+    /// Registers the email outbox, its worker, template management, and delivery through Resend.
+    /// The host registers the Resend client first (<c>services.AddResend(apiKey)</c> from the
+    /// <c>Resend</c> package); without it the host fails its build-time validation.
     /// </summary>
-    public static IServiceCollection AddEmail(this IServiceCollection services)
+    public static IServiceCollection AddEmail(this IServiceCollection services, IConfiguration configuration)
     {
         ArgumentNullException.ThrowIfNull(services);
+        ArgumentNullException.ThrowIfNull(configuration);
+
+        var options = configuration.GetSection(EmailOptions.SectionName).Get<EmailOptions>() ?? new();
+        options.Validate();
+
+        services.AddSingleton(options);
+        services.AddSingleton<EmailSendPacer>();
+        services.AddScoped<IEmailProvider, ResendEmailProvider>();
 
         services.AddScoped<IEmailService, EmailService>();
         services.AddScoped<EmailQueueProcessor>();

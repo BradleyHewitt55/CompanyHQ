@@ -33,6 +33,9 @@ OAuth flow that obtains a token, or anything about the company profile.
 - **The issue list goes through GitHub's search API**, the one listing that carries a total and
   leaves pull requests out. It is most recently updated first, and `keyword` is GitHub's own search.
   A `field` is ignored: the rows are not in Postgres.
+- **Every call goes through `Octokit`, GitHub's official client.** The token is data, not host
+  configuration, so the service builds a client per call on a pooled handler; there is no
+  host-registered GitHub client and no hand-written request code.
 - **Nothing is cached or stored.** Each read is a live call with the stored token, so a comment made
   on GitHub shows on the next read.
 - No webhooks, no labels or assignees, no reopening, no issue deletion (GitHub offers none to a
@@ -44,6 +47,8 @@ OAuth flow that obtains a token, or anything about the company profile.
 - Reading, commenting and closing need a token that can write issues, which `ConnectAsync` does not
   verify: it only checks the repository is readable with Issues on. A read-only token connects and
   then answers 502 on a comment.
+- Closing reads the issue first and sends it back with the state changed. Octokit's bare
+  `IssueUpdate` always sends a null milestone, which would clear the issue's milestone.
 - Rotating `GitHub:TokenEncryptionKey` strands the stored token. Submission then answers 503 until
   the repository is connected again; nothing re-encrypts.
 - The admin console's OAuth flow (`Apps/Web/app/api/admin/github`) only obtains a token and calls

@@ -1,7 +1,8 @@
 # Media service
 
-`Services/Media` owns image/video metadata, access rules, object-storage ticket lifecycle, and cleanup.
-It uses the provider-neutral `IMediaObjectStorageProvider`; Cloudflare R2 is composed by the API host.
+`Services/Media` owns image/video metadata, access rules, object-storage ticket lifecycle, cleanup,
+and the S3 object operations behind them, through the official `AWSSDK.S3` package. It does not own
+the store's credentials, endpoint or client, which the host supplies (Cloudflare R2 for CompanyHQ).
 
 ## Rules
 
@@ -23,9 +24,12 @@ It uses the provider-neutral `IMediaObjectStorageProvider`; Cloudflare R2 is com
 
 ## Boundaries
 
-Media owns provider-neutral lifecycle and access rules. `Services/Cloudflare` supplies the R2 adapter;
-`MediaService` takes `IMediaObjectStorageProvider` in its constructor, so a host without
-`AddCloudflare` fails its build-time validation instead of the first upload. Media also supplies
+Media owns lifecycle and access rules and fills `IMediaObjectStorageProvider` with the host's
+`IAmazonS3`. The host registers that client before `AddMedia(configuration)`; `MediaService` takes
+the port in its constructor, so a host without the client fails its build-time validation instead
+of the first upload. `Media:Bucket` names the bucket and is required. There is no CompanyHQ
+Cloudflare package: it hand-wrote SigV4 signing the AWS SDK already does. The port remains as the
+seam that lets the lifecycle be tested against file-backed storage. Media also supplies
 User's `IProfileMediaLifecycle` (User is foundation, so Media may reference it). User profile photos
 store the durable User-scope URL on the User record.
 
@@ -35,6 +39,19 @@ no operator shortcut to the bytes: whether an operator may read a private object
 feature's rule, never Media's. `media.manage` grants only the operator metadata shape and deleting
 another account's object. `Content is a public image scope for publishing features; videos remain Message-only.
 `MediaScope` is still a closed enum, so a new consumer scope is an edit here.
+
+## Storage traps
+
+- For R2 the host's `AmazonS3Config` needs `ServiceURL = https://<account>.r2.cloudflarestorage.com`,
+  `AuthenticationRegion = "auto"`, `ForcePathStyle = true`, and both `RequestChecksumCalculation` and
+  `ResponseChecksumValidation` set to `WHEN_REQUIRED`. With the SDK defaults every upload carries a
+  trailing checksum that R2 rejects.
+- Upload URLs sign the content type, so a direct `PUT` must send exactly the ticket's content type.
+  Server-side puts skip payload signing because the request body cannot be rewound; that needs HTTPS.
+  The SDK presigns HTTPS URLs whatever scheme the client's `ServiceURL` uses.
+- A missing object is `null` from the metadata check and `AlreadyGone` from delete. Delete maps other
+  4xx to `Permanent` and everything else, including an unreachable store, to `Transient`. The SDK
+  retries on its own before any of that is reported.
 
 ## Integration trap
 

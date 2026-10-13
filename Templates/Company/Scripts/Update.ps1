@@ -9,22 +9,9 @@ $ErrorActionPreference = 'Stop'
 if ($args.Count) { throw 'Update takes at most one argument: a version or --list.' }
 $root = Split-Path $PSScriptRoot -Parent
 
-# The same token the API build uses: process environment, then .env.dev or .env, then the GitHub CLI login.
-$token = $env:COMPANYHQ_PACKAGES_TOKEN
-foreach ($envFile in @('.env.dev', '.env') | ForEach-Object { Join-Path $root $_ }) {
-    if (-not $token -and (Test-Path $envFile)) {
-        foreach ($line in Get-Content $envFile) { if ($line -match '^\s*COMPANYHQ_PACKAGES_TOKEN\s*=\s*(\S+)\s*$') { $token = $Matches[1] } }
-    }
-}
-if (-not $token -and (Get-Command gh -ErrorAction SilentlyContinue)) { $token = gh auth token }
-if (-not $token) { throw 'Set COMPANYHQ_PACKAGES_TOKEN in .env.dev or .env to a GitHub token with read:packages, or sign in with the GitHub CLI.' }
-
-$feed = (([xml](Get-Content (Join-Path $root 'nuget.config') -Raw)).configuration.packageSources.add | Where-Object key -eq 'companyhq').value
-if ($feed -notmatch '^(https://.+)/index\.json$') { throw 'nuget.config has no companyhq package source.' }
-$headers = @{ Authorization = 'Basic ' + [Convert]::ToBase64String([Text.Encoding]::ASCII.GetBytes("token:$token")) }
 # Every CompanyHQ package shares one version, and the generic Rss package is published after the other
 # generic packages, so its feed marks the releases that are complete. CompanyHQ.Api is not consulted.
-$published = @((Invoke-RestMethod "$($Matches[1])/download/companyhq.services.rss/index.json" -Headers $headers).versions |
+$published = @((Invoke-RestMethod 'https://api.nuget.org/v3-flatcontainer/companyhq.services.rss/index.json').versions |
     Where-Object { $_ -match '^\d+(\.\d+){1,3}$' } | Sort-Object { [version]$_ })
 if (-not $published) { throw 'No released CompanyHQ version is published.' }
 

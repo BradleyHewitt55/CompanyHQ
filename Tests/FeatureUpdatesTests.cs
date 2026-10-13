@@ -37,7 +37,6 @@ using CompanyHQ.Services.Postgres.Contracts.Enums;
 using CompanyHQ.Services.Postgres.Contracts.Forms;
 using CompanyHQ.Services.Postgres.Data;
 using CompanyHQ.Services.Postgres.Extensions;
-using CompanyHQ.Services.Redis.Extensions;
 using CompanyHQ.Services.Users.Contracts.Enums;
 using CompanyHQ.Services.Users.Contracts.Models;
 using CompanyHQ.Services.Users.Extensions;
@@ -286,6 +285,7 @@ public sealed class FeatureFixture : IAsyncLifetime
             ["Postgres:AutoSeed"] = "false",
             ["Cache:ConnectionString"] = $"{redis.Hostname}:{redis.GetMappedPublicPort(6379)}",
             ["Media:ContentBaseUrl"] = "http://localhost:4002",
+            ["Media:Bucket"] = "test-media",
             ["Jwt:SigningKey"] = "test-only-signing-key-at-least-thirty-two-characters",
             ["Jwt:Issuer"] = "tests",
             ["Jwt:Audience"] = "tests",
@@ -298,8 +298,8 @@ public sealed class FeatureFixture : IAsyncLifetime
         services.AddUsers(configuration);
         services.AddAuth(configuration);
         services.AddSingleton<CompanyHQ.Services.Auth.Services.IAuthEmailSender, RecordingAuthEmail>();
+        services.AddRedisConnection(configuration);
         services.AddCache(configuration);
-        services.AddRedis(configuration);
         services.AddAppointments();
         services.AddCompany();
         services.AddBlogs();

@@ -1,12 +1,12 @@
 namespace CompanyHQ.Services.Cache.Contracts.Ports;
 
 /// <summary>
-/// The transport Cache stores its entries through. Cache owns the keys it hands over, the payload
-/// text and the expiry; a provider adapter owns the connection and the commands that carry them.
+/// The transport Cache stores its entries through. Cache fills it itself with the host's Redis
+/// connection; it stays a port so the cache policy can be exercised without Redis.
 /// </summary>
 /// <remarks>
-/// Every key and prefix arrives fully qualified and every payload already serialised, so an adapter
-/// never adds a namespace, changes a payload or chooses a TTL. An adapter throws its own transport
+/// Every key and prefix arrives fully qualified and every payload already serialised, so a provider
+/// never adds a namespace, changes a payload or chooses a TTL. It throws its own transport
 /// exceptions unchanged and names them through <see cref="IsTransportFailure"/>; Cache decides
 /// whether one becomes a miss.
 /// </remarks>

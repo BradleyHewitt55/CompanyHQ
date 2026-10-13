@@ -34,6 +34,12 @@
   </ItemGroup>
 
   <ItemGroup>
+    <!-- Objects are stored through the official AWS S3 client, which also speaks to Cloudflare R2.
+         The host registers its IAmazonS3 before AddMedia; this service never holds the credentials. -->
+    <PackageReference Include="AWSSDK.S3" Version="4.0.104.3" />
+  </ItemGroup>
+
+  <ItemGroup>
     <!-- Mapping only: the entity configurations under Data/ describe this service's tables, indexes
          and column types. Nothing outside Data/ may use EF Core, and no database driver is referenced. -->
     <PackageReference Include="Microsoft.EntityFrameworkCore.Relational" Version="10.0.10" />

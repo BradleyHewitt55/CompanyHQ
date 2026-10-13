@@ -4,7 +4,7 @@ using CompanyHQ.Services.Cache.Contracts.Ports;
 namespace CompanyHQ.Services.Cache.Services;
 
 /// <summary>
-/// The <c>cache</c> health entry: a round trip through the composed provider.
+/// The <c>cache</c> health entry: a round trip through the provider.
 /// </summary>
 /// <remarks>
 /// Degraded rather than unhealthy: the app serves traffic without a cache, so a cache outage must

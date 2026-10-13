@@ -1,9 +1,9 @@
-using System.Net.Http.Headers;
-using System.Net.Http.Json;
+using System.Net;
 using System.Security.Cryptography;
 using System.Text;
-using System.Text.Json;
 
+using Octokit;
+using Octokit.Internal;
 
 using CompanyHQ.Services.GitHub.Contracts.Dtos;
 using CompanyHQ.Services.GitHub.Contracts.Enums;
@@ -21,12 +21,19 @@ namespace CompanyHQ.Services.GitHub.Services;
 public sealed class GitHubService(
     IRepository<GitHubConnection> connections,
     IUserAuthorizationService authorization,
-    IHttpClientFactory clients,
+    IHttpMessageHandlerFactory handlers,
     GitHubOptions options) : IGitHubService
 {
     public const string HttpClientName = "github";
 
-    private sealed record Connection(string Repository, string Token);
+    private static readonly TimeSpan RequestTimeout = TimeSpan.FromSeconds(10);
+
+    private sealed record Connection(string Repository, string Token)
+    {
+        public string Owner => Repository[..Repository.IndexOf('/')];
+
+        public string Name => Repository[(Repository.IndexOf('/') + 1)..];
+    }
 
     private const int NonceLength = 12;
     private const int TagLength = 16;
@@ -134,14 +141,11 @@ public sealed class GitHubService(
             body.Append("\nContact email: ").Append(request.Email.Trim());
         }
 
-        using var issue = Request(HttpMethod.Post, $"repos/{connection.Repository}/issues", connection.Token);
-        issue.Content = JsonContent.Create(new
-        {
-            title = $"[{request.Category.Trim()}] {request.Title.Trim()}",
-            body = body.ToString()
-        });
-
-        var (error, _) = await SendAsync(issue, cancellationToken);
+        var issue = new NewIssue($"[{request.Category.Trim()}] {request.Title.Trim()}") { Body = body.ToString() };
+        var (error, _) = await SendAsync(
+            connection,
+            client => client.Issue.Create(connection.Owner, connection.Name, issue),
+            cancellationToken);
         return error;
     }
 
@@ -160,25 +164,19 @@ public sealed class GitHubService(
         }
 
         // The search API is the one issue listing that carries a total and leaves pull requests out.
-        var terms = $"repo:{connection.Repository} is:issue"
-            + (string.IsNullOrWhiteSpace(keyword) ? string.Empty : $" {keyword.Trim()}");
-        using var request = Request(
-            HttpMethod.Get,
-            $"search/issues?q={Uri.EscapeDataString(terms)}&sort=updated&order=desc&per_page={paging.PageSize}&page={paging.Page}",
-            connection.Token);
+        var search = string.IsNullOrWhiteSpace(keyword) ? new SearchIssuesRequest() : new SearchIssuesRequest(keyword.Trim());
+        search.Repos.Add(connection.Owner, connection.Name);
+        search.Type = IssueTypeQualifier.Issue;
+        search.SortField = IssueSearchSort.Updated;
+        search.Order = Octokit.SortDirection.Descending;
+        search.PerPage = paging.PageSize;
+        search.Page = paging.Page;
 
-        var (error, json) = await SendAsync(request, cancellationToken);
-        if (json is null)
-        {
-            return (error, null);
-        }
-
-        using (json)
-        {
-            var items = json.RootElement.GetProperty("items").EnumerateArray().Select(Issue).ToList();
-            return (GitHubError.None, new PagedResult<AdminGitHubIssueDto>(
-                items, paging.Page, paging.PageSize, json.RootElement.GetProperty("total_count").GetInt32()));
-        }
+        var (error, found) = await SendAsync(connection, client => client.Search.SearchIssues(search), cancellationToken);
+        return found is null
+            ? (error, null)
+            : (GitHubError.None, new PagedResult<AdminGitHubIssueDto>(
+                found.Items.Select(Map).ToList(), paging.Page, paging.PageSize, found.TotalCount));
     }
 
     public async Task<(GitHubError Error, AdminGitHubIssueThreadDto? Thread)> GetIssueAsync(
@@ -192,43 +190,37 @@ public sealed class GitHubService(
             return (denied, null);
         }
 
-        using var issueRequest = Request(HttpMethod.Get, $"repos/{connection.Repository}/issues/{number}", connection.Token);
-        var (issueError, issueJson) = await SendAsync(issueRequest, cancellationToken);
-        if (issueJson is null)
+        var (issueError, issue) = await SendAsync(
+            connection,
+            client => client.Issue.Get(connection.Owner, connection.Name, number),
+            cancellationToken);
+        if (issue is null)
         {
             return (issueError, null);
         }
 
-        using (issueJson)
+        // A pull request answers on the issues route too; this service only deals in issues.
+        if (issue.PullRequest is not null)
         {
-            // A pull request answers on the issues route too; this service only deals in issues.
-            if (issueJson.RootElement.TryGetProperty("pull_request", out _))
-            {
-                return (GitHubError.NotFound, null);
-            }
-
-            using var commentsRequest = Request(
-                HttpMethod.Get,
-                $"repos/{connection.Repository}/issues/{number}/comments?per_page=100",
-                connection.Token);
-            var (commentsError, commentsJson) = await SendAsync(commentsRequest, cancellationToken);
-            if (commentsJson is null)
-            {
-                return (commentsError, null);
-            }
-
-            using (commentsJson)
-            {
-                var comments = commentsJson.RootElement.EnumerateArray()
-                    .Select(comment => new AdminGitHubIssueCommentDto(
-                        comment.GetProperty("id").GetInt64(),
-                        Text(comment, "body"),
-                        Login(comment),
-                        comment.GetProperty("created_at").GetDateTimeOffset()))
-                    .ToList();
-                return (GitHubError.None, new AdminGitHubIssueThreadDto(Issue(issueJson.RootElement), comments));
-            }
+            return (GitHubError.NotFound, null);
         }
+
+        var firstPage = new ApiOptions { PageSize = 100, PageCount = 1 };
+        var (commentsError, comments) = await SendAsync(
+            connection,
+            client => client.Issue.Comment.GetAllForIssue(connection.Owner, connection.Name, number, firstPage),
+            cancellationToken);
+        return comments is null
+            ? (commentsError, null)
+            : (GitHubError.None, new AdminGitHubIssueThreadDto(
+                Map(issue),
+                comments
+                    .Select(comment => new AdminGitHubIssueCommentDto(
+                        comment.Id,
+                        comment.Body ?? string.Empty,
+                        comment.User?.Login ?? string.Empty,
+                        comment.CreatedAt))
+                    .ToList()));
     }
 
     public async Task<GitHubError> CommentAsync(
@@ -243,10 +235,10 @@ public sealed class GitHubService(
             return denied;
         }
 
-        using var request = Request(HttpMethod.Post, $"repos/{connection.Repository}/issues/{number}/comments", connection.Token);
-        request.Content = JsonContent.Create(new { body = body.Trim() });
-        var (error, json) = await SendAsync(request, cancellationToken);
-        json?.Dispose();
+        var (error, _) = await SendAsync(
+            connection,
+            client => client.Issue.Comment.Create(connection.Owner, connection.Name, number, body.Trim()),
+            cancellationToken);
         return error;
     }
 
@@ -261,10 +253,23 @@ public sealed class GitHubService(
             return denied;
         }
 
-        using var request = Request(HttpMethod.Patch, $"repos/{connection.Repository}/issues/{number}", connection.Token);
-        request.Content = JsonContent.Create(new { state = "closed" });
-        var (error, json) = await SendAsync(request, cancellationToken);
-        json?.Dispose();
+        // Built from the issue as it stands: a bare IssueUpdate always sends a null milestone, which
+        // would clear the one the issue has.
+        var (readError, issue) = await SendAsync(
+            connection,
+            client => client.Issue.Get(connection.Owner, connection.Name, number),
+            cancellationToken);
+        if (issue is null)
+        {
+            return readError;
+        }
+
+        var closed = issue.ToUpdate();
+        closed.State = ItemState.Closed;
+        var (error, _) = await SendAsync(
+            connection,
+            client => client.Issue.Update(connection.Owner, connection.Name, number, closed),
+            cancellationToken);
         return error;
     }
 
@@ -304,55 +309,42 @@ public sealed class GitHubService(
         }
     }
 
-    /// <summary>The parsed body on success; the caller disposes it.</summary>
-    private async Task<(GitHubError Error, JsonDocument? Json)> SendAsync(
-        HttpRequestMessage request,
+    /// <summary>GitHub's answer on success; null with the reason otherwise.</summary>
+    private async Task<(GitHubError Error, T? Result)> SendAsync<T>(
+        Connection connection,
+        Func<GitHubClient, Task<T>> call,
         CancellationToken cancellationToken)
+        where T : class
     {
         try
         {
-            using var response = await clients.CreateClient(HttpClientName).SendAsync(request, cancellationToken);
-            if (response.StatusCode is System.Net.HttpStatusCode.NotFound or System.Net.HttpStatusCode.Gone)
-            {
-                return (GitHubError.NotFound, null);
-            }
-
-            if (!response.IsSuccessStatusCode)
-            {
-                return (GitHubError.Rejected, null);
-            }
-
-            return (GitHubError.None, await JsonDocument.ParseAsync(
-                await response.Content.ReadAsStreamAsync(cancellationToken),
-                cancellationToken: cancellationToken));
+            return (GitHubError.None, await call(Client(connection.Token)).WaitAsync(cancellationToken));
         }
-        catch (Exception exception) when (IsTransportFailure(exception, cancellationToken) || exception is JsonException)
+        catch (ApiException exception) when (exception.StatusCode is HttpStatusCode.NotFound or HttpStatusCode.Gone)
+        {
+            return (GitHubError.NotFound, null);
+        }
+        catch (ApiException)
+        {
+            return (GitHubError.Rejected, null);
+        }
+        catch (Exception exception) when (IsTransportFailure(exception, cancellationToken))
         {
             return (GitHubError.Unavailable, null);
         }
     }
 
-    private static AdminGitHubIssueDto Issue(JsonElement issue) =>
+    private static AdminGitHubIssueDto Map(Issue issue) =>
         new(
-            issue.GetProperty("number").GetInt32(),
-            Text(issue, "title"),
-            Text(issue, "body"),
-            Login(issue),
-            string.Equals(Text(issue, "state"), "open", StringComparison.Ordinal),
-            Text(issue, "html_url"),
-            issue.GetProperty("comments").GetInt32(),
-            issue.GetProperty("created_at").GetDateTimeOffset(),
-            issue.GetProperty("updated_at").GetDateTimeOffset());
-
-    private static string Text(JsonElement element, string name) =>
-        element.TryGetProperty(name, out var value) && value.ValueKind is JsonValueKind.String
-            ? value.GetString()!
-            : string.Empty;
-
-    private static string Login(JsonElement element) =>
-        element.TryGetProperty("user", out var user) && user.ValueKind is JsonValueKind.Object
-            ? Text(user, "login")
-            : string.Empty;
+            issue.Number,
+            issue.Title ?? string.Empty,
+            issue.Body ?? string.Empty,
+            issue.User?.Login ?? string.Empty,
+            issue.State.Value is ItemState.Open,
+            issue.HtmlUrl ?? string.Empty,
+            issue.Comments,
+            issue.CreatedAt,
+            issue.UpdatedAt ?? issue.CreatedAt);
 
     private Task<bool> CanManageAsync(Guid userId, CancellationToken cancellationToken) =>
         authorization.HasPermissionAsync(userId, AccessPermissions.ManageGitHub, cancellationToken);
@@ -360,42 +352,43 @@ public sealed class GitHubService(
     /// <summary>GitHub's own spelling of the repository, or null when the token cannot file issues in it.</summary>
     private async Task<string?> VerifyAsync(string repository, string accessToken, CancellationToken cancellationToken)
     {
-        using var request = Request(HttpMethod.Get, $"repos/{repository}", accessToken);
-        using var response = await clients.CreateClient(HttpClientName).SendAsync(request, cancellationToken);
-        if (!response.IsSuccessStatusCode)
+        var candidate = new Connection(repository, accessToken);
+        Repository details;
+        try
+        {
+            details = await Client(accessToken).Repository.Get(candidate.Owner, candidate.Name).WaitAsync(cancellationToken);
+        }
+        catch (ApiException)
         {
             return null;
         }
 
-        using var details = await JsonDocument.ParseAsync(
-            await response.Content.ReadAsStreamAsync(cancellationToken),
-            cancellationToken: cancellationToken);
-        var root = details.RootElement;
-
-        return root.TryGetProperty("full_name", out var fullName)
-               && string.Equals(fullName.GetString(), repository, StringComparison.OrdinalIgnoreCase)
-               && root.TryGetProperty("has_issues", out var hasIssues)
-               && hasIssues.GetBoolean()
-               && root.TryGetProperty("permissions", out var permissions)
-               && permissions.TryGetProperty("pull", out var pull)
-               && pull.GetBoolean()
-            ? fullName.GetString()
+        return string.Equals(details.FullName, repository, StringComparison.OrdinalIgnoreCase)
+               && details.HasIssues
+               && details.Permissions?.Pull is true
+            ? details.FullName
             : null;
     }
 
-    private static HttpRequestMessage Request(HttpMethod method, string path, string token)
+    /// <summary>
+    /// GitHub's own client for one stored token. The handler comes from the host's pool, so a client
+    /// per call costs no socket.
+    /// </summary>
+    private GitHubClient Client(string token)
     {
-        var request = new HttpRequestMessage(method, new Uri($"https://api.github.com/{path}"));
-        request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", token);
-        request.Headers.UserAgent.ParseAdd("CompanyHQ/1.0");
-        request.Headers.Accept.ParseAdd("application/vnd.github+json");
-        request.Headers.Add("X-GitHub-Api-Version", "2022-11-28");
-        return request;
+        var client = new GitHubClient(new Octokit.Connection(
+            new ProductHeaderValue("CompanyHQ", "1.0"),
+            GitHubClient.GitHubApiUrl,
+            new InMemoryCredentialStore(new Credentials(token)),
+            new HttpClientAdapter(() => handlers.CreateHandler(HttpClientName)),
+            new SimpleJsonSerializer()));
+        client.SetRequestTimeout(RequestTimeout);
+        return client;
     }
 
     private static bool IsTransportFailure(Exception exception, CancellationToken cancellationToken) =>
         exception is HttpRequestException
-        || (exception is TaskCanceledException && !cancellationToken.IsCancellationRequested);
+        || (exception is OperationCanceledException && !cancellationToken.IsCancellationRequested);
 
     // AES-GCM, stored as nonce + tag + ciphertext.
     private string Encrypt(string token)

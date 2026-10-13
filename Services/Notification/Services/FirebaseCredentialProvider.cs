@@ -4,12 +4,12 @@ using FirebaseAdmin;
 using Google.Apis.Auth.OAuth2;
 using Microsoft.Extensions.Logging;
 
-using CompanyHQ.Services.Firebase.Contracts.Models;
+using CompanyHQ.Services.Notifications.Contracts.Models;
 
-namespace CompanyHQ.Services.Firebase.Services;
+namespace CompanyHQ.Services.Notifications.Services;
 
 /// <summary>Loads the optional service account and owns the named Firebase app.</summary>
-public sealed class FirebaseCredentialProvider : IFirebaseCredentialProvider
+internal sealed class FirebaseCredentialProvider
 {
     private const string AppName = "CompanyHQ";
 

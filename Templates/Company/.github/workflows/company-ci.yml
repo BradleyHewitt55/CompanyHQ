@@ -5,9 +5,6 @@ permissions:
 jobs:
   api:
     runs-on: ubuntu-latest
-    env:
-      # A token with read:packages for the account that publishes the CompanyHQ packages.
-      COMPANYHQ_PACKAGES_TOKEN: ${{ secrets.COMPANYHQ_PACKAGES_TOKEN }}
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-dotnet@v4

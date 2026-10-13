@@ -2,13 +2,14 @@ using System.Runtime.CompilerServices;
 using CompanyHQ.Services.Cache.Contracts.Ports;
 using StackExchange.Redis;
 
-namespace CompanyHQ.Services.Redis.Services;
+namespace CompanyHQ.Services.Cache.Services;
 
 /// <summary>
-/// Cache's <see cref="ICacheProvider"/> over the shared Redis multiplexer. It carries keys, payloads
-/// and expiries exactly as handed over; what they mean is Cache's business.
+/// <see cref="ICacheProvider"/> over the host's <see cref="IConnectionMultiplexer"/>. It carries
+/// keys, payloads and expiries exactly as handed over; what they mean is <see cref="CacheService"/>'s
+/// business.
 /// </summary>
-public sealed class RedisCacheProvider(IConnectionMultiplexer connection) : ICacheProvider
+internal sealed class RedisCacheProvider(IConnectionMultiplexer connection) : ICacheProvider
 {
     private const string IncrementScript = """
         local count = redis.call('INCR', KEYS[1])
