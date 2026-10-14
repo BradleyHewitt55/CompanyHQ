@@ -42,8 +42,10 @@ now `CompanyHQ.Auth`, `CompanyHQ.Services.Sales.Contracts` is `CompanyHQ.Sales.C
 release feed is `CompanyHQ.Rss`. Releases up to 2.x keep their old names and stay published. A company
 on 2.x does not see 3.0.0 from its Update script, which still reads the old feed; to move, change its
 package references, `using` directives and the feed address in Scripts/Update.ps1 from
-`companyhq.services.rss` to `companyhq.rss`, set the pin to 3.0.0 and start once. Table names are
-unchanged, so the migration that start writes contains no schema changes.
+`companyhq.services.rss` to `companyhq.rss`, and the `using CompanyHQ.Services.Postgres.Data;` line
+at the top of each existing migration and the model snapshot to `using CompanyHQ.Postgres.Data;`
+(change nothing else in them), then set the pin to 3.0.0 and start once. Table names are unchanged,
+so no migration is written and the database is untouched.
 
 C# clients reference the Contracts packages; a company that wants TypeScript types generates them from its own
 API. Any company website, including an existing Blazor one, is the company's own and calls its API.
