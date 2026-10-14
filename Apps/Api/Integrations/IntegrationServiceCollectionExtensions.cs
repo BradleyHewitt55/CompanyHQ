@@ -50,6 +50,14 @@ public static class IntegrationServiceCollectionExtensions
 
         services.AddScoped<IMessageNotifier, MessagePushNotifier>();
 
+        services.AddScoped<CompanyHQ.Services.Sales.Contracts.Ports.ISalesProfitShipping, SalesProfitShippingBridge>();
+        services.AddScoped<CompanyHQ.Services.Sales.Contracts.Ports.ISalesDocumentDelivery, SalesDocumentDelivery>();
+        services.AddScoped<CompanyHQ.Services.Sales.Contracts.Ports.ISalesShipping, SalesShippingBridge>();
+        services.AddScoped<CompanyHQ.Services.Sales.Contracts.Ports.ISalesCustomer, SalesCustomerBridge>();
+        services.AddScoped<CompanyHQ.Services.Shipping.Contracts.Ports.IShippingCatalog, ShippingCatalogBridge>();
+        services.AddScoped<CompanyHQ.Services.Shipping.Contracts.Ports.IShippingDiscountPolicy, ShippingDiscountBridge>();
+        services.AddScoped<CompanyHQ.Services.Shipping.Contracts.Ports.IShippingAddressDirectory, ShippingAddressDirectoryBridge>();
+        services.AddScoped<CompanyHQ.Services.Shipping.Contracts.Ports.IShippingGeocoder, ShippingGeocoderBridge>();
         return services;
     }
 }

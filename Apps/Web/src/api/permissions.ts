@@ -52,6 +52,8 @@ export const permissionGroups: readonly {
     description: 'Reports, account flags, uploaded files and appointment diaries.',
     permissions: {
       'moderation.manage': 'Review reports and account flags',
+      'sales.manage': 'Manage catalog, promotions and orders',
+      'shipping.manage': 'Manage delivery methods, zones and origins',
       'appointments.manage': "See and book in every account's appointment diary",
       'media.manage': 'See and delete any uploaded file',
     },

@@ -27,6 +27,7 @@ public static class EmailServiceCollectionExtensions
         services.AddScoped<IEmailProvider, ResendEmailProvider>();
 
         services.AddScoped<IEmailService, EmailService>();
+        services.AddScoped<IEmailDeliveryQuery, EmailDeliveryQuery>();
         services.AddScoped<EmailQueueProcessor>();
         services.AddHostedService<EmailWorker>();
         services.AddScoped<IEmailTemplateStore, EmailTemplateStore>();

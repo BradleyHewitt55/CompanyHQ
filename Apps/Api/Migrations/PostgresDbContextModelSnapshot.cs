@@ -1712,6 +1712,1285 @@ namespace Api.Migrations
                     b.ToTable("queued_notification", (string)null);
                 });
 
+            modelBuilder.Entity("CompanyHQ.Services.Sales.Contracts.Models.BundleLink", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .HasColumnType("uuid")
+                        .HasColumnName("id");
+
+                    b.Property<Guid>("ComponentProductId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("component_product_id");
+
+                    b.Property<DateTimeOffset>("CreatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("created_at");
+
+                    b.Property<Guid>("ProductId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("product_id");
+
+                    b.Property<DateTimeOffset>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("updated_at");
+
+                    b.HasKey("Id")
+                        .HasName("pk_sales_bundle_link");
+
+                    b.HasIndex("ComponentProductId")
+                        .HasDatabaseName("ix_sales_bundle_link_component_product_id");
+
+                    b.HasIndex("ProductId", "ComponentProductId")
+                        .IsUnique()
+                        .HasDatabaseName("ix_sales_bundle_link_product_id_component_product_id");
+
+                    b.ToTable("sales_bundle_link", (string)null);
+                });
+
+            modelBuilder.Entity("CompanyHQ.Services.Sales.Contracts.Models.CatalogPriceProjection", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .HasColumnType("uuid")
+                        .HasColumnName("id");
+
+                    b.Property<DateTimeOffset>("CreatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("created_at");
+
+                    b.Property<bool>("Dirty")
+                        .HasColumnType("boolean")
+                        .HasColumnName("dirty");
+
+                    b.Property<long>("Generation")
+                        .HasColumnType("bigint")
+                        .HasColumnName("generation");
+
+                    b.Property<Guid?>("LastProductId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("last_product_id");
+
+                    b.Property<string>("PolicyKey")
+                        .IsRequired()
+                        .HasMaxLength(64)
+                        .HasColumnType("character varying(64)")
+                        .HasColumnName("policy_key");
+
+                    b.Property<DateOnly>("PriceDate")
+                        .HasColumnType("date")
+                        .HasColumnName("price_date");
+
+                    b.Property<DateTimeOffset>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("updated_at");
+
+                    b.HasKey("Id")
+                        .HasName("pk_sales_catalog_price_projection");
+
+                    b.ToTable("sales_catalog_price_projection", (string)null);
+                });
+
+            modelBuilder.Entity("CompanyHQ.Services.Sales.Contracts.Models.CatalogVariant", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .HasColumnType("uuid")
+                        .HasColumnName("id");
+
+                    b.Property<DateTimeOffset>("CreatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("created_at");
+
+                    b.Property<decimal>("EffectivePrice")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("numeric(18,2)")
+                        .HasColumnName("effective_price");
+
+                    b.Property<bool>("IsOnSale")
+                        .HasColumnType("boolean")
+                        .HasColumnName("is_on_sale");
+
+                    b.Property<Guid>("ProductId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("product_id");
+
+                    b.Property<string>("Sku")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)")
+                        .HasColumnName("sku");
+
+                    b.Property<DateTimeOffset>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("updated_at");
+
+                    b.HasKey("Id")
+                        .HasName("pk_sales_variant");
+
+                    b.HasIndex("ProductId", "Sku")
+                        .IsUnique()
+                        .HasDatabaseName("ix_sales_variant_product_id_sku");
+
+                    b.ToTable("sales_variant", (string)null);
+                });
+
+            modelBuilder.Entity("CompanyHQ.Services.Sales.Contracts.Models.Category", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .HasColumnType("uuid")
+                        .HasColumnName("id");
+
+                    b.Property<DateTimeOffset>("CreatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("created_at");
+
+                    b.Property<string>("ImageUrl")
+                        .HasMaxLength(2000)
+                        .HasColumnType("character varying(2000)")
+                        .HasColumnName("image_url");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasMaxLength(255)
+                        .HasColumnType("character varying(255)")
+                        .HasColumnName("name");
+
+                    b.Property<Guid?>("ParentId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("parent_id");
+
+                    b.Property<int>("Position")
+                        .HasColumnType("integer")
+                        .HasColumnName("position");
+
+                    b.Property<string>("Sku")
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)")
+                        .HasColumnName("sku");
+
+                    b.Property<string>("Slug")
+                        .IsRequired()
+                        .HasMaxLength(255)
+                        .HasColumnType("character varying(255)")
+                        .HasColumnName("slug");
+
+                    b.Property<DateTimeOffset>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("updated_at");
+
+                    b.HasKey("Id")
+                        .HasName("pk_sales_category");
+
+                    b.HasIndex("ParentId")
+                        .HasDatabaseName("ix_sales_category_parent_id");
+
+                    b.HasIndex("Slug")
+                        .IsUnique()
+                        .HasDatabaseName("ix_sales_category_slug");
+
+                    b.ToTable("sales_category", (string)null);
+                });
+
+            modelBuilder.Entity("CompanyHQ.Services.Sales.Contracts.Models.Coupon", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .HasColumnType("uuid")
+                        .HasColumnName("id");
+
+                    b.Property<bool>("AppliesToShipping")
+                        .HasColumnType("boolean")
+                        .HasColumnName("applies_to_shipping");
+
+                    b.Property<string>("Code")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)")
+                        .HasColumnName("code");
+
+                    b.Property<DateTimeOffset>("CreatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("created_at");
+
+                    b.Property<string>("DefinitionJson")
+                        .IsRequired()
+                        .HasColumnType("jsonb")
+                        .HasColumnName("definition_json");
+
+                    b.Property<bool>("IsActive")
+                        .HasColumnType("boolean")
+                        .HasColumnName("is_active");
+
+                    b.Property<bool>("IsAutomatic")
+                        .HasColumnType("boolean")
+                        .HasColumnName("is_automatic");
+
+                    b.Property<DateTimeOffset>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("updated_at");
+
+                    b.HasKey("Id")
+                        .HasName("pk_sales_coupon");
+
+                    b.HasIndex("Code")
+                        .IsUnique()
+                        .HasDatabaseName("ix_sales_coupon_code");
+
+                    b.ToTable("sales_coupon", (string)null);
+                });
+
+            modelBuilder.Entity("CompanyHQ.Services.Sales.Contracts.Models.InvoiceDeliveryRequest", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .HasColumnType("uuid")
+                        .HasColumnName("id");
+
+                    b.Property<DateTimeOffset?>("AcceptedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("accepted_at");
+
+                    b.Property<DateTimeOffset>("CreatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("created_at");
+
+                    b.Property<string>("DocumentJson")
+                        .IsRequired()
+                        .HasColumnType("jsonb")
+                        .HasColumnName("document_json");
+
+                    b.Property<Guid>("OrderId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("order_id");
+
+                    b.Property<DateTimeOffset?>("QueuedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("queued_at");
+
+                    b.Property<Guid>("RequestId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("request_id");
+
+                    b.Property<int>("RevisionNumber")
+                        .HasColumnType("integer")
+                        .HasColumnName("revision_number");
+
+                    b.Property<DateTimeOffset>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("updated_at");
+
+                    b.HasKey("Id")
+                        .HasName("pk_sales_invoice_delivery_request");
+
+                    b.HasIndex("OrderId", "RequestId")
+                        .IsUnique()
+                        .HasDatabaseName("ix_sales_invoice_delivery_request_order_id_request_id");
+
+                    b.ToTable("sales_invoice_delivery_request", (string)null);
+                });
+
+            modelBuilder.Entity("CompanyHQ.Services.Sales.Contracts.Models.OrderUpsellAcceptance", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .HasColumnType("uuid")
+                        .HasColumnName("id");
+
+                    b.Property<string>("CouponsJson")
+                        .IsRequired()
+                        .HasColumnType("jsonb")
+                        .HasColumnName("coupons_json");
+
+                    b.Property<DateTimeOffset>("CreatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("created_at");
+
+                    b.Property<string>("LineJson")
+                        .IsRequired()
+                        .HasColumnType("jsonb")
+                        .HasColumnName("line_json");
+
+                    b.Property<Guid>("OfferId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("offer_id");
+
+                    b.Property<Guid>("OrderId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("order_id");
+
+                    b.Property<string>("PricedLineJson")
+                        .IsRequired()
+                        .HasColumnType("jsonb")
+                        .HasColumnName("priced_line_json");
+
+                    b.Property<Guid>("RequestId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("request_id");
+
+                    b.Property<string>("ResultJson")
+                        .IsRequired()
+                        .HasColumnType("jsonb")
+                        .HasColumnName("result_json");
+
+                    b.Property<int>("RevisionNumber")
+                        .HasColumnType("integer")
+                        .HasColumnName("revision_number");
+
+                    b.Property<string>("ShippingJson")
+                        .HasColumnType("jsonb")
+                        .HasColumnName("shipping_json");
+
+                    b.Property<DateTimeOffset>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("updated_at");
+
+                    b.HasKey("Id")
+                        .HasName("pk_sales_order_upsell_acceptance");
+
+                    b.HasIndex("OrderId", "OfferId")
+                        .IsUnique()
+                        .HasDatabaseName("ix_sales_order_upsell_acceptance_order_id_offer_id");
+
+                    b.HasIndex("OrderId", "RequestId")
+                        .IsUnique()
+                        .HasDatabaseName("ix_sales_order_upsell_acceptance_order_id_request_id");
+
+                    b.ToTable("sales_order_upsell_acceptance", (string)null);
+                });
+
+            modelBuilder.Entity("CompanyHQ.Services.Sales.Contracts.Models.PaymentMethod", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .HasColumnType("uuid")
+                        .HasColumnName("id");
+
+                    b.Property<DateTimeOffset>("CreatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("created_at");
+
+                    b.Property<string>("DefinitionJson")
+                        .IsRequired()
+                        .HasColumnType("jsonb")
+                        .HasColumnName("definition_json");
+
+                    b.Property<bool>("IsActive")
+                        .HasColumnType("boolean")
+                        .HasColumnName("is_active");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasMaxLength(255)
+                        .HasColumnType("character varying(255)")
+                        .HasColumnName("name");
+
+                    b.Property<DateTimeOffset>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("updated_at");
+
+                    b.HasKey("Id")
+                        .HasName("pk_sales_payment_method");
+
+                    b.ToTable("sales_payment_method", (string)null);
+                });
+
+            modelBuilder.Entity("CompanyHQ.Services.Sales.Contracts.Models.Product", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .HasColumnType("uuid")
+                        .HasColumnName("id");
+
+                    b.Property<decimal>("AverageRating")
+                        .HasPrecision(5, 2)
+                        .HasColumnType("numeric(5,2)")
+                        .HasColumnName("average_rating");
+
+                    b.PrimitiveCollection<Guid[]>("CategoryIds")
+                        .IsRequired()
+                        .HasColumnType("uuid[]")
+                        .HasColumnName("category_ids");
+
+                    b.Property<DateTimeOffset>("CreatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("created_at");
+
+                    b.Property<string>("DefinitionJson")
+                        .IsRequired()
+                        .HasColumnType("jsonb")
+                        .HasColumnName("definition_json");
+
+                    b.Property<string>("Description")
+                        .IsRequired()
+                        .HasColumnType("text")
+                        .HasColumnName("description");
+
+                    b.Property<decimal>("EffectivePrice")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("numeric(18,2)")
+                        .HasColumnName("effective_price");
+
+                    b.Property<bool>("IsOnSale")
+                        .HasColumnType("boolean")
+                        .HasColumnName("is_on_sale");
+
+                    b.Property<bool>("IsVisible")
+                        .HasColumnType("boolean")
+                        .HasColumnName("is_visible");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasMaxLength(255)
+                        .HasColumnType("character varying(255)")
+                        .HasColumnName("name");
+
+                    b.Property<DateOnly>("PriceDate")
+                        .HasColumnType("date")
+                        .HasColumnName("price_date");
+
+                    b.Property<long>("PriceGeneration")
+                        .HasColumnType("bigint")
+                        .HasColumnName("price_generation");
+
+                    b.Property<string>("PricePolicyKey")
+                        .IsRequired()
+                        .HasColumnType("text")
+                        .HasColumnName("price_policy_key");
+
+                    b.Property<int>("RatingTotal")
+                        .HasColumnType("integer")
+                        .HasColumnName("rating_total");
+
+                    b.Property<int>("ReviewCount")
+                        .HasColumnType("integer")
+                        .HasColumnName("review_count");
+
+                    b.Property<string>("ShortDescription")
+                        .IsRequired()
+                        .HasColumnType("text")
+                        .HasColumnName("short_description");
+
+                    b.Property<string>("Slug")
+                        .IsRequired()
+                        .HasMaxLength(255)
+                        .HasColumnType("character varying(255)")
+                        .HasColumnName("slug");
+
+                    b.PrimitiveCollection<Guid[]>("SupplierIds")
+                        .IsRequired()
+                        .HasColumnType("uuid[]")
+                        .HasColumnName("supplier_ids");
+
+                    b.Property<int>("Type")
+                        .HasColumnType("integer")
+                        .HasColumnName("type");
+
+                    b.Property<int>("UnitsSold")
+                        .HasColumnType("integer")
+                        .HasColumnName("units_sold");
+
+                    b.Property<DateTimeOffset>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("updated_at");
+
+                    b.HasKey("Id")
+                        .HasName("pk_sales_product");
+
+                    b.HasIndex("AverageRating")
+                        .HasDatabaseName("ix_sales_product_average_rating");
+
+                    b.HasIndex("EffectivePrice")
+                        .HasDatabaseName("ix_sales_product_effective_price");
+
+                    b.HasIndex("Slug")
+                        .IsUnique()
+                        .HasDatabaseName("ix_sales_product_slug");
+
+                    b.HasIndex("IsVisible", "Name")
+                        .HasDatabaseName("ix_sales_product_is_visible_name");
+
+                    b.ToTable("sales_product", (string)null);
+                });
+
+            modelBuilder.Entity("CompanyHQ.Services.Sales.Contracts.Models.ProductReview", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .HasColumnType("uuid")
+                        .HasColumnName("id");
+
+                    b.Property<string>("AuthorName")
+                        .IsRequired()
+                        .HasMaxLength(255)
+                        .HasColumnType("character varying(255)")
+                        .HasColumnName("author_name");
+
+                    b.Property<string>("Comment")
+                        .IsRequired()
+                        .HasMaxLength(2000)
+                        .HasColumnType("character varying(2000)")
+                        .HasColumnName("comment");
+
+                    b.Property<DateTimeOffset>("CreatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("created_at");
+
+                    b.Property<Guid>("ProductId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("product_id");
+
+                    b.Property<int>("Rating")
+                        .HasColumnType("integer")
+                        .HasColumnName("rating");
+
+                    b.Property<string>("Title")
+                        .IsRequired()
+                        .HasMaxLength(255)
+                        .HasColumnType("character varying(255)")
+                        .HasColumnName("title");
+
+                    b.Property<DateTimeOffset>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("updated_at");
+
+                    b.HasKey("Id")
+                        .HasName("pk_sales_product_review");
+
+                    b.HasIndex("ProductId", "CreatedAt")
+                        .HasDatabaseName("ix_sales_product_review_product_id_created_at");
+
+                    b.ToTable("sales_product_review", null, t =>
+                        {
+                            t.HasCheckConstraint("ck_sales_review_rating", "rating >= 1 AND rating <= 5");
+                        });
+                });
+
+            modelBuilder.Entity("CompanyHQ.Services.Sales.Contracts.Models.SalesCounter", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .HasColumnType("uuid")
+                        .HasColumnName("id");
+
+                    b.Property<DateTimeOffset>("CreatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("created_at");
+
+                    b.Property<int>("InvoiceNumber")
+                        .HasColumnType("integer")
+                        .HasColumnName("invoice_number");
+
+                    b.Property<int>("Number")
+                        .HasColumnType("integer")
+                        .HasColumnName("number");
+
+                    b.Property<DateTimeOffset>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("updated_at");
+
+                    b.HasKey("Id")
+                        .HasName("pk_sales_counter");
+
+                    b.ToTable("sales_counter", (string)null);
+                });
+
+            modelBuilder.Entity("CompanyHQ.Services.Sales.Contracts.Models.SalesOrder", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .HasColumnType("uuid")
+                        .HasColumnName("id");
+
+                    b.Property<DateTimeOffset>("CreatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("created_at");
+
+                    b.Property<string>("Currency")
+                        .IsRequired()
+                        .HasMaxLength(3)
+                        .HasColumnType("character varying(3)")
+                        .HasColumnName("currency");
+
+                    b.Property<string>("CustomerEmail")
+                        .IsRequired()
+                        .HasMaxLength(255)
+                        .HasColumnType("character varying(255)")
+                        .HasColumnName("customer_email");
+
+                    b.Property<string>("CustomerFirstName")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)")
+                        .HasColumnName("customer_first_name");
+
+                    b.Property<string>("CustomerLastName")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)")
+                        .HasColumnName("customer_last_name");
+
+                    b.Property<DateTimeOffset?>("DeliveredAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("delivered_at");
+
+                    b.Property<DateTimeOffset?>("FinalizedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("finalized_at");
+
+                    b.Property<DateTimeOffset?>("GuestTokenExpiresAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("guest_token_expires_at");
+
+                    b.Property<string>("GuestTokenHash")
+                        .HasMaxLength(64)
+                        .HasColumnType("character varying(64)")
+                        .HasColumnName("guest_token_hash");
+
+                    b.Property<int>("InvoiceNumber")
+                        .HasColumnType("integer")
+                        .HasColumnName("invoice_number");
+
+                    b.Property<string>("InvoiceReference")
+                        .IsRequired()
+                        .HasMaxLength(40)
+                        .HasColumnType("character varying(40)")
+                        .HasColumnName("invoice_reference");
+
+                    b.Property<int>("ItemCount")
+                        .HasColumnType("integer")
+                        .HasColumnName("item_count");
+
+                    b.Property<int?>("ManualDiscountType")
+                        .HasColumnType("integer")
+                        .HasColumnName("manual_discount_type");
+
+                    b.Property<decimal>("ManualDiscountValue")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("numeric(18,2)")
+                        .HasColumnName("manual_discount_value");
+
+                    b.Property<int>("Number")
+                        .HasColumnType("integer")
+                        .HasColumnName("number");
+
+                    b.Property<string>("PaymentMethodName")
+                        .HasColumnType("text")
+                        .HasColumnName("payment_method_name");
+
+                    b.Property<int>("PaymentStatus")
+                        .HasColumnType("integer")
+                        .HasColumnName("payment_status");
+
+                    b.Property<string>("RequestJson")
+                        .IsRequired()
+                        .HasColumnType("jsonb")
+                        .HasColumnName("request_json");
+
+                    b.Property<int>("RevisionNumber")
+                        .HasColumnType("integer")
+                        .HasColumnName("revision_number");
+
+                    b.Property<DateTimeOffset?>("ShippedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("shipped_at");
+
+                    b.Property<string>("ShippingJson")
+                        .HasColumnType("jsonb")
+                        .HasColumnName("shipping_json");
+
+                    b.Property<string>("SnapshotJson")
+                        .IsRequired()
+                        .HasColumnType("jsonb")
+                        .HasColumnName("snapshot_json");
+
+                    b.Property<Guid?>("SourceQuoteId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("source_quote_id");
+
+                    b.Property<int>("Status")
+                        .HasColumnType("integer")
+                        .HasColumnName("status");
+
+                    b.Property<decimal>("TotalAmount")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("numeric(18,2)")
+                        .HasColumnName("total_amount");
+
+                    b.Property<DateTimeOffset>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("updated_at");
+
+                    b.Property<Guid?>("UserId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("user_id");
+
+                    b.HasKey("Id")
+                        .HasName("pk_sales_order");
+
+                    b.HasIndex("InvoiceNumber")
+                        .IsUnique()
+                        .HasDatabaseName("ix_sales_order_invoice_number");
+
+                    b.HasIndex("Number")
+                        .IsUnique()
+                        .HasDatabaseName("ix_sales_order_number");
+
+                    b.HasIndex("UserId", "CreatedAt")
+                        .HasDatabaseName("ix_sales_order_user_id_created_at");
+
+                    b.ToTable("sales_order", (string)null);
+                });
+
+            modelBuilder.Entity("CompanyHQ.Services.Sales.Contracts.Models.SalesOrderRevision", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .HasColumnType("uuid")
+                        .HasColumnName("id");
+
+                    b.Property<Guid>("ActingUserId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("acting_user_id");
+
+                    b.Property<DateTimeOffset>("CreatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("created_at");
+
+                    b.Property<int>("Number")
+                        .HasColumnType("integer")
+                        .HasColumnName("number");
+
+                    b.Property<Guid>("OrderId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("order_id");
+
+                    b.Property<string>("PreparedJson")
+                        .IsRequired()
+                        .HasColumnType("jsonb")
+                        .HasColumnName("prepared_json");
+
+                    b.Property<DateTimeOffset>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("updated_at");
+
+                    b.HasKey("Id")
+                        .HasName("pk_sales_order_revision");
+
+                    b.HasIndex("OrderId", "Number")
+                        .IsUnique()
+                        .HasDatabaseName("ix_sales_order_revision_order_id_number");
+
+                    b.ToTable("sales_order_revision", (string)null);
+                });
+
+            modelBuilder.Entity("CompanyHQ.Services.Sales.Contracts.Models.SalesQuote", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .HasColumnType("uuid")
+                        .HasColumnName("id");
+
+                    b.Property<DateTimeOffset?>("AcceptedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("accepted_at");
+
+                    b.Property<int?>("ConvertedOrderNumber")
+                        .HasColumnType("integer")
+                        .HasColumnName("converted_order_number");
+
+                    b.Property<Guid?>("ConvertedToOrderId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("converted_to_order_id");
+
+                    b.Property<DateTimeOffset>("CreatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("created_at");
+
+                    b.Property<string>("Currency")
+                        .IsRequired()
+                        .HasMaxLength(3)
+                        .HasColumnType("character varying(3)")
+                        .HasColumnName("currency");
+
+                    b.Property<string>("CustomerEmail")
+                        .IsRequired()
+                        .HasMaxLength(255)
+                        .HasColumnType("character varying(255)")
+                        .HasColumnName("customer_email");
+
+                    b.Property<string>("CustomerFirstName")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)")
+                        .HasColumnName("customer_first_name");
+
+                    b.Property<string>("CustomerLastName")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)")
+                        .HasColumnName("customer_last_name");
+
+                    b.Property<Guid?>("DeliveryRequestId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("delivery_request_id");
+
+                    b.Property<int>("ItemCount")
+                        .HasColumnType("integer")
+                        .HasColumnName("item_count");
+
+                    b.Property<int>("Number")
+                        .HasColumnType("integer")
+                        .HasColumnName("number");
+
+                    b.Property<string>("PreparedJson")
+                        .IsRequired()
+                        .HasColumnType("jsonb")
+                        .HasColumnName("prepared_json");
+
+                    b.Property<string>("QuoteReference")
+                        .IsRequired()
+                        .HasMaxLength(40)
+                        .HasColumnType("character varying(40)")
+                        .HasColumnName("quote_reference");
+
+                    b.Property<int>("Status")
+                        .HasColumnType("integer")
+                        .HasColumnName("status");
+
+                    b.Property<decimal>("TotalAmount")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("numeric(18,2)")
+                        .HasColumnName("total_amount");
+
+                    b.Property<DateTimeOffset>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("updated_at");
+
+                    b.Property<Guid?>("UserId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("user_id");
+
+                    b.Property<DateTimeOffset>("ValidUntil")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("valid_until");
+
+                    b.HasKey("Id")
+                        .HasName("pk_sales_quote");
+
+                    b.HasIndex("ConvertedToOrderId")
+                        .IsUnique()
+                        .HasDatabaseName("ix_sales_quote_converted_to_order_id");
+
+                    b.HasIndex("Number")
+                        .IsUnique()
+                        .HasDatabaseName("ix_sales_quote_number");
+
+                    b.ToTable("sales_quote", (string)null);
+                });
+
+            modelBuilder.Entity("CompanyHQ.Services.Sales.Contracts.Models.SalesSettings", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .HasColumnType("uuid")
+                        .HasColumnName("id");
+
+                    b.Property<DateTimeOffset>("CreatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("created_at");
+
+                    b.Property<DateTimeOffset>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("updated_at");
+
+                    b.Property<decimal>("UpsellExtraDiscountPercent")
+                        .HasPrecision(5, 2)
+                        .HasColumnType("numeric(5,2)")
+                        .HasColumnName("upsell_extra_discount_percent");
+
+                    b.HasKey("Id")
+                        .HasName("pk_sales_settings");
+
+                    b.ToTable("sales_settings", (string)null);
+                });
+
+            modelBuilder.Entity("CompanyHQ.Services.Sales.Contracts.Models.Supplier", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .HasColumnType("uuid")
+                        .HasColumnName("id");
+
+                    b.Property<DateTimeOffset>("CreatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("created_at");
+
+                    b.Property<bool>("IsActive")
+                        .HasColumnType("boolean")
+                        .HasColumnName("is_active");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasMaxLength(255)
+                        .HasColumnType("character varying(255)")
+                        .HasColumnName("name");
+
+                    b.Property<string>("OriginJson")
+                        .HasColumnType("jsonb")
+                        .HasColumnName("origin_json");
+
+                    b.Property<DateTimeOffset>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("updated_at");
+
+                    b.HasKey("Id")
+                        .HasName("pk_sales_supplier");
+
+                    b.ToTable("sales_supplier", (string)null);
+                });
+
+            modelBuilder.Entity("CompanyHQ.Services.Sales.Contracts.Models.UpsellOffer", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .HasColumnType("uuid")
+                        .HasColumnName("id");
+
+                    b.Property<DateTimeOffset>("CreatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("created_at");
+
+                    b.Property<string>("DefinitionJson")
+                        .IsRequired()
+                        .HasColumnType("jsonb")
+                        .HasColumnName("definition_json");
+
+                    b.Property<Guid>("ParentProductId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("parent_product_id");
+
+                    b.Property<Guid>("ProductId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("product_id");
+
+                    b.Property<DateTimeOffset>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("updated_at");
+
+                    b.HasKey("Id")
+                        .HasName("pk_sales_upsell_offer");
+
+                    b.HasIndex("ProductId")
+                        .HasDatabaseName("ix_sales_upsell_offer_product_id");
+
+                    b.HasIndex("ParentProductId", "ProductId")
+                        .IsUnique()
+                        .HasDatabaseName("ix_sales_upsell_offer_parent_product_id_product_id");
+
+                    b.ToTable("sales_upsell_offer", (string)null);
+                });
+
+            modelBuilder.Entity("CompanyHQ.Services.Sales.Contracts.Models.VariantSelection", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .HasColumnType("uuid")
+                        .HasColumnName("id");
+
+                    b.Property<DateTimeOffset>("CreatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("created_at");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)")
+                        .HasColumnName("name");
+
+                    b.Property<DateTimeOffset>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("updated_at");
+
+                    b.Property<string>("Value")
+                        .IsRequired()
+                        .HasMaxLength(255)
+                        .HasColumnType("character varying(255)")
+                        .HasColumnName("value");
+
+                    b.Property<Guid>("VariantId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("variant_id");
+
+                    b.HasKey("Id")
+                        .HasName("pk_sales_variant_selection");
+
+                    b.HasIndex("Name", "Value")
+                        .HasDatabaseName("ix_sales_variant_selection_name_value");
+
+                    b.HasIndex("VariantId", "Name")
+                        .IsUnique()
+                        .HasDatabaseName("ix_sales_variant_selection_variant_id_name");
+
+                    b.ToTable("sales_variant_selection", (string)null);
+                });
+
+            modelBuilder.Entity("CompanyHQ.Services.Shipping.Contracts.Models.DeliveryZone", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .HasColumnType("uuid")
+                        .HasColumnName("id");
+
+                    b.Property<DateTimeOffset>("CreatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("created_at");
+
+                    b.Property<string>("Description")
+                        .IsRequired()
+                        .HasMaxLength(1000)
+                        .HasColumnType("character varying(1000)")
+                        .HasColumnName("description");
+
+                    b.Property<bool>("IsActive")
+                        .HasColumnType("boolean")
+                        .HasColumnName("is_active");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasMaxLength(255)
+                        .HasColumnType("character varying(255)")
+                        .HasColumnName("name");
+
+                    b.Property<Guid>("ShippingMethodId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("shipping_method_id");
+
+                    b.Property<int>("SortOrder")
+                        .HasColumnType("integer")
+                        .HasColumnName("sort_order");
+
+                    b.Property<DateTimeOffset>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("updated_at");
+
+                    b.HasKey("Id")
+                        .HasName("pk_delivery_zone");
+
+                    b.HasIndex("ShippingMethodId")
+                        .HasDatabaseName("ix_delivery_zone_shipping_method_id");
+
+                    b.ToTable("delivery_zone", (string)null);
+                });
+
+            modelBuilder.Entity("CompanyHQ.Services.Shipping.Contracts.Models.DeliveryZonePostalCodeRule", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .HasColumnType("uuid")
+                        .HasColumnName("id");
+
+                    b.Property<DateTimeOffset>("CreatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("created_at");
+
+                    b.Property<Guid>("DeliveryZoneId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("delivery_zone_id");
+
+                    b.Property<string>("Pattern")
+                        .IsRequired()
+                        .HasMaxLength(64)
+                        .HasColumnType("character varying(64)")
+                        .HasColumnName("pattern");
+
+                    b.Property<string>("RuleType")
+                        .IsRequired()
+                        .HasMaxLength(16)
+                        .HasColumnType("character varying(16)")
+                        .HasColumnName("rule_type");
+
+                    b.Property<int>("SortOrder")
+                        .HasColumnType("integer")
+                        .HasColumnName("sort_order");
+
+                    b.Property<DateTimeOffset>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("updated_at");
+
+                    b.HasKey("Id")
+                        .HasName("pk_delivery_zone_postal_code_rule");
+
+                    b.HasIndex("DeliveryZoneId")
+                        .HasDatabaseName("ix_delivery_zone_postal_code_rule_delivery_zone_id");
+
+                    b.ToTable("delivery_zone_postal_code_rule", (string)null);
+                });
+
+            modelBuilder.Entity("CompanyHQ.Services.Shipping.Contracts.Models.FulfillmentOrigin", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .HasColumnType("uuid")
+                        .HasColumnName("id");
+
+                    b.Property<string>("ApartmentUnit")
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)")
+                        .HasColumnName("apartment_unit");
+
+                    b.Property<string>("City")
+                        .HasMaxLength(150)
+                        .HasColumnType("character varying(150)")
+                        .HasColumnName("city");
+
+                    b.Property<string>("Country")
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)")
+                        .HasColumnName("country");
+
+                    b.Property<DateTimeOffset>("CreatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("created_at");
+
+                    b.Property<bool>("IsActive")
+                        .HasColumnType("boolean")
+                        .HasColumnName("is_active");
+
+                    b.Property<double?>("Latitude")
+                        .HasColumnType("double precision")
+                        .HasColumnName("latitude");
+
+                    b.Property<double?>("Longitude")
+                        .HasColumnType("double precision")
+                        .HasColumnName("longitude");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasMaxLength(255)
+                        .HasColumnType("character varying(255)")
+                        .HasColumnName("name");
+
+                    b.Property<string>("PostalCode")
+                        .HasMaxLength(32)
+                        .HasColumnType("character varying(32)")
+                        .HasColumnName("postal_code");
+
+                    b.Property<string>("Province")
+                        .HasMaxLength(150)
+                        .HasColumnType("character varying(150)")
+                        .HasColumnName("province");
+
+                    b.Property<string>("StreetAddress")
+                        .HasMaxLength(255)
+                        .HasColumnType("character varying(255)")
+                        .HasColumnName("street_address");
+
+                    b.Property<string>("Suburb")
+                        .HasMaxLength(150)
+                        .HasColumnType("character varying(150)")
+                        .HasColumnName("suburb");
+
+                    b.Property<Guid?>("SupplierId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("supplier_id");
+
+                    b.Property<DateTimeOffset>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("updated_at");
+
+                    b.HasKey("Id")
+                        .HasName("pk_fulfillment_origin");
+
+                    b.ToTable("fulfillment_origin", (string)null);
+                });
+
+            modelBuilder.Entity("CompanyHQ.Services.Shipping.Contracts.Models.ShippingMethod", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .HasColumnType("uuid")
+                        .HasColumnName("id");
+
+                    b.Property<string>("Code")
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)")
+                        .HasColumnName("code");
+
+                    b.Property<decimal>("Cost")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("numeric(18,2)")
+                        .HasColumnName("cost");
+
+                    b.Property<DateTimeOffset>("CreatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("created_at");
+
+                    b.Property<string>("Description")
+                        .IsRequired()
+                        .HasMaxLength(1000)
+                        .HasColumnType("character varying(1000)")
+                        .HasColumnName("description");
+
+                    b.Property<int?>("EstimatedDeliveryDays")
+                        .HasColumnType("integer")
+                        .HasColumnName("estimated_delivery_days");
+
+                    b.Property<bool>("IsActive")
+                        .HasColumnType("boolean")
+                        .HasColumnName("is_active");
+
+                    b.Property<int?>("MaxDistanceKm")
+                        .HasColumnType("integer")
+                        .HasColumnName("max_distance_km");
+
+                    b.Property<string>("MethodType")
+                        .IsRequired()
+                        .HasMaxLength(32)
+                        .HasColumnType("character varying(32)")
+                        .HasColumnName("method_type");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasMaxLength(255)
+                        .HasColumnType("character varying(255)")
+                        .HasColumnName("name");
+
+                    b.PrimitiveCollection<Guid[]>("ProductIds")
+                        .IsRequired()
+                        .HasColumnType("uuid[]")
+                        .HasColumnName("product_ids");
+
+                    b.Property<DateTimeOffset>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("updated_at");
+
+                    b.HasKey("Id")
+                        .HasName("pk_shipping_method");
+
+                    b.HasIndex("IsActive", "Cost")
+                        .HasDatabaseName("ix_shipping_method_is_active_cost");
+
+                    b.ToTable("shipping_method", null, t =>
+                        {
+                            t.HasCheckConstraint("ck_shipping_method_cost", "cost >= 0");
+                        });
+                });
+
+            modelBuilder.Entity("CompanyHQ.Services.Shipping.Contracts.Models.ShippingMethodFulfillmentOrigin", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .HasColumnType("uuid")
+                        .HasColumnName("id");
+
+                    b.Property<DateTimeOffset>("CreatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("created_at");
+
+                    b.Property<Guid>("FulfillmentOriginId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("fulfillment_origin_id");
+
+                    b.Property<Guid>("ShippingMethodId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("shipping_method_id");
+
+                    b.Property<DateTimeOffset>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("updated_at");
+
+                    b.HasKey("Id")
+                        .HasName("pk_shipping_method_fulfillment_origin");
+
+                    b.HasIndex("FulfillmentOriginId")
+                        .HasDatabaseName("ix_shipping_method_fulfillment_origin_fulfillment_origin_id");
+
+                    b.HasIndex("ShippingMethodId", "FulfillmentOriginId")
+                        .IsUnique()
+                        .HasDatabaseName("ix_shipping_method_fulfillment_origin_shipping_method_id_fulfi");
+
+                    b.ToTable("shipping_method_fulfillment_origin", (string)null);
+                });
+
             modelBuilder.Entity("CompanyHQ.Services.Users.Contracts.Models.AccessRole", b =>
                 {
                     b.Property<Guid>("Id")
@@ -2123,6 +3402,146 @@ namespace Api.Migrations
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired()
                         .HasConstraintName("fk_queued_notification_user_recipient_user_id");
+                });
+
+            modelBuilder.Entity("CompanyHQ.Services.Sales.Contracts.Models.BundleLink", b =>
+                {
+                    b.HasOne("CompanyHQ.Services.Sales.Contracts.Models.Product", null)
+                        .WithMany()
+                        .HasForeignKey("ComponentProductId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired()
+                        .HasConstraintName("fk_sales_bundle_link_product_component_product_id");
+
+                    b.HasOne("CompanyHQ.Services.Sales.Contracts.Models.Product", null)
+                        .WithMany()
+                        .HasForeignKey("ProductId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired()
+                        .HasConstraintName("fk_sales_bundle_link_product_product_id");
+                });
+
+            modelBuilder.Entity("CompanyHQ.Services.Sales.Contracts.Models.CatalogVariant", b =>
+                {
+                    b.HasOne("CompanyHQ.Services.Sales.Contracts.Models.Product", null)
+                        .WithMany()
+                        .HasForeignKey("ProductId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired()
+                        .HasConstraintName("fk_sales_variant_sales_product_product_id");
+                });
+
+            modelBuilder.Entity("CompanyHQ.Services.Sales.Contracts.Models.Category", b =>
+                {
+                    b.HasOne("CompanyHQ.Services.Sales.Contracts.Models.Category", null)
+                        .WithMany()
+                        .HasForeignKey("ParentId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .HasConstraintName("fk_sales_category_sales_category_parent_id");
+                });
+
+            modelBuilder.Entity("CompanyHQ.Services.Sales.Contracts.Models.InvoiceDeliveryRequest", b =>
+                {
+                    b.HasOne("CompanyHQ.Services.Sales.Contracts.Models.SalesOrder", null)
+                        .WithMany()
+                        .HasForeignKey("OrderId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired()
+                        .HasConstraintName("fk_sales_invoice_delivery_request_sales_order_order_id");
+                });
+
+            modelBuilder.Entity("CompanyHQ.Services.Sales.Contracts.Models.OrderUpsellAcceptance", b =>
+                {
+                    b.HasOne("CompanyHQ.Services.Sales.Contracts.Models.SalesOrder", null)
+                        .WithMany()
+                        .HasForeignKey("OrderId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired()
+                        .HasConstraintName("fk_sales_order_upsell_acceptance_sales_order_order_id");
+                });
+
+            modelBuilder.Entity("CompanyHQ.Services.Sales.Contracts.Models.ProductReview", b =>
+                {
+                    b.HasOne("CompanyHQ.Services.Sales.Contracts.Models.Product", null)
+                        .WithMany()
+                        .HasForeignKey("ProductId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired()
+                        .HasConstraintName("fk_sales_product_review_sales_product_product_id");
+                });
+
+            modelBuilder.Entity("CompanyHQ.Services.Sales.Contracts.Models.SalesOrderRevision", b =>
+                {
+                    b.HasOne("CompanyHQ.Services.Sales.Contracts.Models.SalesOrder", null)
+                        .WithMany()
+                        .HasForeignKey("OrderId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired()
+                        .HasConstraintName("fk_sales_order_revision_sales_order_order_id");
+                });
+
+            modelBuilder.Entity("CompanyHQ.Services.Sales.Contracts.Models.UpsellOffer", b =>
+                {
+                    b.HasOne("CompanyHQ.Services.Sales.Contracts.Models.Product", null)
+                        .WithMany()
+                        .HasForeignKey("ParentProductId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired()
+                        .HasConstraintName("fk_sales_upsell_offer_sales_product_parent_product_id");
+
+                    b.HasOne("CompanyHQ.Services.Sales.Contracts.Models.Product", null)
+                        .WithMany()
+                        .HasForeignKey("ProductId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired()
+                        .HasConstraintName("fk_sales_upsell_offer_sales_product_product_id");
+                });
+
+            modelBuilder.Entity("CompanyHQ.Services.Sales.Contracts.Models.VariantSelection", b =>
+                {
+                    b.HasOne("CompanyHQ.Services.Sales.Contracts.Models.CatalogVariant", null)
+                        .WithMany()
+                        .HasForeignKey("VariantId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired()
+                        .HasConstraintName("fk_sales_variant_selection_catalog_variant_variant_id");
+                });
+
+            modelBuilder.Entity("CompanyHQ.Services.Shipping.Contracts.Models.DeliveryZone", b =>
+                {
+                    b.HasOne("CompanyHQ.Services.Shipping.Contracts.Models.ShippingMethod", null)
+                        .WithMany()
+                        .HasForeignKey("ShippingMethodId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired()
+                        .HasConstraintName("fk_delivery_zone_shipping_method_shipping_method_id");
+                });
+
+            modelBuilder.Entity("CompanyHQ.Services.Shipping.Contracts.Models.DeliveryZonePostalCodeRule", b =>
+                {
+                    b.HasOne("CompanyHQ.Services.Shipping.Contracts.Models.DeliveryZone", null)
+                        .WithMany()
+                        .HasForeignKey("DeliveryZoneId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired()
+                        .HasConstraintName("fk_delivery_zone_postal_code_rule_delivery_zone_delivery_zone_");
+                });
+
+            modelBuilder.Entity("CompanyHQ.Services.Shipping.Contracts.Models.ShippingMethodFulfillmentOrigin", b =>
+                {
+                    b.HasOne("CompanyHQ.Services.Shipping.Contracts.Models.FulfillmentOrigin", null)
+                        .WithMany()
+                        .HasForeignKey("FulfillmentOriginId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired()
+                        .HasConstraintName("fk_shipping_method_fulfillment_origin_fulfillment_origin_fulfi");
+
+                    b.HasOne("CompanyHQ.Services.Shipping.Contracts.Models.ShippingMethod", null)
+                        .WithMany()
+                        .HasForeignKey("ShippingMethodId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired()
+                        .HasConstraintName("fk_shipping_method_fulfillment_origin_shipping_method_shipping");
                 });
 
             modelBuilder.Entity("CompanyHQ.Services.Users.Contracts.Models.User", b =>

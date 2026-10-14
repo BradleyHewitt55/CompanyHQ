@@ -1,0 +1,1307 @@
+# Replace IDs with persisted catalog/order/method IDs. Requests are manual examples.
+# Send endpoints invoke the configured delivery provider; use a test adapter for verification.
+@host = http://localhost:4002
+@accessToken = replace-with-manager-bearer-token
+@guestToken = replace-with-receipt-guestAccessToken
+@productId = 11111111-1111-4111-8111-111111111111
+@variantId = 22222222-2222-4222-8222-222222222222
+@lineId = 33333333-3333-4333-8333-333333333333
+@id = 44444444-4444-4444-8444-444444444444
+@reviewId = 55555555-5555-4555-8555-555555555555
+@methodId = 66666666-6666-4666-8666-666666666666
+@originId = 77777777-7777-4777-8777-777777777777
+@sizeOptionId = 88888888-8888-4888-8888-888888888888
+@colorOptionId = 99999999-9999-4999-8999-999999999999
+@requestId = aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa
+@slug = desk
+@quoteValidUntil = 2026-11-14T00:00:00Z
+### GET products
+GET {{host}}/api/sales/products?page=1&pageSize=10
+Accept: application/json
+
+### Invalid price range (400)
+GET {{host}}/api/sales/products?minPrice=150&maxPrice=50
+Accept: application/json
+
+### GET products/{slug}
+GET {{host}}/api/sales/products/{{slug}}
+Accept: application/json
+
+### Missing record (404)
+GET {{host}}/api/sales/products/missing-product
+Accept: application/json
+
+### POST products
+POST {{host}}/api/sales/products
+Authorization: Bearer {{accessToken}}
+Accept: application/json
+Content-Type: application/json
+
+{
+  "name": "Desk",
+  "slug": "desk",
+  "currency": "USD",
+  "variants": [
+    {
+      "id": "{{variantId}}",
+      "sku": "desk-oak",
+      "cost": 100,
+      "profitPercentage": 50,
+      "options": {
+        "Size": "Small",
+        "Color": "Oak"
+      }
+    }
+  ],
+  "options": [
+    {
+      "id": "{{sizeOptionId}}",
+      "name": "Size",
+      "values": [
+        "Small"
+      ]
+    },
+    {
+      "id": "{{colorOptionId}}",
+      "name": "Color",
+      "values": [
+        "Oak"
+      ],
+      "dependencyOptionIds": [
+        "{{sizeOptionId}}"
+      ]
+    }
+  ],
+  "relatedProductIds": []
+}
+
+### Missing authentication (401)
+POST {{host}}/api/sales/products
+Accept: application/json
+Content-Type: application/json
+
+{
+  "name": "Desk",
+  "slug": "desk",
+  "currency": "USD",
+  "variants": [
+    {
+      "id": "{{variantId}}",
+      "sku": "desk-oak",
+      "cost": 100,
+      "profitPercentage": 50,
+      "options": {
+        "Size": "Small",
+        "Color": "Oak"
+      }
+    }
+  ],
+  "options": [
+    {
+      "id": "{{sizeOptionId}}",
+      "name": "Size",
+      "values": [
+        "Small"
+      ]
+    },
+    {
+      "id": "{{colorOptionId}}",
+      "name": "Color",
+      "values": [
+        "Oak"
+      ],
+      "dependencyOptionIds": [
+        "{{sizeOptionId}}"
+      ]
+    }
+  ],
+  "relatedProductIds": []
+}
+
+### PUT products/{id:guid}
+PUT {{host}}/api/sales/products/{{id}}
+Authorization: Bearer {{accessToken}}
+Accept: application/json
+Content-Type: application/json
+
+{
+  "name": "Desk",
+  "slug": "desk",
+  "currency": "USD",
+  "variants": [
+    {
+      "id": "{{variantId}}",
+      "sku": "desk-oak",
+      "cost": 100,
+      "profitPercentage": 50,
+      "options": {
+        "Size": "Small",
+        "Color": "Oak"
+      }
+    }
+  ],
+  "options": [
+    {
+      "id": "{{sizeOptionId}}",
+      "name": "Size",
+      "values": [
+        "Small"
+      ]
+    },
+    {
+      "id": "{{colorOptionId}}",
+      "name": "Color",
+      "values": [
+        "Oak"
+      ],
+      "dependencyOptionIds": [
+        "{{sizeOptionId}}"
+      ]
+    }
+  ],
+  "relatedProductIds": []
+}
+
+### Missing authentication (401)
+PUT {{host}}/api/sales/products/{{id}}
+Accept: application/json
+Content-Type: application/json
+
+{
+  "name": "Desk",
+  "slug": "desk",
+  "currency": "USD",
+  "variants": [
+    {
+      "id": "{{variantId}}",
+      "sku": "desk-oak",
+      "cost": 100,
+      "profitPercentage": 50,
+      "options": {
+        "Size": "Small",
+        "Color": "Oak"
+      }
+    }
+  ],
+  "options": [
+    {
+      "id": "{{sizeOptionId}}",
+      "name": "Size",
+      "values": [
+        "Small"
+      ]
+    },
+    {
+      "id": "{{colorOptionId}}",
+      "name": "Color",
+      "values": [
+        "Oak"
+      ],
+      "dependencyOptionIds": [
+        "{{sizeOptionId}}"
+      ]
+    }
+  ],
+  "relatedProductIds": []
+}
+
+### DELETE products/{id:guid}
+DELETE {{host}}/api/sales/products/{{id}}
+Authorization: Bearer {{accessToken}}
+Accept: application/json
+
+### Missing authentication (401)
+DELETE {{host}}/api/sales/products/{{id}}
+Accept: application/json
+
+### GET categories
+GET {{host}}/api/sales/categories?page=1&pageSize=10
+Accept: application/json
+
+### Invalid search binding (400)
+GET {{host}}/api/sales/categories?page=1&pageSize=10&field=xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
+Accept: application/json
+
+### GET categories/{id:guid}
+GET {{host}}/api/sales/categories/{{id}}
+Accept: application/json
+
+### Missing record (404)
+GET {{host}}/api/sales/categories/00000000-0000-0000-0000-000000000000
+Accept: application/json
+
+### POST categories
+POST {{host}}/api/sales/categories
+Authorization: Bearer {{accessToken}}
+Accept: application/json
+Content-Type: application/json
+
+{
+  "name": "Desks",
+  "slug": "desks"
+}
+
+### Missing authentication (401)
+POST {{host}}/api/sales/categories
+Accept: application/json
+Content-Type: application/json
+
+{
+  "name": "Desks",
+  "slug": "desks"
+}
+
+### PUT categories/{id:guid}
+PUT {{host}}/api/sales/categories/{{id}}
+Authorization: Bearer {{accessToken}}
+Accept: application/json
+Content-Type: application/json
+
+{
+  "name": "Desks",
+  "slug": "desks"
+}
+
+### Missing authentication (401)
+PUT {{host}}/api/sales/categories/{{id}}
+Accept: application/json
+Content-Type: application/json
+
+{
+  "name": "Desks",
+  "slug": "desks"
+}
+
+### DELETE categories/{id:guid}
+DELETE {{host}}/api/sales/categories/{{id}}
+Authorization: Bearer {{accessToken}}
+Accept: application/json
+
+### Missing authentication (401)
+DELETE {{host}}/api/sales/categories/{{id}}
+Accept: application/json
+
+### GET suppliers
+GET {{host}}/api/sales/suppliers?page=1&pageSize=10
+Authorization: Bearer {{accessToken}}
+Accept: application/json
+
+### Missing authentication (401)
+GET {{host}}/api/sales/suppliers?page=1&pageSize=10
+Accept: application/json
+
+### GET suppliers/{id:guid}
+GET {{host}}/api/sales/suppliers/{{id}}
+Authorization: Bearer {{accessToken}}
+Accept: application/json
+
+### Missing authentication (401)
+GET {{host}}/api/sales/suppliers/{{id}}
+Accept: application/json
+
+### POST suppliers
+POST {{host}}/api/sales/suppliers
+Authorization: Bearer {{accessToken}}
+Accept: application/json
+Content-Type: application/json
+
+{
+  "name": "Supplier",
+  "origin": {
+    "latitude": 0,
+    "longitude": 0
+  }
+}
+
+### Missing authentication (401)
+POST {{host}}/api/sales/suppliers
+Accept: application/json
+Content-Type: application/json
+
+{
+  "name": "Supplier",
+  "origin": {
+    "latitude": 0,
+    "longitude": 0
+  }
+}
+
+### PUT suppliers/{id:guid}
+PUT {{host}}/api/sales/suppliers/{{id}}
+Authorization: Bearer {{accessToken}}
+Accept: application/json
+Content-Type: application/json
+
+{
+  "name": "Supplier",
+  "origin": {
+    "latitude": 0,
+    "longitude": 0
+  }
+}
+
+### Missing authentication (401)
+PUT {{host}}/api/sales/suppliers/{{id}}
+Accept: application/json
+Content-Type: application/json
+
+{
+  "name": "Supplier",
+  "origin": {
+    "latitude": 0,
+    "longitude": 0
+  }
+}
+
+### DELETE suppliers/{id:guid}
+DELETE {{host}}/api/sales/suppliers/{{id}}
+Authorization: Bearer {{accessToken}}
+Accept: application/json
+
+### Missing authentication (401)
+DELETE {{host}}/api/sales/suppliers/{{id}}
+Accept: application/json
+
+### GET coupons
+GET {{host}}/api/sales/coupons?page=1&pageSize=10
+Authorization: Bearer {{accessToken}}
+Accept: application/json
+
+### Missing authentication (401)
+GET {{host}}/api/sales/coupons?page=1&pageSize=10
+Accept: application/json
+
+### GET coupons/{id:guid}
+GET {{host}}/api/sales/coupons/{{id}}
+Authorization: Bearer {{accessToken}}
+Accept: application/json
+
+### Missing authentication (401)
+GET {{host}}/api/sales/coupons/{{id}}
+Accept: application/json
+
+### POST coupons
+POST {{host}}/api/sales/coupons
+Authorization: Bearer {{accessToken}}
+Accept: application/json
+Content-Type: application/json
+
+{
+  "code": "WELCOME",
+  "discountType": "Percentage",
+  "discountValue": 10,
+  "allowsCombination": true
+}
+
+### Missing authentication (401)
+POST {{host}}/api/sales/coupons
+Accept: application/json
+Content-Type: application/json
+
+{
+  "code": "WELCOME",
+  "discountType": "Percentage",
+  "discountValue": 10,
+  "allowsCombination": true
+}
+
+### PUT coupons/{id:guid}
+PUT {{host}}/api/sales/coupons/{{id}}
+Authorization: Bearer {{accessToken}}
+Accept: application/json
+Content-Type: application/json
+
+{
+  "code": "WELCOME",
+  "discountType": "Percentage",
+  "discountValue": 10,
+  "allowsCombination": true
+}
+
+### Missing authentication (401)
+PUT {{host}}/api/sales/coupons/{{id}}
+Accept: application/json
+Content-Type: application/json
+
+{
+  "code": "WELCOME",
+  "discountType": "Percentage",
+  "discountValue": 10,
+  "allowsCombination": true
+}
+
+### DELETE coupons/{id:guid}
+DELETE {{host}}/api/sales/coupons/{{id}}
+Authorization: Bearer {{accessToken}}
+Accept: application/json
+
+### Missing authentication (401)
+DELETE {{host}}/api/sales/coupons/{{id}}
+Accept: application/json
+
+### GET upsell-offers
+GET {{host}}/api/sales/upsell-offers?page=1&pageSize=10
+Authorization: Bearer {{accessToken}}
+Accept: application/json
+
+### Missing authentication (401)
+GET {{host}}/api/sales/upsell-offers?page=1&pageSize=10
+Accept: application/json
+
+### GET upsell-offers/{id:guid}
+GET {{host}}/api/sales/upsell-offers/{{id}}
+Authorization: Bearer {{accessToken}}
+Accept: application/json
+
+### Missing authentication (401)
+GET {{host}}/api/sales/upsell-offers/{{id}}
+Accept: application/json
+
+### POST upsell-offers
+POST {{host}}/api/sales/upsell-offers
+Authorization: Bearer {{accessToken}}
+Accept: application/json
+Content-Type: application/json
+
+{
+  "parentProductId": "{{productId}}",
+  "productId": "{{id}}",
+  "quantity": 1,
+  "value": 10,
+  "valueType": "Percentage"
+}
+
+### Missing authentication (401)
+POST {{host}}/api/sales/upsell-offers
+Accept: application/json
+Content-Type: application/json
+
+{
+  "parentProductId": "{{productId}}",
+  "productId": "{{id}}",
+  "quantity": 1,
+  "value": 10,
+  "valueType": "Percentage"
+}
+
+### PUT upsell-offers/{id:guid}
+PUT {{host}}/api/sales/upsell-offers/{{id}}
+Authorization: Bearer {{accessToken}}
+Accept: application/json
+Content-Type: application/json
+
+{
+  "parentProductId": "{{productId}}",
+  "productId": "{{id}}",
+  "quantity": 1,
+  "value": 10,
+  "valueType": "Percentage"
+}
+
+### Missing authentication (401)
+PUT {{host}}/api/sales/upsell-offers/{{id}}
+Accept: application/json
+Content-Type: application/json
+
+{
+  "parentProductId": "{{productId}}",
+  "productId": "{{id}}",
+  "quantity": 1,
+  "value": 10,
+  "valueType": "Percentage"
+}
+
+### DELETE upsell-offers/{id:guid}
+DELETE {{host}}/api/sales/upsell-offers/{{id}}
+Authorization: Bearer {{accessToken}}
+Accept: application/json
+
+### Missing authentication (401)
+DELETE {{host}}/api/sales/upsell-offers/{{id}}
+Accept: application/json
+
+### GET settings
+GET {{host}}/api/sales/settings
+Authorization: Bearer {{accessToken}}
+Accept: application/json
+
+### Missing authentication (401)
+GET {{host}}/api/sales/settings
+Accept: application/json
+
+### PUT settings
+PUT {{host}}/api/sales/settings
+Authorization: Bearer {{accessToken}}
+Accept: application/json
+Content-Type: application/json
+
+{
+  "upsellExtraDiscountPercent": 5
+}
+
+### Missing authentication (401)
+PUT {{host}}/api/sales/settings
+Accept: application/json
+Content-Type: application/json
+
+{
+  "upsellExtraDiscountPercent": 5
+}
+
+### GET payment-methods
+GET {{host}}/api/sales/payment-methods?page=1&pageSize=10
+Accept: application/json
+
+### Invalid search binding (400)
+GET {{host}}/api/sales/payment-methods?page=1&pageSize=10&field=xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
+Accept: application/json
+
+### GET payment-methods/{id:guid}
+GET {{host}}/api/sales/payment-methods/{{id}}
+Accept: application/json
+
+### Missing record (404)
+GET {{host}}/api/sales/payment-methods/00000000-0000-0000-0000-000000000000
+Accept: application/json
+
+### POST payment-methods
+POST {{host}}/api/sales/payment-methods
+Authorization: Bearer {{accessToken}}
+Accept: application/json
+Content-Type: application/json
+
+{
+  "name": "Bank transfer",
+  "maxOrderTotal": 5000,
+  "maxDistanceKm": 25,
+  "checkoutNote": "Await payment confirmation"
+}
+
+### Missing authentication (401)
+POST {{host}}/api/sales/payment-methods
+Accept: application/json
+Content-Type: application/json
+
+{
+  "name": "Bank transfer",
+  "maxOrderTotal": 5000,
+  "maxDistanceKm": 25,
+  "checkoutNote": "Await payment confirmation"
+}
+
+### PUT payment-methods/{id:guid}
+PUT {{host}}/api/sales/payment-methods/{{id}}
+Authorization: Bearer {{accessToken}}
+Accept: application/json
+Content-Type: application/json
+
+{
+  "name": "Bank transfer",
+  "maxOrderTotal": 5000,
+  "maxDistanceKm": 25,
+  "checkoutNote": "Await payment confirmation"
+}
+
+### Missing authentication (401)
+PUT {{host}}/api/sales/payment-methods/{{id}}
+Accept: application/json
+Content-Type: application/json
+
+{
+  "name": "Bank transfer",
+  "maxOrderTotal": 5000,
+  "maxDistanceKm": 25,
+  "checkoutNote": "Await payment confirmation"
+}
+
+### DELETE payment-methods/{id:guid}
+DELETE {{host}}/api/sales/payment-methods/{{id}}
+Authorization: Bearer {{accessToken}}
+Accept: application/json
+
+### Missing authentication (401)
+DELETE {{host}}/api/sales/payment-methods/{{id}}
+Accept: application/json
+
+### POST cart/normalize
+POST {{host}}/api/sales/cart/normalize
+Accept: application/json
+Content-Type: application/json
+
+{
+  "lines": [
+    {
+      "id": "{{lineId}}",
+      "productId": "{{productId}}",
+      "variantId": "{{variantId}}",
+      "quantity": 1
+    }
+  ]
+}
+
+### Invalid body (400)
+POST {{host}}/api/sales/cart/normalize
+Accept: application/json
+Content-Type: application/json
+
+{}
+
+### POST price
+POST {{host}}/api/sales/price
+Accept: application/json
+Content-Type: application/json
+
+{
+  "lines": [
+    {
+      "id": "{{lineId}}",
+      "productId": "{{productId}}",
+      "variantId": "{{variantId}}",
+      "quantity": 1
+    }
+  ]
+}
+
+### Invalid body (400)
+POST {{host}}/api/sales/price
+Accept: application/json
+Content-Type: application/json
+
+{}
+
+### POST orders
+POST {{host}}/api/sales/orders
+Accept: application/json
+Content-Type: application/json
+
+{
+  "sale": {
+    "lines": [
+      {
+        "id": "{{lineId}}",
+        "productId": "{{productId}}",
+        "variantId": "{{variantId}}",
+        "quantity": 1
+      }
+    ]
+  },
+  "customerFirstName": "Guest",
+  "customerLastName": "Buyer",
+  "customerEmail": "buyer@example.test"
+}
+
+### Invalid body (400)
+POST {{host}}/api/sales/orders
+Accept: application/json
+Content-Type: application/json
+
+{}
+
+### GET orders
+GET {{host}}/api/sales/orders?page=1&pageSize=10
+Authorization: Bearer {{accessToken}}
+Accept: application/json
+
+### Missing authentication (401)
+GET {{host}}/api/sales/orders?page=1&pageSize=10
+Accept: application/json
+
+### GET orders/{id:guid}
+GET {{host}}/api/sales/orders/{{id}}
+X-Order-Access-Token: {{guestToken}}
+Accept: application/json
+
+### Wrong guest credential (404)
+GET {{host}}/api/sales/orders/{{id}}
+X-Order-Access-Token: invalid
+Accept: application/json
+
+### GET orders/{id:guid}/upsell-context
+GET {{host}}/api/sales/orders/{{id}}/upsell-context
+X-Order-Access-Token: {{guestToken}}
+Accept: application/json
+
+### Wrong guest credential (404)
+GET {{host}}/api/sales/orders/{{id}}/upsell-context
+X-Order-Access-Token: invalid
+Accept: application/json
+
+### POST orders/{id:guid}/upsells/unpaid
+POST {{host}}/api/sales/orders/{{id}}/upsells/unpaid
+X-Order-Access-Token: {{guestToken}}
+Accept: application/json
+Content-Type: application/json
+
+{
+  "offerId": "{{id}}",
+  "parentLineId": "{{lineId}}",
+  "requestId": "{{requestId}}"
+}
+
+### Invalid body (400)
+POST {{host}}/api/sales/orders/{{id}}/upsells/unpaid
+X-Order-Access-Token: {{guestToken}}
+Accept: application/json
+Content-Type: application/json
+
+{}
+
+### POST orders/{id:guid}/finalize
+POST {{host}}/api/sales/orders/{{id}}/finalize
+X-Order-Access-Token: {{guestToken}}
+Accept: application/json
+
+### Wrong guest credential (404)
+POST {{host}}/api/sales/orders/{{id}}/finalize
+X-Order-Access-Token: invalid
+Accept: application/json
+
+### PUT orders/{id:guid}/status
+PUT {{host}}/api/sales/orders/{{id}}/status
+Authorization: Bearer {{accessToken}}
+Accept: application/json
+Content-Type: application/json
+
+{
+  "status": "Processing"
+}
+
+### Missing authentication (401)
+PUT {{host}}/api/sales/orders/{{id}}/status
+Accept: application/json
+Content-Type: application/json
+
+{
+  "status": "Processing"
+}
+
+### GET quotes
+GET {{host}}/api/sales/quotes?page=1&pageSize=10
+Authorization: Bearer {{accessToken}}
+Accept: application/json
+
+### Missing authentication (401)
+GET {{host}}/api/sales/quotes?page=1&pageSize=10
+Accept: application/json
+
+### GET quotes/{id:guid}
+GET {{host}}/api/sales/quotes/{{id}}
+Authorization: Bearer {{accessToken}}
+Accept: application/json
+
+### Missing authentication (401)
+GET {{host}}/api/sales/quotes/{{id}}
+Accept: application/json
+
+### POST quotes
+POST {{host}}/api/sales/quotes
+Authorization: Bearer {{accessToken}}
+Accept: application/json
+Content-Type: application/json
+
+{
+  "order": {
+    "sale": {
+      "lines": [
+        {
+          "id": "{{lineId}}",
+          "productId": "{{productId}}",
+          "variantId": "{{variantId}}",
+          "quantity": 1
+        }
+      ]
+    },
+    "customerFirstName": "Guest",
+    "customerLastName": "Buyer",
+    "customerEmail": "buyer@example.test"
+  },
+  "validUntil": "{{quoteValidUntil}}"
+}
+
+### Missing authentication (401)
+POST {{host}}/api/sales/quotes
+Accept: application/json
+Content-Type: application/json
+
+{
+  "order": {
+    "sale": {
+      "lines": [
+        {
+          "id": "{{lineId}}",
+          "productId": "{{productId}}",
+          "variantId": "{{variantId}}",
+          "quantity": 1
+        }
+      ]
+    },
+    "customerFirstName": "Guest",
+    "customerLastName": "Buyer",
+    "customerEmail": "buyer@example.test"
+  },
+  "validUntil": "{{quoteValidUntil}}"
+}
+
+### PUT quotes/{id:guid}
+PUT {{host}}/api/sales/quotes/{{id}}
+Authorization: Bearer {{accessToken}}
+Accept: application/json
+Content-Type: application/json
+
+{
+  "order": {
+    "sale": {
+      "lines": [
+        {
+          "id": "{{lineId}}",
+          "productId": "{{productId}}",
+          "variantId": "{{variantId}}",
+          "quantity": 1
+        }
+      ]
+    },
+    "customerFirstName": "Guest",
+    "customerLastName": "Buyer",
+    "customerEmail": "buyer@example.test"
+  },
+  "validUntil": "{{quoteValidUntil}}"
+}
+
+### Missing authentication (401)
+PUT {{host}}/api/sales/quotes/{{id}}
+Accept: application/json
+Content-Type: application/json
+
+{
+  "order": {
+    "sale": {
+      "lines": [
+        {
+          "id": "{{lineId}}",
+          "productId": "{{productId}}",
+          "variantId": "{{variantId}}",
+          "quantity": 1
+        }
+      ]
+    },
+    "customerFirstName": "Guest",
+    "customerLastName": "Buyer",
+    "customerEmail": "buyer@example.test"
+  },
+  "validUntil": "{{quoteValidUntil}}"
+}
+
+### DELETE quotes/{id:guid}
+DELETE {{host}}/api/sales/quotes/{{id}}
+Authorization: Bearer {{accessToken}}
+Accept: application/json
+
+### Missing authentication (401)
+DELETE {{host}}/api/sales/quotes/{{id}}
+Accept: application/json
+
+### PUT quotes/{id:guid}/status
+PUT {{host}}/api/sales/quotes/{{id}}/status
+Authorization: Bearer {{accessToken}}
+Accept: application/json
+Content-Type: application/json
+
+{
+  "status": "Sent"
+}
+
+### Missing authentication (401)
+PUT {{host}}/api/sales/quotes/{{id}}/status
+Accept: application/json
+Content-Type: application/json
+
+{
+  "status": "Sent"
+}
+
+### POST quotes/{id:guid}/convert
+POST {{host}}/api/sales/quotes/{{id}}/convert
+Authorization: Bearer {{accessToken}}
+Accept: application/json
+
+### Missing authentication (401)
+POST {{host}}/api/sales/quotes/{{id}}/convert
+Accept: application/json
+
+### POST staff/price
+POST {{host}}/api/sales/staff/price
+Authorization: Bearer {{accessToken}}
+Accept: application/json
+Content-Type: application/json
+
+{
+  "order": {
+    "sale": {
+      "lines": [
+        {
+          "id": "{{lineId}}",
+          "productId": "{{productId}}",
+          "variantId": "{{variantId}}",
+          "quantity": 1
+        }
+      ]
+    },
+    "customerFirstName": "Guest",
+    "customerLastName": "Buyer",
+    "customerEmail": "buyer@example.test"
+  },
+  "pricing": {
+    "lineDiscounts": [
+      {
+        "lineId": "{{lineId}}",
+        "type": "Fixed",
+        "value": 10
+      }
+    ],
+    "manualDiscountType": "Percentage",
+    "manualDiscountValue": 5,
+    "taxAmount": 3
+  },
+  "invoiceNumber": 1001
+}
+
+### Missing authentication (401)
+POST {{host}}/api/sales/staff/price
+Accept: application/json
+Content-Type: application/json
+
+{
+  "order": {
+    "sale": {
+      "lines": [
+        {
+          "id": "{{lineId}}",
+          "productId": "{{productId}}",
+          "variantId": "{{variantId}}",
+          "quantity": 1
+        }
+      ]
+    },
+    "customerFirstName": "Guest",
+    "customerLastName": "Buyer",
+    "customerEmail": "buyer@example.test"
+  },
+  "pricing": {
+    "lineDiscounts": [
+      {
+        "lineId": "{{lineId}}",
+        "type": "Fixed",
+        "value": 10
+      }
+    ],
+    "manualDiscountType": "Percentage",
+    "manualDiscountValue": 5,
+    "taxAmount": 3
+  },
+  "invoiceNumber": 1001
+}
+
+### POST staff/orders
+POST {{host}}/api/sales/staff/orders
+Authorization: Bearer {{accessToken}}
+Accept: application/json
+Content-Type: application/json
+
+{
+  "order": {
+    "sale": {
+      "lines": [
+        {
+          "id": "{{lineId}}",
+          "productId": "{{productId}}",
+          "variantId": "{{variantId}}",
+          "quantity": 1
+        }
+      ]
+    },
+    "customerFirstName": "Guest",
+    "customerLastName": "Buyer",
+    "customerEmail": "buyer@example.test"
+  },
+  "pricing": {
+    "lineDiscounts": [
+      {
+        "lineId": "{{lineId}}",
+        "type": "Fixed",
+        "value": 10
+      }
+    ],
+    "manualDiscountType": "Percentage",
+    "manualDiscountValue": 5,
+    "taxAmount": 3
+  },
+  "invoiceNumber": 1001
+}
+
+### Missing authentication (401)
+POST {{host}}/api/sales/staff/orders
+Accept: application/json
+Content-Type: application/json
+
+{
+  "order": {
+    "sale": {
+      "lines": [
+        {
+          "id": "{{lineId}}",
+          "productId": "{{productId}}",
+          "variantId": "{{variantId}}",
+          "quantity": 1
+        }
+      ]
+    },
+    "customerFirstName": "Guest",
+    "customerLastName": "Buyer",
+    "customerEmail": "buyer@example.test"
+  },
+  "pricing": {
+    "lineDiscounts": [
+      {
+        "lineId": "{{lineId}}",
+        "type": "Fixed",
+        "value": 10
+      }
+    ],
+    "manualDiscountType": "Percentage",
+    "manualDiscountValue": 5,
+    "taxAmount": 3
+  },
+  "invoiceNumber": 1001
+}
+
+### PUT staff/orders/{id:guid}
+PUT {{host}}/api/sales/staff/orders/{{id}}
+Authorization: Bearer {{accessToken}}
+Accept: application/json
+Content-Type: application/json
+
+{
+  "order": {
+    "sale": {
+      "lines": [
+        {
+          "id": "{{lineId}}",
+          "productId": "{{productId}}",
+          "variantId": "{{variantId}}",
+          "quantity": 1
+        }
+      ]
+    },
+    "customerFirstName": "Guest",
+    "customerLastName": "Buyer",
+    "customerEmail": "buyer@example.test"
+  },
+  "pricing": {
+    "lineDiscounts": [
+      {
+        "lineId": "{{lineId}}",
+        "type": "Fixed",
+        "value": 10
+      }
+    ],
+    "manualDiscountType": "Percentage",
+    "manualDiscountValue": 5,
+    "taxAmount": 3
+  },
+  "invoiceNumber": 1001
+}
+
+### Missing authentication (401)
+PUT {{host}}/api/sales/staff/orders/{{id}}
+Accept: application/json
+Content-Type: application/json
+
+{
+  "order": {
+    "sale": {
+      "lines": [
+        {
+          "id": "{{lineId}}",
+          "productId": "{{productId}}",
+          "variantId": "{{variantId}}",
+          "quantity": 1
+        }
+      ]
+    },
+    "customerFirstName": "Guest",
+    "customerLastName": "Buyer",
+    "customerEmail": "buyer@example.test"
+  },
+  "pricing": {
+    "lineDiscounts": [
+      {
+        "lineId": "{{lineId}}",
+        "type": "Fixed",
+        "value": 10
+      }
+    ],
+    "manualDiscountType": "Percentage",
+    "manualDiscountValue": 5,
+    "taxAmount": 3
+  },
+  "invoiceNumber": 1001
+}
+
+### GET staff/invoice-number-availability
+GET {{host}}/api/sales/staff/invoice-number-availability?number=1001
+Authorization: Bearer {{accessToken}}
+Accept: application/json
+
+### Missing authentication (401)
+GET {{host}}/api/sales/staff/invoice-number-availability?number=1001
+Accept: application/json
+
+### POST orders/{id:guid}/invoice/send
+# A request id permanently binds this invoice's recipient, reference and payload. Reuse it on
+# retry, including after staff repricing; use a fresh id to snapshot a newly revised invoice.
+# 200 {accepted:false,queued:true} means awaiting the email provider. Repeat this request to
+# refresh the outcome; accepted:true means provider acceptance, never final inbox delivery.
+POST {{host}}/api/sales/orders/{{id}}/invoice/send
+Authorization: Bearer {{accessToken}}
+Accept: application/json
+Content-Type: application/json
+
+{
+  "requestId": "{{requestId}}"
+}
+
+### Missing authentication (401)
+POST {{host}}/api/sales/orders/{{id}}/invoice/send
+Accept: application/json
+Content-Type: application/json
+
+{
+  "requestId": "{{requestId}}"
+}
+
+### POST quotes/{id:guid}/send
+# Queue success leaves the quote Issuing. Repeat the send to observe provider acceptance;
+# only then does automatic issuing mark it Sent. The frozen document/key survive retries.
+POST {{host}}/api/sales/quotes/{{id}}/send
+Authorization: Bearer {{accessToken}}
+Accept: application/json
+Content-Type: application/json
+
+{
+  "requestId": "{{requestId}}"
+}
+
+### Missing authentication (401)
+POST {{host}}/api/sales/quotes/{{id}}/send
+Accept: application/json
+Content-Type: application/json
+
+{
+  "requestId": "{{requestId}}"
+}
+
+### GET products/{id:guid}/reviews
+GET {{host}}/api/sales/products/{{id}}/reviews
+Accept: application/json
+
+### Missing record (404)
+GET {{host}}/api/sales/products/00000000-0000-0000-0000-000000000000/reviews
+Accept: application/json
+
+### POST products/{id:guid}/reviews
+POST {{host}}/api/sales/products/{{id}}/reviews
+Authorization: Bearer {{accessToken}}
+Accept: application/json
+Content-Type: application/json
+
+{
+  "title": "Good desk",
+  "comment": "Verified customer review",
+  "rating": 5,
+  "authorName": "Buyer"
+}
+
+### Missing authentication (401)
+POST {{host}}/api/sales/products/{{id}}/reviews
+Accept: application/json
+Content-Type: application/json
+
+{
+  "title": "Good desk",
+  "comment": "Verified customer review",
+  "rating": 5,
+  "authorName": "Buyer"
+}
+
+### PUT products/{id:guid}/reviews/{reviewId:guid}
+PUT {{host}}/api/sales/products/{{id}}/reviews/{{reviewId}}
+Authorization: Bearer {{accessToken}}
+Accept: application/json
+Content-Type: application/json
+
+{
+  "title": "Good desk",
+  "comment": "Verified customer review",
+  "rating": 5,
+  "authorName": "Buyer"
+}
+
+### Missing authentication (401)
+PUT {{host}}/api/sales/products/{{id}}/reviews/{{reviewId}}
+Accept: application/json
+Content-Type: application/json
+
+{
+  "title": "Good desk",
+  "comment": "Verified customer review",
+  "rating": 5,
+  "authorName": "Buyer"
+}
+
+### DELETE products/{id:guid}/reviews/{reviewId:guid}
+DELETE {{host}}/api/sales/products/{{id}}/reviews/{{reviewId}}
+Authorization: Bearer {{accessToken}}
+Accept: application/json
+
+### Missing authentication (401)
+DELETE {{host}}/api/sales/products/{{id}}/reviews/{{reviewId}}
+Accept: application/json
+
+### GET products/{id:guid}/profit-scenarios
+GET {{host}}/api/sales/products/{{id}}/profit-scenarios
+Authorization: Bearer {{accessToken}}
+Accept: application/json
+
+### Missing authentication (401)
+GET {{host}}/api/sales/products/{{id}}/profit-scenarios
+Accept: application/json
+
+### Frozen quote cannot be edited (409; first issue it with a test delivery adapter)
+PUT {{host}}/api/sales/quotes/{{id}}
+Authorization: Bearer {{accessToken}}
+Content-Type: application/json
+
+{"order":{"sale":{"lines":[{"id":"{{lineId}}","productId":"{{productId}}","variantId":"{{variantId}}","quantity":2}]},"customerFirstName":"Guest","customerLastName":"Buyer","customerEmail":"buyer@example.test"},"validUntil":"{{quoteValidUntil}}"}
+
+### Delivery retry uses the reserved quote provider key, even with a new request id
+POST {{host}}/api/sales/quotes/{{id}}/send
+Authorization: Bearer {{accessToken}}
+Content-Type: application/json
+
+{"requestId":"bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb"}
+
+### Invalid coupon code (400)
+POST {{host}}/api/sales/price
+Content-Type: application/json
+
+{"lines":[{"id":"{{lineId}}","productId":"{{productId}}","variantId":"{{variantId}}"}],"couponCodes":["DOES-NOT-EXIST"]}
+
+### Price projection warming (503 with Retry-After; only while eligible candidates are stale)
+GET {{host}}/api/sales/products?sort=price-asc
+Accept: application/json
+
+### Self-service rejects supplied tax (400)
+POST {{host}}/api/sales/price
+Content-Type: application/json
+
+{"lines":[{"id":"{{lineId}}","productId":"{{productId}}","variantId":"{{variantId}}"}],"taxAmount":10}

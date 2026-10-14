@@ -37,6 +37,8 @@
   </ItemGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\..\Services\Sale\Sale.csproj" />
+    <ProjectReference Include="..\..\Services\Shipping\Shipping.csproj" />
     <ProjectReference Include="..\..\Services\Appointment\Appointment.csproj" />
     <ProjectReference Include="..\..\Services\Auth\Auth.csproj" />
     <ProjectReference Include="..\..\Services\Cache\Cache.csproj" />

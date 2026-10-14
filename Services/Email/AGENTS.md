@@ -19,6 +19,10 @@ and it never exposes arbitrary public sending.
   returns the existing row, which also absorbs the Notification worker's at-least-once repeats. Keys
   are therefore permanent, not Resend's 24 hours: a caller that genuinely needs a second email for
   the same event needs a new key.
+- The narrow delivery query reads the durable outbox outcome by its permanent key without bodies,
+  recipients or subjects. Pending includes queued and retrying work; Sent means provider acceptance,
+  never final inbox delivery. Bridges must query this outcome rather than interpret enqueue success
+  as acceptance. A repeat enqueue never resets a failed or abandoned event.
 - `IEmailService` writes through its own DI scope. Saving on the caller's context would flush whatever
   else that context is tracking, mid-transaction.
 - The worker claims `BatchSize` (10) due rows with `FOR UPDATE SKIP LOCKED`, priority first, under a

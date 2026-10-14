@@ -1,0 +1,39 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <AssemblyName>CompanyHQ.Services.Sales</AssemblyName>
+    <RootNamespace>CompanyHQ.Services.Sales</RootNamespace>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <FrameworkReference Include="Microsoft.AspNetCore.App" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <!-- Auth's identity helpers (User.GetUserId(), claim names) only; Auth itself is never referenced. -->
+    <ProjectReference Include="..\Auth\Contracts\Auth.Contracts.csproj" />
+    <!-- Persisted through the provider-neutral ports; the database provider is never referenced. -->
+    <ProjectReference Include="..\Persistence\Persistence.csproj" />
+    <!-- Shared wire contracts only: paging, search, response audiences and permission names. -->
+    <ProjectReference Include="..\Postgres\Contracts\Postgres.Contracts.csproj" />
+    <ProjectReference Include="..\User\User.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <!-- Contracts/ is its own client-shippable assembly. Only the persisted entities and options
+         under it compile into this one. -->
+    <Compile Remove="Contracts/**" />
+    <Compile Include="Contracts/Models/**/*.cs" />
+    <ProjectReference Include="Contracts/Sale.Contracts.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <!-- Mapping only: the entity configurations under Data/ describe this service's tables, indexes
+         and column types. Nothing outside Data/ may use EF Core, and no database driver is referenced. -->
+    <PackageReference Include="Microsoft.EntityFrameworkCore.Relational" Version="10.0.10" />
+  </ItemGroup>
+
+</Project>

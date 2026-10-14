@@ -28,6 +28,8 @@ using CompanyHQ.Services.Postgres.Extensions;
 using CompanyHQ.Services.Rss.Extensions;
 using CompanyHQ.Services.Users.Extensions;
 using CompanyHQ.Services.Widget.Extensions;
+using CompanyHQ.Services.Sales.Extensions;
+using CompanyHQ.Services.Shipping.Extensions;
 using Resend;
 using StackExchange.Redis;
 
@@ -107,6 +109,8 @@ builder.Services.AddSingleton<IAmazonS3>(new AmazonS3Client(
     }));
 builder.Services.AddMedia(builder.Configuration);
 
+builder.Services.AddSales(builder.Configuration);
+builder.Services.AddShipping();
 builder.Services.AddAppointments();
 builder.Services.AddCompany();
 builder.Services.AddContact();
