@@ -1,7 +1,7 @@
-using CompanyHQ.Services.Notifications.Contracts.Enums;
-using CompanyHQ.Services.Persistence.Contracts.Models;
+using CompanyHQ.Notifications.Contracts.Enums;
+using CompanyHQ.Persistence.Contracts.Models;
 
-namespace CompanyHQ.Services.Notifications.Contracts.Models;
+namespace CompanyHQ.Notifications.Contracts.Models;
 
 /// <summary>A durable delivery attempt owned by the notification worker.</summary>
 public sealed class QueuedNotification : BaseModel

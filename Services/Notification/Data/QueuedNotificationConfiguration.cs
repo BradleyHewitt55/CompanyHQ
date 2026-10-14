@@ -1,9 +1,9 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
-using CompanyHQ.Services.Notifications.Contracts.Models;
-using CompanyHQ.Services.Users.Contracts.Models;
+using CompanyHQ.Notifications.Contracts.Models;
+using CompanyHQ.Users.Contracts.Models;
 
-namespace CompanyHQ.Services.Notifications.Data;
+namespace CompanyHQ.Notifications.Data;
 
 internal sealed class QueuedNotificationConfiguration : IEntityTypeConfiguration<QueuedNotification>
 {

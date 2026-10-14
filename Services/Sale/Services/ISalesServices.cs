@@ -1,9 +1,9 @@
-using CompanyHQ.Services.Postgres.Contracts.Dtos;
-using CompanyHQ.Services.Postgres.Contracts.Enums;
-using CompanyHQ.Services.Postgres.Contracts.Forms;
-using CompanyHQ.Services.Sales.Contracts.Dtos;
-using CompanyHQ.Services.Sales.Contracts.Forms;
-namespace CompanyHQ.Services.Sales.Services;
+using CompanyHQ.Postgres.Contracts.Dtos;
+using CompanyHQ.Postgres.Contracts.Enums;
+using CompanyHQ.Postgres.Contracts.Forms;
+using CompanyHQ.Sales.Contracts.Dtos;
+using CompanyHQ.Sales.Contracts.Forms;
+namespace CompanyHQ.Sales.Services;
 public interface ISalesCatalogService
 {
     Task<PagedResult<ClientProductDto>> ListAsync(PageRequest paging,SearchRequest search,ProductFilterRequest filter,ResponseAudience audience=ResponseAudience.Client,Guid? actor=null,CancellationToken ct=default);
@@ -33,7 +33,7 @@ public interface ISalesOrderService
 public interface ISalesBasketPricing
 {
     CartDto NormalizeCart(IReadOnlyList<SalesLineRequest> lines);
-    Task<CompanyHQ.Services.Sales.Contracts.Ports.SalesShippingDiscount> ShippingDiscountAsync(CompanyHQ.Services.Sales.Contracts.Ports.SalesShippingDiscountRequest request,CancellationToken ct=default);
+    Task<CompanyHQ.Sales.Contracts.Ports.SalesShippingDiscount> ShippingDiscountAsync(CompanyHQ.Sales.Contracts.Ports.SalesShippingDiscountRequest request,CancellationToken ct=default);
 }
 
 public interface ISalesPromotionService

@@ -51,7 +51,7 @@ jobs:
         # CompanyHQ.Api host package, kept for companies already pinned to it, goes last.
         # Duplicate versions fail; an immutable release must never be silently reused.
         run: |
-          RSS="CompanyHQ.Services.Rss.${VERSION}.nupkg"
+          RSS="CompanyHQ.Rss.${VERSION}.nupkg"
           API="CompanyHQ.Api.${VERSION}.nupkg"
           test -f "packages/$RSS" && test -f "packages/$API" || { echo 'expected Rss and Api packages are missing'; exit 1; }
           find packages -name '*.nupkg' ! -name "$API" ! -name "$RSS" -print0 |

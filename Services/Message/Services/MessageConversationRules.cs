@@ -1,7 +1,7 @@
-using CompanyHQ.Services.Messages.Contracts.Enums;
-using CompanyHQ.Services.Messages.Contracts.Ports;
+using CompanyHQ.Messages.Contracts.Enums;
+using CompanyHQ.Messages.Contracts.Ports;
 
-namespace CompanyHQ.Services.Messages.Services;
+namespace CompanyHQ.Messages.Services;
 
 /// <summary>Combines host policies by intersection: any denial wins, and no policy grants access.</summary>
 public sealed class MessageConversationRules(IEnumerable<IMessageConversationPolicy> policies)

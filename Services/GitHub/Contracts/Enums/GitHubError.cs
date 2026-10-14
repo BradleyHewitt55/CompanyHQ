@@ -1,4 +1,4 @@
-namespace CompanyHQ.Services.GitHub.Contracts.Enums;
+namespace CompanyHQ.GitHub.Contracts.Enums;
 
 /// <summary>Why a GitHub operation did not complete.</summary>
 public enum GitHubError

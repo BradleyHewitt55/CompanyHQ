@@ -4,8 +4,8 @@
     <TargetFramework>net10.0</TargetFramework>
     <Nullable>enable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
-    <AssemblyName>CompanyHQ.Services.GitHub</AssemblyName>
-    <RootNamespace>CompanyHQ.Services.GitHub</RootNamespace>
+    <AssemblyName>CompanyHQ.GitHub</AssemblyName>
+    <RootNamespace>CompanyHQ.GitHub</RootNamespace>
   </PropertyGroup>
 
   <ItemGroup>

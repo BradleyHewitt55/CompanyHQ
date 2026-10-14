@@ -1,6 +1,6 @@
 using System.ComponentModel.DataAnnotations;
 
-namespace CompanyHQ.Services.Inbox.Contracts.Forms;
+namespace CompanyHQ.Inbox.Contracts.Forms;
 
 /// <summary>Body for <c>POST /api/inbox/{channel}/{id}/replies</c>.</summary>
 public sealed record ReplyInboxRequest(

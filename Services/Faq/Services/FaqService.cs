@@ -1,14 +1,14 @@
-using CompanyHQ.Services.Faqs.Contracts.Dtos;
-using CompanyHQ.Services.Faqs.Contracts.Forms;
-using CompanyHQ.Services.Faqs.Contracts.Models;
-using CompanyHQ.Services.Postgres.Contracts.Dtos;
-using CompanyHQ.Services.Postgres.Contracts;
-using CompanyHQ.Services.Postgres.Contracts.Enums;
-using CompanyHQ.Services.Postgres.Contracts.Forms;
-using CompanyHQ.Services.Persistence.Services;
-using CompanyHQ.Services.Users.Services;
+using CompanyHQ.Faqs.Contracts.Dtos;
+using CompanyHQ.Faqs.Contracts.Forms;
+using CompanyHQ.Faqs.Contracts.Models;
+using CompanyHQ.Postgres.Contracts.Dtos;
+using CompanyHQ.Postgres.Contracts;
+using CompanyHQ.Postgres.Contracts.Enums;
+using CompanyHQ.Postgres.Contracts.Forms;
+using CompanyHQ.Persistence.Services;
+using CompanyHQ.Users.Services;
 
-namespace CompanyHQ.Services.Faqs.Services;
+namespace CompanyHQ.Faqs.Services;
 
 public sealed class FaqService(
     IRepository<FaqEntry> entries,

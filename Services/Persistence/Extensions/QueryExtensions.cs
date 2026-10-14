@@ -1,7 +1,7 @@
-using CompanyHQ.Services.Postgres.Contracts.Models;
-using CompanyHQ.Services.Persistence.Services;
+using CompanyHQ.Postgres.Contracts.Models;
+using CompanyHQ.Persistence.Services;
 
-namespace CompanyHQ.Services.Persistence.Extensions;
+namespace CompanyHQ.Persistence.Extensions;
 
 /// <summary>Shorthand built only from the operators <see cref="IQuery{T}"/> already has.</summary>
 public static class QueryExtensions

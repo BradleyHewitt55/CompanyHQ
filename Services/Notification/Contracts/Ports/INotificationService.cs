@@ -1,4 +1,4 @@
-namespace CompanyHQ.Services.Notifications.Contracts.Ports;
+namespace CompanyHQ.Notifications.Contracts.Ports;
 
 /// <summary>
 /// Durable, fire-and-forget notification enqueueing for other services. Callers reference this

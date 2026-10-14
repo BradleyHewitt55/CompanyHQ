@@ -2,12 +2,12 @@ using System.Security.Claims;
 
 using ModelContextProtocol;
 
-using CompanyHQ.Services.Mcp.Contracts.Enums;
-using CompanyHQ.Services.Mcp.Contracts.Models;
-using CompanyHQ.Services.Postgres.Contracts;
-using CompanyHQ.Services.Auth.Contracts.Identity;
+using CompanyHQ.Mcp.Contracts.Enums;
+using CompanyHQ.Mcp.Contracts.Models;
+using CompanyHQ.Postgres.Contracts;
+using CompanyHQ.Auth.Contracts.Identity;
 
-namespace CompanyHQ.Services.Mcp.Services;
+namespace CompanyHQ.Mcp.Services;
 
 /// <summary>
 /// Shared MCP access gates. One case per role, not one helper per tool class.

@@ -1,4 +1,4 @@
-namespace CompanyHQ.Services.Messages.Contracts;
+namespace CompanyHQ.Messages.Contracts;
 
 public enum MessageOperationStatus
 {

@@ -1,10 +1,10 @@
-using CompanyHQ.Services.Postgres.Contracts.Dtos;
-using CompanyHQ.Services.Postgres.Contracts.Enums;
-using CompanyHQ.Services.Postgres.Contracts.Forms;
-using CompanyHQ.Services.Shipping.Contracts.Dtos;
-using CompanyHQ.Services.Shipping.Contracts.Forms;
+using CompanyHQ.Postgres.Contracts.Dtos;
+using CompanyHQ.Postgres.Contracts.Enums;
+using CompanyHQ.Postgres.Contracts.Forms;
+using CompanyHQ.Shipping.Contracts.Dtos;
+using CompanyHQ.Shipping.Contracts.Forms;
 
-namespace CompanyHQ.Services.Shipping.Services;
+namespace CompanyHQ.Shipping.Services;
 
 /// <summary>
 /// Shipping methods, the origins they leave from, and the quote that picks between them. Anyone may

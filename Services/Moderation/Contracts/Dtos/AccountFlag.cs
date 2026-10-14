@@ -1,8 +1,8 @@
 using System.Text.Json.Serialization;
 
-using CompanyHQ.Services.Moderation.Contracts.Enums;
+using CompanyHQ.Moderation.Contracts.Enums;
 
-namespace CompanyHQ.Services.Moderation.Contracts.Dtos;
+namespace CompanyHQ.Moderation.Contracts.Dtos;
 
 /// <summary>The narrow account-flag identity used by non-operator consumers.</summary>
 [JsonDerivedType(typeof(AdminAccountFlagDto))]

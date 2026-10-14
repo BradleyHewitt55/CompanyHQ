@@ -1,9 +1,9 @@
 using Microsoft.Extensions.DependencyInjection;
 
-using CompanyHQ.Services.Appointments.Contracts.Ports;
-using CompanyHQ.Services.Appointments.Services;
+using CompanyHQ.Appointments.Contracts.Ports;
+using CompanyHQ.Appointments.Services;
 
-namespace CompanyHQ.Services.Appointments.Extensions;
+namespace CompanyHQ.Appointments.Extensions;
 
 /// <summary>Registers the Appointment service and its controller assembly.</summary>
 public static class AppointmentServiceCollectionExtensions

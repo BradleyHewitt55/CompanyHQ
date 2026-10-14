@@ -1,6 +1,6 @@
 using System.Linq.Expressions;
 
-namespace CompanyHQ.Services.Persistence.Services;
+namespace CompanyHQ.Persistence.Services;
 
 /// <summary>
 /// A description of one read over persisted models: which rows, in what order, in what shape.

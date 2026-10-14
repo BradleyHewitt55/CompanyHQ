@@ -1,6 +1,6 @@
-using CompanyHQ.Services.Mcp.Contracts.Enums;
+using CompanyHQ.Mcp.Contracts.Enums;
 
-namespace CompanyHQ.Services.Mcp.Contracts.Dtos;
+namespace CompanyHQ.Mcp.Contracts.Dtos;
 
 /// <summary>
 /// The one moment the plaintext and the row coexist. Returned by create only — there is no "show key

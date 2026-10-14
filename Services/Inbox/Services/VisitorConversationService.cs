@@ -2,16 +2,16 @@ using System.Security.Cryptography;
 using System.Text;
 
 
-using CompanyHQ.Services.Inbox.Contracts.Dtos;
-using CompanyHQ.Services.Inbox.Contracts.Enums;
-using CompanyHQ.Services.Inbox.Contracts.Models;
-using CompanyHQ.Services.Inbox.Contracts.Ports;
-using CompanyHQ.Services.Postgres.Contracts;
-using CompanyHQ.Services.Postgres.Contracts.Dtos;
-using CompanyHQ.Services.Postgres.Contracts.Forms;
-using CompanyHQ.Services.Persistence.Services;
+using CompanyHQ.Inbox.Contracts.Dtos;
+using CompanyHQ.Inbox.Contracts.Enums;
+using CompanyHQ.Inbox.Contracts.Models;
+using CompanyHQ.Inbox.Contracts.Ports;
+using CompanyHQ.Postgres.Contracts;
+using CompanyHQ.Postgres.Contracts.Dtos;
+using CompanyHQ.Postgres.Contracts.Forms;
+using CompanyHQ.Persistence.Services;
 
-namespace CompanyHQ.Services.Inbox.Services;
+namespace CompanyHQ.Inbox.Services;
 
 /// <summary>
 /// The conversations Inbox stores itself: the visitor half, and the same rows as the built-in

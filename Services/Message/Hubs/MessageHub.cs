@@ -1,9 +1,9 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.SignalR;
 
-using CompanyHQ.Services.Auth.Contracts.Identity;
+using CompanyHQ.Auth.Contracts.Identity;
 
-namespace CompanyHQ.Services.Messages.Hubs;
+namespace CompanyHQ.Messages.Hubs;
 
 /// <summary>Receive-only delivery hub. HTTP is the only message write path.</summary>
 [Authorize]

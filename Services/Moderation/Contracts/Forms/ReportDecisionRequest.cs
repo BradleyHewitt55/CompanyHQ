@@ -1,8 +1,8 @@
 using System.ComponentModel.DataAnnotations;
 
-using CompanyHQ.Services.Moderation.Contracts.Enums;
+using CompanyHQ.Moderation.Contracts.Enums;
 
-namespace CompanyHQ.Services.Moderation.Contracts.Forms;
+namespace CompanyHQ.Moderation.Contracts.Forms;
 
 /// <summary>Operator decision for a report already in the queue.</summary>
 public sealed record ReportDecisionRequest(

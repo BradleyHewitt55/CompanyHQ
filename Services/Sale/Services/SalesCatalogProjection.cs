@@ -1,12 +1,12 @@
 using System.Security.Cryptography;
 using System.Text;
-using CompanyHQ.Services.Persistence.Services;
-using CompanyHQ.Services.Postgres.Contracts.Dtos;
-using CompanyHQ.Services.Postgres.Contracts.Forms;
-using CompanyHQ.Services.Sales.Contracts.Dtos;
-using CompanyHQ.Services.Sales.Contracts.Forms;
-using CompanyHQ.Services.Sales.Contracts.Models;
-namespace CompanyHQ.Services.Sales.Services;
+using CompanyHQ.Persistence.Services;
+using CompanyHQ.Postgres.Contracts.Dtos;
+using CompanyHQ.Postgres.Contracts.Forms;
+using CompanyHQ.Sales.Contracts.Dtos;
+using CompanyHQ.Sales.Contracts.Forms;
+using CompanyHQ.Sales.Contracts.Models;
+namespace CompanyHQ.Sales.Services;
 internal sealed class SalesCatalogPricesRefreshingException : Exception;
 public sealed partial class SalesCatalogService
 {

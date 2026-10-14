@@ -1,8 +1,8 @@
 using Microsoft.Extensions.DependencyInjection;
-using CompanyHQ.Services.Company.Contracts.Ports;
-using CompanyHQ.Services.Company.Services;
+using CompanyHQ.Company.Contracts.Ports;
+using CompanyHQ.Company.Services;
 
-namespace CompanyHQ.Services.Company.Extensions;
+namespace CompanyHQ.Company.Extensions;
 
 /// <summary>Registers the company profile service and its controller assembly.</summary>
 public static class CompanyServiceCollectionExtensions

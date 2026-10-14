@@ -1,10 +1,10 @@
 
-using CompanyHQ.Services.Persistence.Services;
-using CompanyHQ.Services.Postgres.Contracts.Enums;
-using CompanyHQ.Services.Users.Contracts.Enums;
-using CompanyHQ.Services.Users.Contracts.Models;
+using CompanyHQ.Persistence.Services;
+using CompanyHQ.Postgres.Contracts.Enums;
+using CompanyHQ.Users.Contracts.Enums;
+using CompanyHQ.Users.Contracts.Models;
 
-namespace CompanyHQ.Services.Users.Extensions;
+namespace CompanyHQ.Users.Extensions;
 
 /// <summary>Typed filtering and ordering for public and administrative user lists.</summary>
 public static class UserListQueryExtensions

@@ -1,4 +1,4 @@
-namespace CompanyHQ.Services.Shipping.Services;
+namespace CompanyHQ.Shipping.Services;
 
 /// <summary>
 /// Picks one way to ship every product so the basket costs least. A leg is one method leaving one

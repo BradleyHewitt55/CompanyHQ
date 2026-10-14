@@ -1,6 +1,6 @@
-using CompanyHQ.Services.Moderation.Contracts.Enums;
+using CompanyHQ.Moderation.Contracts.Enums;
 
-namespace CompanyHQ.Services.Moderation.Services;
+namespace CompanyHQ.Moderation.Services;
 
 internal static class ReportDecisionRules
 {

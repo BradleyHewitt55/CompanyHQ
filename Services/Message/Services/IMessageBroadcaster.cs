@@ -1,6 +1,6 @@
-using CompanyHQ.Services.Messages.Contracts.Dtos;
+using CompanyHQ.Messages.Contracts.Dtos;
 
-namespace CompanyHQ.Services.Messages.Services;
+namespace CompanyHQ.Messages.Services;
 
 /// <summary>Delivery seam kept outside the persistence service so the hub remains write-free.</summary>
 public interface IMessageBroadcaster

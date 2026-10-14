@@ -2,13 +2,13 @@ using System.Security.Claims;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
-using CompanyHQ.Services.Email.Contracts.Dtos;
-using CompanyHQ.Services.Email.Contracts.Forms;
-using CompanyHQ.Services.Email.Services;
-using CompanyHQ.Services.Postgres.Contracts;
-using CompanyHQ.Services.Auth.Contracts.Identity;
+using CompanyHQ.Email.Contracts.Dtos;
+using CompanyHQ.Email.Contracts.Forms;
+using CompanyHQ.Email.Services;
+using CompanyHQ.Postgres.Contracts;
+using CompanyHQ.Auth.Contracts.Identity;
 
-namespace CompanyHQ.Services.Email.Controllers;
+namespace CompanyHQ.Email.Controllers;
 
 [ApiController]
 [Route("api/email-templates")]

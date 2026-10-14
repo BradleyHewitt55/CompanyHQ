@@ -1,11 +1,11 @@
-using CompanyHQ.Services.Postgres.Contracts.Dtos;
-using CompanyHQ.Services.Postgres.Contracts.Enums;
-using CompanyHQ.Services.Postgres.Contracts.Forms;
-using CompanyHQ.Services.Users.Contracts.Dtos;
-using CompanyHQ.Services.Users.Contracts.Enums;
-using CompanyHQ.Services.Users.Contracts.Forms;
+using CompanyHQ.Postgres.Contracts.Dtos;
+using CompanyHQ.Postgres.Contracts.Enums;
+using CompanyHQ.Postgres.Contracts.Forms;
+using CompanyHQ.Users.Contracts.Dtos;
+using CompanyHQ.Users.Contracts.Enums;
+using CompanyHQ.Users.Contracts.Forms;
 
-namespace CompanyHQ.Services.Users.Services;
+namespace CompanyHQ.Users.Services;
 
 /// <summary>Account reads and the one self-service profile write.</summary>
 public interface IUserService

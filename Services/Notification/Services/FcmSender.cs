@@ -2,9 +2,9 @@ using FirebaseAdmin;
 using FirebaseAdmin.Messaging;
 using Microsoft.Extensions.Logging;
 
-using CompanyHQ.Services.Notifications.Contracts.Ports;
+using CompanyHQ.Notifications.Contracts.Ports;
 
-namespace CompanyHQ.Services.Notifications.Services;
+namespace CompanyHQ.Notifications.Services;
 
 /// <summary>Notification's push port, implemented with data-only Firebase Cloud Messaging multicasts.</summary>
 internal sealed class FcmSender(

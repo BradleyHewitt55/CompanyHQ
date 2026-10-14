@@ -1,13 +1,13 @@
-using CompanyHQ.Services.Postgres.Contracts;
-using CompanyHQ.Services.Postgres.Contracts.Dtos;
-using CompanyHQ.Services.Postgres.Contracts.Forms;
-using CompanyHQ.Services.Persistence.Services;
-using CompanyHQ.Services.Users.Contracts.Dtos;
-using CompanyHQ.Services.Users.Contracts.Forms;
-using CompanyHQ.Services.Users.Contracts.Models;
+using CompanyHQ.Postgres.Contracts;
+using CompanyHQ.Postgres.Contracts.Dtos;
+using CompanyHQ.Postgres.Contracts.Forms;
+using CompanyHQ.Persistence.Services;
+using CompanyHQ.Users.Contracts.Dtos;
+using CompanyHQ.Users.Contracts.Forms;
+using CompanyHQ.Users.Contracts.Models;
 using System.Data;
 
-namespace CompanyHQ.Services.Users.Services;
+namespace CompanyHQ.Users.Services;
 
 /// <inheritdoc cref="IAccessRoleService" />
 /// <remarks>

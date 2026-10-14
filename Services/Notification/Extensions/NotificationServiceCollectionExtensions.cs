@@ -1,10 +1,10 @@
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
-using CompanyHQ.Services.Notifications.Contracts.Models;
-using CompanyHQ.Services.Notifications.Contracts.Ports;
-using CompanyHQ.Services.Notifications.Services;
+using CompanyHQ.Notifications.Contracts.Models;
+using CompanyHQ.Notifications.Contracts.Ports;
+using CompanyHQ.Notifications.Services;
 
-namespace CompanyHQ.Services.Notifications.Extensions;
+namespace CompanyHQ.Notifications.Extensions;
 
 /// <summary>Registers the notification queue, worker, and protected device endpoints.</summary>
 public static class NotificationServiceCollectionExtensions

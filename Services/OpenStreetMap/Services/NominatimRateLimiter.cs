@@ -1,6 +1,6 @@
-using CompanyHQ.Services.OpenStreetMap.Contracts.Models;
+using CompanyHQ.OpenStreetMap.Contracts.Models;
 
-namespace CompanyHQ.Services.OpenStreetMap.Services;
+namespace CompanyHQ.OpenStreetMap.Services;
 
 /// <summary>
 /// Serialises every outbound Nominatim call and spaces the calls by

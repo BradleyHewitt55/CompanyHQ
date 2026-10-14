@@ -3,11 +3,11 @@ using System.Text;
 
 using Microsoft.IdentityModel.Tokens;
 
-using CompanyHQ.Services.Auth.Contracts.Enums;
-using CompanyHQ.Services.Auth.Contracts.Models;
-using CompanyHQ.Services.Persistence.Services;
+using CompanyHQ.Auth.Contracts.Enums;
+using CompanyHQ.Auth.Contracts.Models;
+using CompanyHQ.Persistence.Services;
 
-namespace CompanyHQ.Services.Auth.Services;
+namespace CompanyHQ.Auth.Services;
 
 /// <inheritdoc cref="IAuthTokenService"/>
 /// <remarks>

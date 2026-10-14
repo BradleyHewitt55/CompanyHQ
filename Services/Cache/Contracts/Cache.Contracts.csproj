@@ -4,8 +4,8 @@
     <TargetFramework>net10.0</TargetFramework>
     <Nullable>enable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
-    <AssemblyName>CompanyHQ.Services.Cache.Contracts</AssemblyName>
-    <RootNamespace>CompanyHQ.Services.Cache.Contracts</RootNamespace>
+    <AssemblyName>CompanyHQ.Cache.Contracts</AssemblyName>
+    <RootNamespace>CompanyHQ.Cache.Contracts</RootNamespace>
   </PropertyGroup>
 
   <!--

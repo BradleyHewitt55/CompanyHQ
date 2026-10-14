@@ -1,4 +1,4 @@
-namespace CompanyHQ.Services.Notifications.Contracts.Ports;
+namespace CompanyHQ.Notifications.Contracts.Ports;
 
 /// <summary>
 /// Push delivery port between the queue and the transport. Notification fills it itself with

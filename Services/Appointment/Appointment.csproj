@@ -4,8 +4,8 @@
     <TargetFramework>net10.0</TargetFramework>
     <Nullable>enable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
-    <AssemblyName>CompanyHQ.Services.Appointments</AssemblyName>
-    <RootNamespace>CompanyHQ.Services.Appointments</RootNamespace>
+    <AssemblyName>CompanyHQ.Appointments</AssemblyName>
+    <RootNamespace>CompanyHQ.Appointments</RootNamespace>
   </PropertyGroup>
 
   <ItemGroup>

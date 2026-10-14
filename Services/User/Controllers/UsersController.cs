@@ -3,17 +3,17 @@ using System.Security.Claims;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
-using CompanyHQ.Services.Postgres.Contracts;
-using CompanyHQ.Services.Postgres.Contracts.Dtos;
-using CompanyHQ.Services.Postgres.Contracts.Enums;
-using CompanyHQ.Services.Postgres.Contracts.Forms;
-using CompanyHQ.Services.Users.Contracts.Dtos;
-using CompanyHQ.Services.Users.Contracts.Enums;
-using CompanyHQ.Services.Users.Contracts.Forms;
-using CompanyHQ.Services.Users.Services;
-using CompanyHQ.Services.Auth.Contracts.Identity;
+using CompanyHQ.Postgres.Contracts;
+using CompanyHQ.Postgres.Contracts.Dtos;
+using CompanyHQ.Postgres.Contracts.Enums;
+using CompanyHQ.Postgres.Contracts.Forms;
+using CompanyHQ.Users.Contracts.Dtos;
+using CompanyHQ.Users.Contracts.Enums;
+using CompanyHQ.Users.Contracts.Forms;
+using CompanyHQ.Users.Services;
+using CompanyHQ.Auth.Contracts.Identity;
 
-namespace CompanyHQ.Services.Users.Controllers;
+namespace CompanyHQ.Users.Controllers;
 
 /// <summary>
 /// CRUD for user accounts. HTTP only: every rule lives in the services it calls.

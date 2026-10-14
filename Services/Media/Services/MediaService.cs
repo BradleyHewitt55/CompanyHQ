@@ -1,14 +1,14 @@
-using CompanyHQ.Services.Media.Contracts.Ports;
+using CompanyHQ.Media.Contracts.Ports;
 using System.Linq.Expressions;
 
-using CompanyHQ.Services.Media.Contracts.Dtos;
-using CompanyHQ.Services.Media.Contracts.Enums;
-using CompanyHQ.Services.Media.Contracts.Forms;
-using CompanyHQ.Services.Media.Contracts.Models;
-using CompanyHQ.Services.Postgres.Contracts.Enums;
-using CompanyHQ.Services.Persistence.Services;
+using CompanyHQ.Media.Contracts.Dtos;
+using CompanyHQ.Media.Contracts.Enums;
+using CompanyHQ.Media.Contracts.Forms;
+using CompanyHQ.Media.Contracts.Models;
+using CompanyHQ.Postgres.Contracts.Enums;
+using CompanyHQ.Persistence.Services;
 
-namespace CompanyHQ.Services.Media.Services;
+namespace CompanyHQ.Media.Services;
 
 /// <inheritdoc cref="IMediaService" />
 public sealed class MediaService(

@@ -1,6 +1,6 @@
-using CompanyHQ.Services.Messages.Contracts.Enums;
+using CompanyHQ.Messages.Contracts.Enums;
 
-namespace CompanyHQ.Services.Messages.Contracts.Models;
+namespace CompanyHQ.Messages.Contracts.Models;
 
 /// <summary>Per-deployment choice of who may close and who may delete a conversation.</summary>
 public sealed class MessageAccessOptions

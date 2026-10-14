@@ -1,6 +1,6 @@
-using CompanyHQ.Services.Email.Contracts.Models;
+using CompanyHQ.Email.Contracts.Models;
 
-namespace CompanyHQ.Services.Email.Services;
+namespace CompanyHQ.Email.Services;
 
 /// <summary>
 /// Spaces every send at least <c>1 / MaxSendsPerSecond</c> apart. Ordering and priority belong to

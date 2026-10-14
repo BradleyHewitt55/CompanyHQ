@@ -1,6 +1,6 @@
 using System.ComponentModel.DataAnnotations;
 
-namespace CompanyHQ.Services.Appointments.Contracts.Forms;
+namespace CompanyHQ.Appointments.Contracts.Forms;
 
 /// <summary>
 /// Shared date rules. A past appointment is legitimate — members log visits after the fact — so the

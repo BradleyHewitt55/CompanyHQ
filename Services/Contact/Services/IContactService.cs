@@ -1,7 +1,7 @@
-using CompanyHQ.Services.Contact.Contracts.Dtos;
-using CompanyHQ.Services.Contact.Contracts.Forms;
+using CompanyHQ.Contact.Contracts.Dtos;
+using CompanyHQ.Contact.Contracts.Forms;
 
-namespace CompanyHQ.Services.Contact.Services;
+namespace CompanyHQ.Contact.Services;
 
 public interface IContactService
 {

@@ -1,6 +1,6 @@
-using CompanyHQ.Services.Contact.Contracts.Enums;
+using CompanyHQ.Contact.Contracts.Enums;
 
-namespace CompanyHQ.Services.Contact.Contracts.Dtos;
+namespace CompanyHQ.Contact.Contracts.Dtos;
 
 /// <summary>
 /// Acknowledgement that a contact message was accepted for delivery. The reference is what a visitor

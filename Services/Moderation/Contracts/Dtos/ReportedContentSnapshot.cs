@@ -1,4 +1,4 @@
-namespace CompanyHQ.Services.Moderation.Contracts.Dtos;
+namespace CompanyHQ.Moderation.Contracts.Dtos;
 
 /// <summary>One frozen evidence row shown inline to an operator.</summary>
 public sealed record AdminReportedContentSnapshotDto(

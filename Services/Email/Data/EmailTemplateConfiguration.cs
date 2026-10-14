@@ -1,8 +1,8 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
-using CompanyHQ.Services.Email.Contracts.Models;
+using CompanyHQ.Email.Contracts.Models;
 
-namespace CompanyHQ.Services.Email.Data;
+namespace CompanyHQ.Email.Data;
 
 internal sealed class EmailTemplateConfiguration : IEntityTypeConfiguration<EmailTemplate>
 {

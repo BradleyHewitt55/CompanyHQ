@@ -1,8 +1,8 @@
 using System.Text.Json.Serialization;
 
-using CompanyHQ.Services.Sales.Contracts.Enums;
+using CompanyHQ.Sales.Contracts.Enums;
 
-namespace CompanyHQ.Services.Sales.Contracts.Dtos;
+namespace CompanyHQ.Sales.Contracts.Dtos;
 
 /// <summary>A coupon. Staff only: listing codes to customers would hand out every discount.</summary>
 public sealed record AdminCouponDto(

@@ -1,6 +1,6 @@
-using CompanyHQ.Services.Persistence.Contracts.Models;
+using CompanyHQ.Persistence.Contracts.Models;
 
-namespace CompanyHQ.Services.Mcp.Contracts.Models;
+namespace CompanyHQ.Mcp.Contracts.Models;
 
 /// <summary>
 /// A short-lived, single-use OAuth authorization code. Only its hash is persisted; the code itself

@@ -1,4 +1,4 @@
-namespace CompanyHQ.Services.Notifications.Services;
+namespace CompanyHQ.Notifications.Services;
 
 internal enum NotificationDeliveryDisposition
 {

@@ -1,6 +1,6 @@
 using System.Text.Json;
 
-namespace CompanyHQ.Services.Messages.Services;
+namespace CompanyHQ.Messages.Services;
 
 internal static class MessageCursor
 {

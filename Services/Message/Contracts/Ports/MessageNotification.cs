@@ -1,4 +1,4 @@
-namespace CompanyHQ.Services.Messages.Contracts.Ports;
+namespace CompanyHQ.Messages.Contracts.Ports;
 
 /// <summary>One notification Message wants delivered; <see cref="Data"/> carries routing ids only.</summary>
 public sealed record MessageNotification(

@@ -1,7 +1,7 @@
-using CompanyHQ.Services.Geo.Contracts.Ports;
-using CompanyHQ.Services.OpenStreetMap.Contracts.Dtos;
+using CompanyHQ.Geo.Contracts.Ports;
+using CompanyHQ.OpenStreetMap.Contracts.Dtos;
 
-namespace CompanyHQ.Services.OpenStreetMap.Services;
+namespace CompanyHQ.OpenStreetMap.Services;
 
 /// <summary>
 /// Geo's <see cref="IGeoProvider"/> over the public OpenStreetMap services: Nominatim names and

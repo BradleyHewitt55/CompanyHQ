@@ -1,6 +1,6 @@
 using System.Globalization;
 
-namespace CompanyHQ.Services.Geo.Contracts.Models;
+namespace CompanyHQ.Geo.Contracts.Models;
 
 /// <summary>One cell of the fixed slippy-map grid the nearby-place cache is keyed on.</summary>
 /// <remarks>

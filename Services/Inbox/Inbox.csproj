@@ -4,8 +4,8 @@
     <TargetFramework>net10.0</TargetFramework>
     <Nullable>enable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
-    <AssemblyName>CompanyHQ.Services.Inbox</AssemblyName>
-    <RootNamespace>CompanyHQ.Services.Inbox</RootNamespace>
+    <AssemblyName>CompanyHQ.Inbox</AssemblyName>
+    <RootNamespace>CompanyHQ.Inbox</RootNamespace>
   </PropertyGroup>
 
   <ItemGroup>

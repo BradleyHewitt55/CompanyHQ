@@ -1,6 +1,6 @@
 using System.ComponentModel.DataAnnotations;
 
-namespace CompanyHQ.Services.Company.Contracts.Dtos;
+namespace CompanyHQ.Company.Contracts.Dtos;
 
 /// <summary>A published company mailbox, independent of user accounts.</summary>
 public sealed record ClientCompanyEmailDto(

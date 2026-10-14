@@ -1,7 +1,7 @@
-using CompanyHQ.Services.Geo.Contracts.Dtos;
-using CompanyHQ.Services.Geo.Contracts.Models;
+using CompanyHQ.Geo.Contracts.Dtos;
+using CompanyHQ.Geo.Contracts.Models;
 
-namespace CompanyHQ.Services.Geo.Services;
+namespace CompanyHQ.Geo.Services;
 
 /// <summary>
 /// Turns coordinates or search text into a named area. It takes a position as a parameter and

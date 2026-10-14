@@ -1,9 +1,9 @@
-using CompanyHQ.Services.Inbox.Contracts.Dtos;
-using CompanyHQ.Services.Inbox.Contracts.Enums;
-using CompanyHQ.Services.Postgres.Contracts.Dtos;
-using CompanyHQ.Services.Postgres.Contracts.Forms;
+using CompanyHQ.Inbox.Contracts.Dtos;
+using CompanyHQ.Inbox.Contracts.Enums;
+using CompanyHQ.Postgres.Contracts.Dtos;
+using CompanyHQ.Postgres.Contracts.Forms;
 
-namespace CompanyHQ.Services.Inbox.Contracts.Ports;
+namespace CompanyHQ.Inbox.Contracts.Ports;
 
 /// <summary>
 /// One source of threads in the staff inbox: visitor conversations, GitHub issues, a social account.

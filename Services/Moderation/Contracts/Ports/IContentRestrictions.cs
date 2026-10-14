@@ -1,4 +1,4 @@
-namespace CompanyHQ.Services.Moderation.Contracts.Ports;
+namespace CompanyHQ.Moderation.Contracts.Ports;
 
 /// <summary>
 /// Content ids an operator has confirmed a report against, for the owning service to suppress.

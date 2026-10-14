@@ -3,13 +3,13 @@ using System.Text;
 
 using Microsoft.AspNetCore.WebUtilities;
 
-using CompanyHQ.Services.Mcp.Contracts.Dtos;
-using CompanyHQ.Services.Mcp.Contracts.Enums;
-using CompanyHQ.Services.Mcp.Contracts.Forms;
-using CompanyHQ.Services.Mcp.Contracts.Models;
-using CompanyHQ.Services.Persistence.Services;
+using CompanyHQ.Mcp.Contracts.Dtos;
+using CompanyHQ.Mcp.Contracts.Enums;
+using CompanyHQ.Mcp.Contracts.Forms;
+using CompanyHQ.Mcp.Contracts.Models;
+using CompanyHQ.Persistence.Services;
 
-namespace CompanyHQ.Services.Mcp.Services;
+namespace CompanyHQ.Mcp.Services;
 
 public sealed class McpOAuthService(
     IPersistence context,

@@ -1,4 +1,4 @@
-namespace CompanyHQ.Services.Messages.Contracts.Ports;
+namespace CompanyHQ.Messages.Contracts.Ports;
 
 /// <summary>
 /// Whether an uploaded object may be attached to a message (ready, and owned by the sender), and

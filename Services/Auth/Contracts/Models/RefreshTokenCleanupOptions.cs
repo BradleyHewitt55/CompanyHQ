@@ -1,4 +1,4 @@
-namespace CompanyHQ.Services.Auth.Contracts.Models;
+namespace CompanyHQ.Auth.Contracts.Models;
 
 /// <summary>Bounded maintenance settings for old refresh-token rows.</summary>
 public sealed class RefreshTokenCleanupOptions

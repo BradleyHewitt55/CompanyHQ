@@ -1,6 +1,6 @@
 using System.ComponentModel.DataAnnotations;
 
-namespace CompanyHQ.Services.Users.Contracts.Forms;
+namespace CompanyHQ.Users.Contracts.Forms;
 
 /// <summary>Validation shared by self-service profile edits.</summary>
 public static class UserProfileValidation

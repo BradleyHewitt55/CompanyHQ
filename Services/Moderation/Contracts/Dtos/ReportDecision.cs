@@ -1,6 +1,6 @@
-using CompanyHQ.Services.Moderation.Contracts.Enums;
+using CompanyHQ.Moderation.Contracts.Enums;
 
-namespace CompanyHQ.Services.Moderation.Contracts.Dtos;
+namespace CompanyHQ.Moderation.Contracts.Dtos;
 
 /// <summary>One immutable operator decision in a report's append-only history.</summary>
 public sealed record AdminReportDecisionDto(

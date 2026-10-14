@@ -1,4 +1,4 @@
-namespace CompanyHQ.Services.Sales.Contracts.Dtos;
+namespace CompanyHQ.Sales.Contracts.Dtos;
 /// <summary>Generic physical and descriptive specifications. Units are explicit company data.</summary>
 public sealed record ProductSpecificationsDto(decimal? Width=null,decimal? Height=null,decimal? Length=null,string DimensionUnit="cm",
     decimal? Weight=null,string WeightUnit="kg",IReadOnlyDictionary<string,string>? Attributes=null,IReadOnlyDictionary<string,string>? Policies=null);

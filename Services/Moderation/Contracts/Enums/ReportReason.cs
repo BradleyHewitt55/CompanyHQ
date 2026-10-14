@@ -1,8 +1,8 @@
 using System.Text.Json.Serialization;
 
-using CompanyHQ.Services.Postgres.Contracts.Serialization;
+using CompanyHQ.Postgres.Contracts.Serialization;
 
-namespace CompanyHQ.Services.Moderation.Contracts.Enums;
+namespace CompanyHQ.Moderation.Contracts.Enums;
 
 /// <summary>The reason a caller believes a target violates CompanyHQ's rules.</summary>
 [JsonConverter(typeof(StrictStringEnumConverter<ReportReason>))]

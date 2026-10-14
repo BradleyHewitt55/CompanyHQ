@@ -1,4 +1,4 @@
-namespace CompanyHQ.Services.Auth.Services;
+namespace CompanyHQ.Auth.Services;
 
 /// <summary>
 /// The fixed limits behind every credential endpoint's rate limiting. Policy decisions, not

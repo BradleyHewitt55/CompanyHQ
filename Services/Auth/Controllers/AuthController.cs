@@ -2,15 +2,15 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 
-using CompanyHQ.Services.Auth.Contracts.Dtos;
-using CompanyHQ.Services.Auth.Contracts.Enums;
-using CompanyHQ.Services.Auth.Contracts.Forms;
-using CompanyHQ.Services.Auth.Services;
-using CompanyHQ.Services.Postgres.Contracts.Dtos;
-using CompanyHQ.Services.Postgres.Contracts.Forms;
-using CompanyHQ.Services.Auth.Contracts.Identity;
+using CompanyHQ.Auth.Contracts.Dtos;
+using CompanyHQ.Auth.Contracts.Enums;
+using CompanyHQ.Auth.Contracts.Forms;
+using CompanyHQ.Auth.Services;
+using CompanyHQ.Postgres.Contracts.Dtos;
+using CompanyHQ.Postgres.Contracts.Forms;
+using CompanyHQ.Auth.Contracts.Identity;
 
-namespace CompanyHQ.Services.Auth.Controllers;
+namespace CompanyHQ.Auth.Controllers;
 
 /// <summary>
 /// Sign-up, sign-in, session renewal, and the caller's own account.

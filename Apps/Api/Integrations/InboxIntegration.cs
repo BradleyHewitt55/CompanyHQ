@@ -1,20 +1,20 @@
 
-using CompanyHQ.Services.Email.Contracts.Ports;
-using CompanyHQ.Services.GitHub.Contracts.Dtos;
-using CompanyHQ.Services.GitHub.Contracts.Enums;
-using CompanyHQ.Services.GitHub.Services;
-using CompanyHQ.Services.Inbox.Contracts.Dtos;
-using CompanyHQ.Services.Inbox.Contracts.Enums;
-using CompanyHQ.Services.Inbox.Contracts.Ports;
-using CompanyHQ.Services.Messages.Contracts;
-using CompanyHQ.Services.Messages.Contracts.Dtos;
-using CompanyHQ.Services.Messages.Services;
-using CompanyHQ.Services.Postgres.Contracts;
-using CompanyHQ.Services.Postgres.Contracts.Dtos;
-using CompanyHQ.Services.Postgres.Contracts.Enums;
-using CompanyHQ.Services.Postgres.Contracts.Forms;
-using CompanyHQ.Services.Persistence.Services;
-using CompanyHQ.Services.Users.Contracts.Models;
+using CompanyHQ.Email.Contracts.Ports;
+using CompanyHQ.GitHub.Contracts.Dtos;
+using CompanyHQ.GitHub.Contracts.Enums;
+using CompanyHQ.GitHub.Services;
+using CompanyHQ.Inbox.Contracts.Dtos;
+using CompanyHQ.Inbox.Contracts.Enums;
+using CompanyHQ.Inbox.Contracts.Ports;
+using CompanyHQ.Messages.Contracts;
+using CompanyHQ.Messages.Contracts.Dtos;
+using CompanyHQ.Messages.Services;
+using CompanyHQ.Postgres.Contracts;
+using CompanyHQ.Postgres.Contracts.Dtos;
+using CompanyHQ.Postgres.Contracts.Enums;
+using CompanyHQ.Postgres.Contracts.Forms;
+using CompanyHQ.Persistence.Services;
+using CompanyHQ.Users.Contracts.Models;
 
 namespace Api.Integrations;
 

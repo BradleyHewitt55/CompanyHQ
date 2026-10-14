@@ -1,4 +1,4 @@
-namespace CompanyHQ.Services.Auth.Contracts.Identity;
+namespace CompanyHQ.Auth.Contracts.Identity;
 
 /// <summary>
 /// Where real-time hubs mount. Browsers cannot set an <c>Authorization</c> header on a WebSocket or

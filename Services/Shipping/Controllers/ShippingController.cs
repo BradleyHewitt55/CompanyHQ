@@ -3,16 +3,16 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.RateLimiting;
 
-using CompanyHQ.Services.Auth.Contracts.Identity;
-using CompanyHQ.Services.Postgres.Contracts;
-using CompanyHQ.Services.Postgres.Contracts.Dtos;
-using CompanyHQ.Services.Postgres.Contracts.Forms;
-using CompanyHQ.Services.Shipping.Contracts.Dtos;
-using CompanyHQ.Services.Shipping.Contracts.Forms;
-using CompanyHQ.Services.Shipping.Services;
-using CompanyHQ.Services.Users.Extensions;
+using CompanyHQ.Auth.Contracts.Identity;
+using CompanyHQ.Postgres.Contracts;
+using CompanyHQ.Postgres.Contracts.Dtos;
+using CompanyHQ.Postgres.Contracts.Forms;
+using CompanyHQ.Shipping.Contracts.Dtos;
+using CompanyHQ.Shipping.Contracts.Forms;
+using CompanyHQ.Shipping.Services;
+using CompanyHQ.Users.Extensions;
 
-namespace CompanyHQ.Services.Shipping.Controllers;
+namespace CompanyHQ.Shipping.Controllers;
 
 /// <summary>
 /// Shipping methods and quotes for anyone; methods, zones and origins to manage for a role with

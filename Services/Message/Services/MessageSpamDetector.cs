@@ -1,10 +1,10 @@
-using CompanyHQ.Services.Cache.Contracts.Models;
-using CompanyHQ.Services.Cache.Services;
-using CompanyHQ.Services.Messages.Contracts.Dtos;
-using CompanyHQ.Services.Messages.Contracts.Models;
-using CompanyHQ.Services.Messages.Contracts.Ports;
+using CompanyHQ.Cache.Contracts.Models;
+using CompanyHQ.Cache.Services;
+using CompanyHQ.Messages.Contracts.Dtos;
+using CompanyHQ.Messages.Contracts.Models;
+using CompanyHQ.Messages.Contracts.Ports;
 
-namespace CompanyHQ.Services.Messages.Services;
+namespace CompanyHQ.Messages.Services;
 
 /// <summary>Counts message volume and distinct first-contact threads without a Postgres aggregate.</summary>
 internal sealed class MessageSpamDetector(

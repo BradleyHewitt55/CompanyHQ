@@ -1,4 +1,4 @@
-namespace CompanyHQ.Services.Postgres.Contracts;
+namespace CompanyHQ.Postgres.Contracts;
 
 /// <summary>Names of API actions explicitly exposed to MCP.</summary>
 public static class McpCapabilityCatalog

@@ -1,6 +1,6 @@
 using System.Text.Json.Serialization;
 
-namespace CompanyHQ.Services.Postgres.Contracts.Enums;
+namespace CompanyHQ.Postgres.Contracts.Enums;
 
 /// <summary>Direction for a typed list sort.</summary>
 [JsonConverter(typeof(JsonStringEnumConverter<SortDirection>))]

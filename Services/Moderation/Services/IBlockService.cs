@@ -1,10 +1,10 @@
-using CompanyHQ.Services.Moderation.Contracts.Dtos;
-using CompanyHQ.Services.Moderation.Contracts.Forms;
-using CompanyHQ.Services.Moderation.Contracts.Ports;
-using CompanyHQ.Services.Postgres.Contracts.Dtos;
-using CompanyHQ.Services.Postgres.Contracts.Forms;
+using CompanyHQ.Moderation.Contracts.Dtos;
+using CompanyHQ.Moderation.Contracts.Forms;
+using CompanyHQ.Moderation.Contracts.Ports;
+using CompanyHQ.Postgres.Contracts.Dtos;
+using CompanyHQ.Postgres.Contracts.Forms;
 
-namespace CompanyHQ.Services.Moderation.Services;
+namespace CompanyHQ.Moderation.Services;
 
 /// <summary>Block management for the HTTP routes; the reads other services use are <see cref="IBlockChecker"/>.</summary>
 public interface IBlockService : IBlockChecker

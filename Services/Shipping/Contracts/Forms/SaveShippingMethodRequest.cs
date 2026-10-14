@@ -1,8 +1,8 @@
 using System.ComponentModel.DataAnnotations;
 
-using CompanyHQ.Services.Shipping.Contracts.Enums;
+using CompanyHQ.Shipping.Contracts.Enums;
 
-namespace CompanyHQ.Services.Shipping.Contracts.Forms;
+namespace CompanyHQ.Shipping.Contracts.Forms;
 
 /// <summary>
 /// Creates or replaces a shipping method with everything that decides where it delivers. Zones,

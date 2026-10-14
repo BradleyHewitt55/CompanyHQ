@@ -1,4 +1,4 @@
-namespace CompanyHQ.Services.Notifications.Contracts.Enums;
+namespace CompanyHQ.Notifications.Contracts.Enums;
 
 /// <summary>Delivery channels a caller may request for one queued notification.</summary>
 [Flags]

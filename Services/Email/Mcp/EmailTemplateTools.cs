@@ -4,13 +4,13 @@ using Microsoft.AspNetCore.Http;
 
 using ModelContextProtocol.Server;
 
-using CompanyHQ.Services.Email.Contracts.Dtos;
-using CompanyHQ.Services.Email.Contracts.Forms;
-using CompanyHQ.Services.Email.Services;
-using CompanyHQ.Services.Postgres.Contracts;
-using CompanyHQ.Services.Auth.Contracts.Identity;
+using CompanyHQ.Email.Contracts.Dtos;
+using CompanyHQ.Email.Contracts.Forms;
+using CompanyHQ.Email.Services;
+using CompanyHQ.Postgres.Contracts;
+using CompanyHQ.Auth.Contracts.Identity;
 
-namespace CompanyHQ.Services.Email.Mcp;
+namespace CompanyHQ.Email.Mcp;
 
 [McpServerToolType]
 public sealed class EmailTemplateTools(IEmailTemplateService templates, IHttpContextAccessor httpContextAccessor)

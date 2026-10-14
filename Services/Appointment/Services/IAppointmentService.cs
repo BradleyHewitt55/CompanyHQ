@@ -1,9 +1,9 @@
-using CompanyHQ.Services.Appointments.Contracts.Dtos;
-using CompanyHQ.Services.Appointments.Contracts.Forms;
-using CompanyHQ.Services.Postgres.Contracts.Dtos;
-using CompanyHQ.Services.Postgres.Contracts.Forms;
+using CompanyHQ.Appointments.Contracts.Dtos;
+using CompanyHQ.Appointments.Contracts.Forms;
+using CompanyHQ.Postgres.Contracts.Dtos;
+using CompanyHQ.Postgres.Contracts.Forms;
 
-namespace CompanyHQ.Services.Appointments.Services;
+namespace CompanyHQ.Appointments.Services;
 
 /// <summary>
 /// Appointment diaries. A member reaches only their own rows; a caller whose role grants

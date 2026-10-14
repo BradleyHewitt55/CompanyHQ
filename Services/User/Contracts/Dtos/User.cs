@@ -1,9 +1,9 @@
 using System.Text.Json.Serialization;
 
-using CompanyHQ.Services.Postgres.Contracts;
-using CompanyHQ.Services.Users.Contracts.Enums;
+using CompanyHQ.Postgres.Contracts;
+using CompanyHQ.Users.Contracts.Enums;
 
-namespace CompanyHQ.Services.Users.Contracts.Dtos;
+namespace CompanyHQ.Users.Contracts.Dtos;
 
 /// <summary>Public profile content without account identifiers, contact details, or role.</summary>
 [JsonDerivedType(typeof(OwnerUserDto))]

@@ -4,8 +4,8 @@
     <TargetFramework>net10.0</TargetFramework>
     <Nullable>enable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
-    <AssemblyName>CompanyHQ.Services.Postgres.Contracts</AssemblyName>
-    <RootNamespace>CompanyHQ.Services.Postgres.Contracts</RootNamespace>
+    <AssemblyName>CompanyHQ.Postgres.Contracts</AssemblyName>
+    <RootNamespace>CompanyHQ.Postgres.Contracts</RootNamespace>
   </PropertyGroup>
 
   <!--

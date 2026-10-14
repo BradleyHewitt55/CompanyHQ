@@ -1,4 +1,4 @@
-namespace CompanyHQ.Services.Postgres.Contracts;
+namespace CompanyHQ.Postgres.Contracts;
 
 /// <summary>Stable permission names stored on role rows and evaluated on every request.</summary>
 public static class AccessPermissions

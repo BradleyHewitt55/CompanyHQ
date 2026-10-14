@@ -1,4 +1,4 @@
-namespace CompanyHQ.Services.Cache.Contracts.Ports;
+namespace CompanyHQ.Cache.Contracts.Ports;
 
 /// <summary>
 /// The transport Cache stores its entries through. Cache fills it itself with the host's Redis

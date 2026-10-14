@@ -1,4 +1,4 @@
-namespace CompanyHQ.Services.Moderation.Contracts.Captures;
+namespace CompanyHQ.Moderation.Contracts.Captures;
 
 /// <summary>Resolution and frozen evidence returned by a reportable content adapter.</summary>
 public sealed record ReportableContentCaptureResult(

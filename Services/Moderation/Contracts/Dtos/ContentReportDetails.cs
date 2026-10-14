@@ -1,6 +1,6 @@
-using CompanyHQ.Services.Moderation.Contracts.Enums;
+using CompanyHQ.Moderation.Contracts.Enums;
 
-namespace CompanyHQ.Services.Moderation.Contracts.Dtos;
+namespace CompanyHQ.Moderation.Contracts.Dtos;
 
 /// <summary>The queue shape plus frozen evidence for an operator's detail view.</summary>
 public sealed record AdminContentReportDetailsDto(

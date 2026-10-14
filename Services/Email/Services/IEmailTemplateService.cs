@@ -1,7 +1,7 @@
-using CompanyHQ.Services.Email.Contracts.Dtos;
-using CompanyHQ.Services.Email.Contracts.Ports;
+using CompanyHQ.Email.Contracts.Dtos;
+using CompanyHQ.Email.Contracts.Ports;
 
-namespace CompanyHQ.Services.Email.Services;
+namespace CompanyHQ.Email.Services;
 
 /// <summary>
 /// Template management for the admin routes and MCP tools, plus the <see cref="IEmailTemplateSender"/>

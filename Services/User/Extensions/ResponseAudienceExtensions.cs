@@ -1,9 +1,9 @@
 using System.Security.Claims;
 
-using CompanyHQ.Services.Auth.Contracts.Identity;
-using CompanyHQ.Services.Postgres.Contracts.Enums;
+using CompanyHQ.Auth.Contracts.Identity;
+using CompanyHQ.Postgres.Contracts.Enums;
 
-namespace CompanyHQ.Services.Users.Extensions;
+namespace CompanyHQ.Users.Extensions;
 
 /// <summary>
 /// Resolves which DTO shape a caller gets. Every controller that varies its response by access goes

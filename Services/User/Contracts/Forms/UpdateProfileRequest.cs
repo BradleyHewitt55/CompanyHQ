@@ -1,6 +1,6 @@
 using System.ComponentModel.DataAnnotations;
 
-namespace CompanyHQ.Services.Users.Contracts.Forms;
+namespace CompanyHQ.Users.Contracts.Forms;
 
 /// <summary>
 /// Body for <c>PUT /api/users/me</c>. Deliberately not <see cref="UpdateUserRequest"/>: this one is

@@ -1,8 +1,8 @@
 using System.Text.Json.Serialization;
 
-using CompanyHQ.Services.Postgres.Contracts.Serialization;
+using CompanyHQ.Postgres.Contracts.Serialization;
 
-namespace CompanyHQ.Services.Mcp.Contracts.Enums;
+namespace CompanyHQ.Mcp.Contracts.Enums;
 
 /// <summary>
 /// A ceiling, not a grant — effective capability is <c>min(UserRole, AgentKeyAccess)</c>. <c>ReadOnly</c>

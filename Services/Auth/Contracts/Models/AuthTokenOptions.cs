@@ -1,6 +1,6 @@
-using CompanyHQ.Services.Auth.Contracts.Enums;
+using CompanyHQ.Auth.Contracts.Enums;
 
-namespace CompanyHQ.Services.Auth.Contracts.Models;
+namespace CompanyHQ.Auth.Contracts.Models;
 
 /// <summary>
 /// Lifetimes for each <see cref="AuthTokenPurpose"/> and the web origin every token-carrying email

@@ -1,7 +1,7 @@
-using CompanyHQ.Services.Media.Contracts.Enums;
-using CompanyHQ.Services.Persistence.Contracts.Models;
+using CompanyHQ.Media.Contracts.Enums;
+using CompanyHQ.Persistence.Contracts.Models;
 
-namespace CompanyHQ.Services.Media.Contracts.Models;
+namespace CompanyHQ.Media.Contracts.Models;
 
 /// <summary>Postgres metadata for one CompanyHQ media object.</summary>
 public sealed class MediaObject : BaseModel

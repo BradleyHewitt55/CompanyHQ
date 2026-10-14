@@ -1,6 +1,6 @@
 using System.ComponentModel.DataAnnotations;
 
-namespace CompanyHQ.Services.GitHub.Contracts.Forms;
+namespace CompanyHQ.GitHub.Contracts.Forms;
 
 /// <summary>
 /// One issue to file. Never bound from a request body here: the caller is whichever service

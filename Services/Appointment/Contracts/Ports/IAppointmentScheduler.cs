@@ -1,7 +1,7 @@
-using CompanyHQ.Services.Appointments.Contracts.Dtos;
-using CompanyHQ.Services.Appointments.Contracts.Forms;
+using CompanyHQ.Appointments.Contracts.Dtos;
+using CompanyHQ.Appointments.Contracts.Forms;
 
-namespace CompanyHQ.Services.Appointments.Contracts.Ports;
+namespace CompanyHQ.Appointments.Contracts.Ports;
 
 /// <summary>
 /// The port another service calls to put an appointment in a member's diary on their behalf.

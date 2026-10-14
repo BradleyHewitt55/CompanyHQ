@@ -1,6 +1,6 @@
-using CompanyHQ.Services.Email.Contracts.Ports;
+using CompanyHQ.Email.Contracts.Ports;
 
-namespace CompanyHQ.Services.Email.Services;
+namespace CompanyHQ.Email.Services;
 
 internal sealed record EmailTemplateDefinition(
     string Key,

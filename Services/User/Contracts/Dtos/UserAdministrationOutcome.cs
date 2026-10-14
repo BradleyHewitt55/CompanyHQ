@@ -1,6 +1,6 @@
-using CompanyHQ.Services.Users.Contracts.Enums;
+using CompanyHQ.Users.Contracts.Enums;
 
-namespace CompanyHQ.Services.Users.Contracts.Dtos;
+namespace CompanyHQ.Users.Contracts.Dtos;
 
 /// <summary>A user administration result with a safe, controller-mappable error.</summary>
 public readonly record struct UserAdministrationOutcome(

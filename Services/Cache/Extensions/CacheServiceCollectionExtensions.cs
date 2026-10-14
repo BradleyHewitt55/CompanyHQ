@@ -1,11 +1,11 @@
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Diagnostics.HealthChecks;
-using CompanyHQ.Services.Cache.Contracts.Models;
-using CompanyHQ.Services.Cache.Contracts.Ports;
-using CompanyHQ.Services.Cache.Services;
+using CompanyHQ.Cache.Contracts.Models;
+using CompanyHQ.Cache.Contracts.Ports;
+using CompanyHQ.Cache.Services;
 
-namespace CompanyHQ.Services.Cache.Extensions;
+namespace CompanyHQ.Cache.Extensions;
 
 /// <summary>
 /// Single registration entry point for the CompanyHQ Cache service.

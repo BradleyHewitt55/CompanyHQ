@@ -1,8 +1,8 @@
 using System.Globalization;
 
-using CompanyHQ.Services.Shipping.Contracts.Enums;
+using CompanyHQ.Shipping.Contracts.Enums;
 
-namespace CompanyHQ.Services.Shipping.Services;
+namespace CompanyHQ.Shipping.Services;
 
 /// <summary>The two measurements a quote rests on: does a postal code fall in a rule, and how far apart are two points.</summary>
 internal static class ShippingRules

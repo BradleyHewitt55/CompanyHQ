@@ -6,11 +6,11 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.RateLimiting;
 using Microsoft.Extensions.DependencyInjection;
 
-using CompanyHQ.Services.Moderation.Contracts.Ports;
-using CompanyHQ.Services.Moderation.Services;
-using CompanyHQ.Services.Auth.Contracts.Identity;
+using CompanyHQ.Moderation.Contracts.Ports;
+using CompanyHQ.Moderation.Services;
+using CompanyHQ.Auth.Contracts.Identity;
 
-namespace CompanyHQ.Services.Moderation.Extensions;
+namespace CompanyHQ.Moderation.Extensions;
 
 /// <summary>Registers the moderation service and its controller assembly.</summary>
 public static class ModerationServiceCollectionExtensions

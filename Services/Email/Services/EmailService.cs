@@ -1,9 +1,9 @@
 using Microsoft.Extensions.DependencyInjection;
-using CompanyHQ.Services.Email.Contracts.Models;
-using CompanyHQ.Services.Email.Contracts.Ports;
-using CompanyHQ.Services.Persistence.Services;
+using CompanyHQ.Email.Contracts.Models;
+using CompanyHQ.Email.Contracts.Ports;
+using CompanyHQ.Persistence.Services;
 
-namespace CompanyHQ.Services.Email.Services;
+namespace CompanyHQ.Email.Services;
 
 /// <summary>
 /// Validates a message and stores it for <see cref="EmailWorker"/>. Nothing here calls the provider,

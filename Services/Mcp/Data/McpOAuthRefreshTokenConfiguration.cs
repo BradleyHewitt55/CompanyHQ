@@ -1,10 +1,10 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
-using CompanyHQ.Services.Mcp.Contracts.Models;
-using CompanyHQ.Services.Users.Contracts.Models;
+using CompanyHQ.Mcp.Contracts.Models;
+using CompanyHQ.Users.Contracts.Models;
 
-namespace CompanyHQ.Services.Mcp.Data;
+namespace CompanyHQ.Mcp.Data;
 
 internal sealed class McpOAuthRefreshTokenConfiguration : IEntityTypeConfiguration<McpOAuthRefreshToken>
 {

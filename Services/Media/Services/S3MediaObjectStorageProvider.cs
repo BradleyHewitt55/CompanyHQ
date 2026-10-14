@@ -5,11 +5,11 @@ using Amazon.Runtime;
 using Amazon.S3;
 using Amazon.S3.Model;
 
-using CompanyHQ.Services.Media.Contracts.Enums;
-using CompanyHQ.Services.Media.Contracts.Models;
-using CompanyHQ.Services.Media.Contracts.Ports;
+using CompanyHQ.Media.Contracts.Enums;
+using CompanyHQ.Media.Contracts.Models;
+using CompanyHQ.Media.Contracts.Ports;
 
-namespace CompanyHQ.Services.Media.Services;
+namespace CompanyHQ.Media.Services;
 
 /// <summary>
 /// Media's object-storage port over the host's <see cref="IAmazonS3"/> client. The host points that

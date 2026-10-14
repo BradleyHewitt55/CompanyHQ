@@ -1,4 +1,4 @@
-namespace CompanyHQ.Services.Geo.Contracts.Ports;
+namespace CompanyHQ.Geo.Contracts.Ports;
 
 /// <summary>
 /// A named area as a provider knows it. The coordinates are null when the provider gave no usable

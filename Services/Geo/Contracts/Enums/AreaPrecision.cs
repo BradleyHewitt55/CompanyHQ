@@ -1,8 +1,8 @@
 using System.Text.Json.Serialization;
 
-using CompanyHQ.Services.Postgres.Contracts.Serialization;
+using CompanyHQ.Postgres.Contracts.Serialization;
 
-namespace CompanyHQ.Services.Geo.Contracts.Enums;
+namespace CompanyHQ.Geo.Contracts.Enums;
 
 /// <summary>
 /// How the coordinates behind an area were obtained. It travels with the answer so the UI can say

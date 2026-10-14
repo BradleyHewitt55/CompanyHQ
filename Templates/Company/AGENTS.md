@@ -1,7 +1,7 @@
 # Company project
 
 - The company owns its API, apps, configuration, and scripts; generic service changes belong upstream.
-- This starter is a plain ASP.NET API that references only the generic packages it uses (CompanyHQ.Services.Rss
+- This starter is a plain ASP.NET API that references only the generic packages it uses (CompanyHQ.Rss
   and its Contracts to begin with). There is no HQ host, `CompanyHQ.Api`, demo, test project, website or assets.
 - Add a generic module by referencing its package and Contracts package at the pinned version and
   registering it in `Apps/Api/Program.cs`. The company owns that registration and everything the module

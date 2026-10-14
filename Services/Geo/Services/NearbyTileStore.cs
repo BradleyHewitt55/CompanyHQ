@@ -1,10 +1,10 @@
 using System.Globalization;
-using CompanyHQ.Services.Cache.Services;
-using CompanyHQ.Services.Geo.Contracts.Dtos;
-using CompanyHQ.Services.Geo.Contracts.Models;
-using CompanyHQ.Services.Geo.Contracts.Ports;
+using CompanyHQ.Cache.Services;
+using CompanyHQ.Geo.Contracts.Dtos;
+using CompanyHQ.Geo.Contracts.Models;
+using CompanyHQ.Geo.Contracts.Ports;
 
-namespace CompanyHQ.Services.Geo.Services;
+namespace CompanyHQ.Geo.Services;
 
 /// <summary>
 /// Reads and writes the per-tile nearby-place cache, and owns the one provider call that fills it.

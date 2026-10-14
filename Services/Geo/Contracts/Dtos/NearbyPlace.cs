@@ -1,4 +1,4 @@
-namespace CompanyHQ.Services.Geo.Contracts.Dtos;
+namespace CompanyHQ.Geo.Contracts.Dtos;
 
 /// <summary>One place of a configured kind inside the requested viewport.</summary>
 /// <remarks>

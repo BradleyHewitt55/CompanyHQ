@@ -1,9 +1,9 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
-using CompanyHQ.Services.Messages.Contracts.Models;
-using CompanyHQ.Services.Users.Contracts.Models;
+using CompanyHQ.Messages.Contracts.Models;
+using CompanyHQ.Users.Contracts.Models;
 
-namespace CompanyHQ.Services.Messages.Data;
+namespace CompanyHQ.Messages.Data;
 
 internal sealed class MessageConfiguration : IEntityTypeConfiguration<Message>
 {

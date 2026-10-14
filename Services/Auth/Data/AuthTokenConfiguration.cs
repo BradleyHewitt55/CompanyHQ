@@ -1,10 +1,10 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
-using CompanyHQ.Services.Auth.Contracts.Models;
-using CompanyHQ.Services.Users.Contracts.Models;
+using CompanyHQ.Auth.Contracts.Models;
+using CompanyHQ.Users.Contracts.Models;
 
-namespace CompanyHQ.Services.Auth.Data;
+namespace CompanyHQ.Auth.Data;
 
 internal sealed class AuthTokenConfiguration : IEntityTypeConfiguration<AuthToken>
 {

@@ -1,7 +1,7 @@
-using CompanyHQ.Services.Moderation.Contracts.Enums;
-using CompanyHQ.Services.Persistence.Contracts.Models;
+using CompanyHQ.Moderation.Contracts.Enums;
+using CompanyHQ.Persistence.Contracts.Models;
 
-namespace CompanyHQ.Services.Moderation.Contracts.Models;
+namespace CompanyHQ.Moderation.Contracts.Models;
 
 /// <summary>Append-only history for one accepted report status transition.</summary>
 public sealed class ContentReportDecision : BaseModel

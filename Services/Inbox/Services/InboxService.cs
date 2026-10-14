@@ -1,12 +1,12 @@
-using CompanyHQ.Services.Inbox.Contracts.Dtos;
-using CompanyHQ.Services.Inbox.Contracts.Enums;
-using CompanyHQ.Services.Inbox.Contracts.Ports;
-using CompanyHQ.Services.Postgres.Contracts;
-using CompanyHQ.Services.Postgres.Contracts.Dtos;
-using CompanyHQ.Services.Postgres.Contracts.Forms;
-using CompanyHQ.Services.Users.Services;
+using CompanyHQ.Inbox.Contracts.Dtos;
+using CompanyHQ.Inbox.Contracts.Enums;
+using CompanyHQ.Inbox.Contracts.Ports;
+using CompanyHQ.Postgres.Contracts;
+using CompanyHQ.Postgres.Contracts.Dtos;
+using CompanyHQ.Postgres.Contracts.Forms;
+using CompanyHQ.Users.Services;
 
-namespace CompanyHQ.Services.Inbox.Services;
+namespace CompanyHQ.Inbox.Services;
 
 /// <inheritdoc cref="IInboxService" />
 internal sealed class InboxService(

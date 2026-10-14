@@ -1,4 +1,4 @@
-namespace CompanyHQ.Services.Inbox.Contracts.Ports;
+namespace CompanyHQ.Inbox.Contracts.Ports;
 
 /// <summary>
 /// Mails a staff reply to the visitor. Optional: with no bridge the reply is still stored and the

@@ -1,4 +1,4 @@
-namespace CompanyHQ.Services.Mcp.Contracts.Models;
+namespace CompanyHQ.Mcp.Contracts.Models;
 
 /// <summary>Public OAuth endpoints and lifetimes for the CompanyHQ MCP resource.</summary>
 public sealed class McpOAuthOptions

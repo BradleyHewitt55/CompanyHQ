@@ -4,8 +4,8 @@
     <TargetFramework>net10.0</TargetFramework>
     <Nullable>enable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
-    <AssemblyName>CompanyHQ.Services.Media</AssemblyName>
-    <RootNamespace>CompanyHQ.Services.Media</RootNamespace>
+    <AssemblyName>CompanyHQ.Media</AssemblyName>
+    <RootNamespace>CompanyHQ.Media</RootNamespace>
   </PropertyGroup>
 
   <ItemGroup>

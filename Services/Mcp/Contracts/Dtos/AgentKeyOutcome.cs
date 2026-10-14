@@ -1,6 +1,6 @@
-using CompanyHQ.Services.Mcp.Contracts.Enums;
+using CompanyHQ.Mcp.Contracts.Enums;
 
-namespace CompanyHQ.Services.Mcp.Contracts.Dtos;
+namespace CompanyHQ.Mcp.Contracts.Dtos;
 
 /// <summary>A rejected create is an expected outcome, not an exception.</summary>
 public readonly record struct AgentKeyOutcome(IssuedAgentKeyDto? Key, AgentKeyError Error)

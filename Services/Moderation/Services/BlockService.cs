@@ -1,15 +1,15 @@
 
-using CompanyHQ.Services.Cache.Services;
-using CompanyHQ.Services.Moderation.Contracts.Dtos;
-using CompanyHQ.Services.Moderation.Contracts.Enums;
-using CompanyHQ.Services.Moderation.Contracts.Forms;
-using CompanyHQ.Services.Moderation.Contracts.Models;
-using CompanyHQ.Services.Postgres.Contracts.Dtos;
-using CompanyHQ.Services.Postgres.Contracts.Forms;
-using CompanyHQ.Services.Persistence.Services;
-using CompanyHQ.Services.Users.Contracts.Models;
+using CompanyHQ.Cache.Services;
+using CompanyHQ.Moderation.Contracts.Dtos;
+using CompanyHQ.Moderation.Contracts.Enums;
+using CompanyHQ.Moderation.Contracts.Forms;
+using CompanyHQ.Moderation.Contracts.Models;
+using CompanyHQ.Postgres.Contracts.Dtos;
+using CompanyHQ.Postgres.Contracts.Forms;
+using CompanyHQ.Persistence.Services;
+using CompanyHQ.Users.Contracts.Models;
 
-namespace CompanyHQ.Services.Moderation.Services;
+namespace CompanyHQ.Moderation.Services;
 
 /// <inheritdoc cref="IBlockService" />
 public sealed class BlockService(

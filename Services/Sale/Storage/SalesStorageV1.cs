@@ -1,4 +1,4 @@
-namespace CompanyHQ.Services.Sales.Storage;
+namespace CompanyHQ.Sales.Storage;
 
 // Frozen persisted schema, independent of Contracts. Add a version to evolve storage.
 internal sealed record CatalogDefinitionV1(string Name,

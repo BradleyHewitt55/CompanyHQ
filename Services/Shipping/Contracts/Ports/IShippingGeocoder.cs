@@ -1,6 +1,6 @@
-using CompanyHQ.Services.Shipping.Contracts.Dtos;
+using CompanyHQ.Shipping.Contracts.Dtos;
 
-namespace CompanyHQ.Services.Shipping.Contracts.Ports;
+namespace CompanyHQ.Shipping.Contracts.Ports;
 
 /// <summary>
 /// Turns an address into coordinates. Optional: without it only an address that already carries

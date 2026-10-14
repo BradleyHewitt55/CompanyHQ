@@ -4,8 +4,8 @@
     <TargetFramework>net10.0</TargetFramework>
     <Nullable>enable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
-    <AssemblyName>CompanyHQ.Services.Mcp</AssemblyName>
-    <RootNamespace>CompanyHQ.Services.Mcp</RootNamespace>
+    <AssemblyName>CompanyHQ.Mcp</AssemblyName>
+    <RootNamespace>CompanyHQ.Mcp</RootNamespace>
   </PropertyGroup>
 
   <ItemGroup>

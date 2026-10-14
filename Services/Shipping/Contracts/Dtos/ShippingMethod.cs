@@ -1,8 +1,8 @@
 using System.Text.Json.Serialization;
 
-using CompanyHQ.Services.Shipping.Contracts.Enums;
+using CompanyHQ.Shipping.Contracts.Enums;
 
-namespace CompanyHQ.Services.Shipping.Contracts.Dtos;
+namespace CompanyHQ.Shipping.Contracts.Dtos;
 
 /// <summary>An active shipping method as anyone may see it.</summary>
 [JsonDerivedType(typeof(AdminShippingMethodDto))]

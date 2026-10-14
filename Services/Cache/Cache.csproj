@@ -4,8 +4,8 @@
     <TargetFramework>net10.0</TargetFramework>
     <Nullable>enable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
-    <AssemblyName>CompanyHQ.Services.Cache</AssemblyName>
-    <RootNamespace>CompanyHQ.Services.Cache</RootNamespace>
+    <AssemblyName>CompanyHQ.Cache</AssemblyName>
+    <RootNamespace>CompanyHQ.Cache</RootNamespace>
   </PropertyGroup>
 
   <ItemGroup>

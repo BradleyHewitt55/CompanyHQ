@@ -33,7 +33,7 @@ jobs:
         # A pushed package is validated and indexed before it can be restored, which takes minutes.
         run: |
           [[ "$VERSION" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]] || { echo 'version must be X.Y.Z'; exit 1; }
-          for package in companyhq.services.rss companyhq.services.rss.contracts; do
+          for package in companyhq.rss companyhq.rss.contracts; do
             for attempt in $(seq 1 60); do
               curl -fsS -o /dev/null "https://api.nuget.org/v3-flatcontainer/$package/$VERSION/$package.nuspec" && continue 2
               sleep 30
@@ -62,7 +62,7 @@ jobs:
               for (const framework of project.frameworks ?? [])
                 for (const p of [...(framework.topLevelPackages ?? []), ...(framework.transitivePackages ?? [])])
                   if (/^CompanyHQ\./i.test(p.id)) resolved.set(p.id, p.resolvedVersion);
-            const expected = ["CompanyHQ.Services.Rss", "CompanyHQ.Services.Rss.Contracts"];
+            const expected = ["CompanyHQ.Rss", "CompanyHQ.Rss.Contracts"];
             const actual = [...resolved.keys()].sort();
             console.log(JSON.stringify(Object.fromEntries(resolved)));
             if (JSON.stringify(actual) !== JSON.stringify(expected) || [...resolved.values()].some(v => v !== version)) {

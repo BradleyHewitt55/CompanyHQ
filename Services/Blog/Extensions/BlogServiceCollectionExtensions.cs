@@ -1,7 +1,7 @@
 using Microsoft.Extensions.DependencyInjection;
-using CompanyHQ.Services.Blogs.Services;
+using CompanyHQ.Blogs.Services;
 
-namespace CompanyHQ.Services.Blogs.Extensions;
+namespace CompanyHQ.Blogs.Extensions;
 
 /// <summary>Registers the blog content service and its controller assembly.</summary>
 public static class BlogServiceCollectionExtensions

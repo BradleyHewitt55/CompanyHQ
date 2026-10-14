@@ -1,6 +1,6 @@
-using CompanyHQ.Services.Postgres.Contracts.Forms;
+using CompanyHQ.Postgres.Contracts.Forms;
 
-namespace CompanyHQ.Services.Postgres.Contracts.Dtos;
+namespace CompanyHQ.Postgres.Contracts.Dtos;
 
 /// <summary>
 /// One page of results plus the totals a client needs to render paging controls.

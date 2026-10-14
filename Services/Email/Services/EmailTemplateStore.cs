@@ -1,7 +1,7 @@
-using CompanyHQ.Services.Email.Contracts.Models;
-using CompanyHQ.Services.Persistence.Services;
+using CompanyHQ.Email.Contracts.Models;
+using CompanyHQ.Persistence.Services;
 
-namespace CompanyHQ.Services.Email.Services;
+namespace CompanyHQ.Email.Services;
 
 internal sealed class EmailTemplateStore(IRepository<EmailTemplate> templates) : IEmailTemplateStore
 {

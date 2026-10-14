@@ -1,11 +1,11 @@
-using CompanyHQ.Services.GitHub.Contracts.Dtos;
-using CompanyHQ.Services.GitHub.Contracts.Enums;
-using CompanyHQ.Services.GitHub.Contracts.Forms;
-using CompanyHQ.Services.Postgres.Contracts.Dtos;
-using CompanyHQ.Services.Postgres.Contracts.Enums;
-using CompanyHQ.Services.Postgres.Contracts.Forms;
+using CompanyHQ.GitHub.Contracts.Dtos;
+using CompanyHQ.GitHub.Contracts.Enums;
+using CompanyHQ.GitHub.Contracts.Forms;
+using CompanyHQ.Postgres.Contracts.Dtos;
+using CompanyHQ.Postgres.Contracts.Enums;
+using CompanyHQ.Postgres.Contracts.Forms;
 
-namespace CompanyHQ.Services.GitHub.Services;
+namespace CompanyHQ.GitHub.Services;
 
 /// <summary>
 /// The connected repository and its issues. Every method that takes an acting user checks

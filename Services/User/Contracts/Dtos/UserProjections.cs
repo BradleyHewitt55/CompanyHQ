@@ -1,9 +1,9 @@
 using System.Linq.Expressions;
 
-using CompanyHQ.Services.Postgres.Contracts.Enums;
-using CompanyHQ.Services.Users.Contracts.Models;
+using CompanyHQ.Postgres.Contracts.Enums;
+using CompanyHQ.Users.Contracts.Models;
 
-namespace CompanyHQ.Services.Users.Contracts.Dtos;
+namespace CompanyHQ.Users.Contracts.Dtos;
 
 /// <summary>SQL projections for each account audience.</summary>
 public static class UserProjections

@@ -1,6 +1,6 @@
-using CompanyHQ.Services.Notifications.Contracts.Enums;
+using CompanyHQ.Notifications.Contracts.Enums;
 
-namespace CompanyHQ.Services.Notifications.Contracts.Ports;
+namespace CompanyHQ.Notifications.Contracts.Ports;
 
 /// <summary>Opaque delivery input supplied by a domain service.</summary>
 public sealed record NotificationRequest(

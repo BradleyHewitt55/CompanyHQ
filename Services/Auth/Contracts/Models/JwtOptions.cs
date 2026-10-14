@@ -1,4 +1,4 @@
-namespace CompanyHQ.Services.Auth.Contracts.Models;
+namespace CompanyHQ.Auth.Contracts.Models;
 
 /// <summary>
 /// Token issuing and validation settings, from the <see cref="SectionName"/> configuration section

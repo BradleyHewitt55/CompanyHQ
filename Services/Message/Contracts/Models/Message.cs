@@ -1,6 +1,6 @@
-using CompanyHQ.Services.Persistence.Contracts.Models;
+using CompanyHQ.Persistence.Contracts.Models;
 
-namespace CompanyHQ.Services.Messages.Contracts.Models;
+namespace CompanyHQ.Messages.Contracts.Models;
 
 /// <summary>One immutable text message in a conversation.</summary>
 public sealed class Message : BaseModel

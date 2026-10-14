@@ -1,4 +1,4 @@
-namespace CompanyHQ.Services.Geo.Contracts.Ports;
+namespace CompanyHQ.Geo.Contracts.Ports;
 
 /// <summary>
 /// The geographic data source behind Geo: names an area, searches areas by text, and finds places

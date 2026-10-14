@@ -1,4 +1,4 @@
-namespace CompanyHQ.Services.Mcp.Contracts.Models;
+namespace CompanyHQ.Mcp.Contracts.Models;
 
 /// <summary>Claims an agent-key principal carries that a human's JWT never does.</summary>
 public static class McpClaims

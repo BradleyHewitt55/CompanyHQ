@@ -1,6 +1,6 @@
-using CompanyHQ.Services.Postgres.Data;
+using CompanyHQ.Postgres.Data;
 
-namespace CompanyHQ.Services.Postgres.Services;
+namespace CompanyHQ.Postgres.Services;
 
 /// <summary>
 /// A unit of startup data that must exist before the host serves traffic. Implementations run after

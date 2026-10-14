@@ -1,12 +1,12 @@
-using CompanyHQ.Services.Auth.Services;
-using CompanyHQ.Services.Blogs.Contracts.Ports;
-using CompanyHQ.Services.Contact.Contracts.Ports;
-using CompanyHQ.Services.Inbox.Contracts.Ports;
-using CompanyHQ.Services.Media.Contracts.Ports;
-using CompanyHQ.Services.Messages.Contracts.Ports;
-using CompanyHQ.Services.Moderation.Contracts.Ports;
-using CompanyHQ.Services.Notifications.Contracts.Ports;
-using CompanyHQ.Services.Widget.Contracts.Ports;
+using CompanyHQ.Auth.Services;
+using CompanyHQ.Blogs.Contracts.Ports;
+using CompanyHQ.Contact.Contracts.Ports;
+using CompanyHQ.Inbox.Contracts.Ports;
+using CompanyHQ.Media.Contracts.Ports;
+using CompanyHQ.Messages.Contracts.Ports;
+using CompanyHQ.Moderation.Contracts.Ports;
+using CompanyHQ.Notifications.Contracts.Ports;
+using CompanyHQ.Widget.Contracts.Ports;
 
 namespace Api.Integrations;
 
@@ -50,14 +50,14 @@ public static class IntegrationServiceCollectionExtensions
 
         services.AddScoped<IMessageNotifier, MessagePushNotifier>();
 
-        services.AddScoped<CompanyHQ.Services.Sales.Contracts.Ports.ISalesProfitShipping, SalesProfitShippingBridge>();
-        services.AddScoped<CompanyHQ.Services.Sales.Contracts.Ports.ISalesDocumentDelivery, SalesDocumentDelivery>();
-        services.AddScoped<CompanyHQ.Services.Sales.Contracts.Ports.ISalesShipping, SalesShippingBridge>();
-        services.AddScoped<CompanyHQ.Services.Sales.Contracts.Ports.ISalesCustomer, SalesCustomerBridge>();
-        services.AddScoped<CompanyHQ.Services.Shipping.Contracts.Ports.IShippingCatalog, ShippingCatalogBridge>();
-        services.AddScoped<CompanyHQ.Services.Shipping.Contracts.Ports.IShippingDiscountPolicy, ShippingDiscountBridge>();
-        services.AddScoped<CompanyHQ.Services.Shipping.Contracts.Ports.IShippingAddressDirectory, ShippingAddressDirectoryBridge>();
-        services.AddScoped<CompanyHQ.Services.Shipping.Contracts.Ports.IShippingGeocoder, ShippingGeocoderBridge>();
+        services.AddScoped<CompanyHQ.Sales.Contracts.Ports.ISalesProfitShipping, SalesProfitShippingBridge>();
+        services.AddScoped<CompanyHQ.Sales.Contracts.Ports.ISalesDocumentDelivery, SalesDocumentDelivery>();
+        services.AddScoped<CompanyHQ.Sales.Contracts.Ports.ISalesShipping, SalesShippingBridge>();
+        services.AddScoped<CompanyHQ.Sales.Contracts.Ports.ISalesCustomer, SalesCustomerBridge>();
+        services.AddScoped<CompanyHQ.Shipping.Contracts.Ports.IShippingCatalog, ShippingCatalogBridge>();
+        services.AddScoped<CompanyHQ.Shipping.Contracts.Ports.IShippingDiscountPolicy, ShippingDiscountBridge>();
+        services.AddScoped<CompanyHQ.Shipping.Contracts.Ports.IShippingAddressDirectory, ShippingAddressDirectoryBridge>();
+        services.AddScoped<CompanyHQ.Shipping.Contracts.Ports.IShippingGeocoder, ShippingGeocoderBridge>();
         return services;
     }
 }

@@ -1,8 +1,8 @@
-using CompanyHQ.Services.Blogs.Contracts.Ports;
-using CompanyHQ.Services.Media.Contracts.Enums;
-using CompanyHQ.Services.Media.Contracts.Models;
-using CompanyHQ.Services.Media.Services;
-using CompanyHQ.Services.Persistence.Services;
+using CompanyHQ.Blogs.Contracts.Ports;
+using CompanyHQ.Media.Contracts.Enums;
+using CompanyHQ.Media.Contracts.Models;
+using CompanyHQ.Media.Services;
+using CompanyHQ.Persistence.Services;
 
 namespace Api.Integrations;
 

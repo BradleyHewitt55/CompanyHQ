@@ -1,8 +1,8 @@
 using System.Linq.Expressions;
-using CompanyHQ.Services.Blogs.Contracts.Models;
-using CompanyHQ.Services.Postgres.Contracts.Enums;
+using CompanyHQ.Blogs.Contracts.Models;
+using CompanyHQ.Postgres.Contracts.Enums;
 
-namespace CompanyHQ.Services.Blogs.Contracts.Dtos;
+namespace CompanyHQ.Blogs.Contracts.Dtos;
 
 /// <summary>SQL projections and write-result mapping for blog content.</summary>
 public static class BlogPostProjections

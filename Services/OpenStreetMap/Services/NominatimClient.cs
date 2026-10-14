@@ -5,9 +5,9 @@ using System.Text.Json;
 
 using Microsoft.Extensions.Logging;
 
-using CompanyHQ.Services.OpenStreetMap.Contracts.Dtos;
+using CompanyHQ.OpenStreetMap.Contracts.Dtos;
 
-namespace CompanyHQ.Services.OpenStreetMap.Services;
+namespace CompanyHQ.OpenStreetMap.Services;
 
 /// <summary>
 /// The only place CompanyHQ talks to Nominatim. It owns the HTTP concern — rate limiting, transport

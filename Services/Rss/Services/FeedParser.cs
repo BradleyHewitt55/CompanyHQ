@@ -4,10 +4,10 @@ using System.Text;
 using System.Text.RegularExpressions;
 using System.Xml;
 using System.Xml.Linq;
-using CompanyHQ.Services.Rss.Contracts.Dtos;
-using CompanyHQ.Services.Rss.Contracts.Enums;
+using CompanyHQ.Rss.Contracts.Dtos;
+using CompanyHQ.Rss.Contracts.Enums;
 
-namespace CompanyHQ.Services.Rss.Services;
+namespace CompanyHQ.Rss.Services;
 
 /// <summary>
 /// Reads an RSS or Atom document into <see cref="FeedDto"/>. The bytes are untrusted: the XML

@@ -1,8 +1,8 @@
 using System.Text.Json.Serialization;
 
-using CompanyHQ.Services.Postgres.Contracts.Serialization;
+using CompanyHQ.Postgres.Contracts.Serialization;
 
-namespace CompanyHQ.Services.Media.Contracts.Enums;
+namespace CompanyHQ.Media.Contracts.Enums;
 
 /// <summary>The consuming feature that owns a media object's access policy.</summary>
 [JsonConverter(typeof(StrictStringEnumConverter<MediaScope>))]

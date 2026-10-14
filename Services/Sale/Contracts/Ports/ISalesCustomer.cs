@@ -1,4 +1,4 @@
-namespace CompanyHQ.Services.Sales.Contracts.Ports;
+namespace CompanyHQ.Sales.Contracts.Ports;
 /// <summary>Authenticated profile resolution prevents checkout from impersonating another customer.</summary>
 public interface ISalesCustomer
 {

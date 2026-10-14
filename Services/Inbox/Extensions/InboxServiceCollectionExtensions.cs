@@ -1,9 +1,9 @@
 using Microsoft.Extensions.DependencyInjection;
 
-using CompanyHQ.Services.Inbox.Contracts.Ports;
-using CompanyHQ.Services.Inbox.Services;
+using CompanyHQ.Inbox.Contracts.Ports;
+using CompanyHQ.Inbox.Services;
 
-namespace CompanyHQ.Services.Inbox.Extensions;
+namespace CompanyHQ.Inbox.Extensions;
 
 /// <summary>Registers the staff inbox, its built-in visitor conversations, and the controller assembly.</summary>
 public static class InboxServiceCollectionExtensions

@@ -1,7 +1,7 @@
 using System.ComponentModel.DataAnnotations;
 using System.Text.Json.Serialization;
 
-namespace CompanyHQ.Services.Mcp.Contracts.Forms;
+namespace CompanyHQ.Mcp.Contracts.Forms;
 
 public sealed record RegisterMcpClientRequest(
     [property: JsonPropertyName("redirect_uris")]

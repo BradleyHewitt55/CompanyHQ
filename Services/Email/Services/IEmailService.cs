@@ -1,7 +1,7 @@
-using CompanyHQ.Services.Email.Contracts.Models;
-using CompanyHQ.Services.Email.Contracts.Ports;
+using CompanyHQ.Email.Contracts.Models;
+using CompanyHQ.Email.Contracts.Ports;
 
-namespace CompanyHQ.Services.Email.Services;
+namespace CompanyHQ.Email.Services;
 
 public interface IEmailService
 {

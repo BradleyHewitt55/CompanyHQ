@@ -1,6 +1,6 @@
-using CompanyHQ.Services.Persistence.Contracts.Models;
+using CompanyHQ.Persistence.Contracts.Models;
 
-namespace CompanyHQ.Services.Blogs.Contracts.Models;
+namespace CompanyHQ.Blogs.Contracts.Models;
 
 /// <summary>A CompanyHQ-owned article prepared for public search and answer engines.</summary>
 public sealed class BlogPost : BaseModel

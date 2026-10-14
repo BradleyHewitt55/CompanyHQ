@@ -4,8 +4,8 @@
     <TargetFramework>net10.0</TargetFramework>
     <Nullable>enable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
-    <AssemblyName>CompanyHQ.Services.Messages</AssemblyName>
-    <RootNamespace>CompanyHQ.Services.Messages</RootNamespace>
+    <AssemblyName>CompanyHQ.Messages</AssemblyName>
+    <RootNamespace>CompanyHQ.Messages</RootNamespace>
   </PropertyGroup>
 
   <ItemGroup>

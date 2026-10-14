@@ -1,6 +1,6 @@
-using CompanyHQ.Services.Email.Contracts.Models;
+using CompanyHQ.Email.Contracts.Models;
 
-namespace CompanyHQ.Services.Email.Services;
+namespace CompanyHQ.Email.Services;
 
 /// <summary>Stores only administrator overrides. Packaged defaults remain in the Email assembly.</summary>
 public interface IEmailTemplateStore

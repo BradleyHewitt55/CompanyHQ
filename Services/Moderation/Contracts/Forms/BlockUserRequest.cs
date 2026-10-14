@@ -1,6 +1,6 @@
 using System.ComponentModel.DataAnnotations;
 
-namespace CompanyHQ.Services.Moderation.Contracts.Forms;
+namespace CompanyHQ.Moderation.Contracts.Forms;
 
 /// <summary>Body for creating an outbound user block.</summary>
 public sealed record BlockUserRequest(

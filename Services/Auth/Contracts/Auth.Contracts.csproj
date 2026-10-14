@@ -4,8 +4,8 @@
     <TargetFramework>net10.0</TargetFramework>
     <Nullable>enable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
-    <AssemblyName>CompanyHQ.Services.Auth.Contracts</AssemblyName>
-    <RootNamespace>CompanyHQ.Services.Auth.Contracts</RootNamespace>
+    <AssemblyName>CompanyHQ.Auth.Contracts</AssemblyName>
+    <RootNamespace>CompanyHQ.Auth.Contracts</RootNamespace>
   </PropertyGroup>
 
   <!--

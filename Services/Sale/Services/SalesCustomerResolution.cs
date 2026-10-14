@@ -1,5 +1,5 @@
-using CompanyHQ.Services.Sales.Contracts.Ports;
-namespace CompanyHQ.Services.Sales.Services;
+using CompanyHQ.Sales.Contracts.Ports;
+namespace CompanyHQ.Sales.Services;
 /// <summary>Registered only for authenticated checkout; its customer port is a required startup dependency.</summary>
 public sealed class SalesCustomerResolution(ISalesCustomer customers)
 {

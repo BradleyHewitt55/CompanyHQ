@@ -1,4 +1,4 @@
-namespace CompanyHQ.Services.Sales.Contracts.Ports;
+namespace CompanyHQ.Sales.Contracts.Ports;
 /// <summary>Active shipping method facts used for explicit hypothetical profit scenarios, not a delivery quote.</summary>
 public interface ISalesProfitShipping
 {

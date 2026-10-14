@@ -11,11 +11,11 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
-using CompanyHQ.Services.Rss.Contracts.Dtos;
-using CompanyHQ.Services.Rss.Contracts.Enums;
-using CompanyHQ.Services.Rss.Contracts.Ports;
-using CompanyHQ.Services.Rss.Extensions;
-using CompanyHQ.Services.Rss.Services;
+using CompanyHQ.Rss.Contracts.Dtos;
+using CompanyHQ.Rss.Contracts.Enums;
+using CompanyHQ.Rss.Contracts.Ports;
+using CompanyHQ.Rss.Extensions;
+using CompanyHQ.Rss.Services;
 using Xunit;
 
 namespace CompanyHQ.Tests;

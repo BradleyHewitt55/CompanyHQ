@@ -1,12 +1,12 @@
-using CompanyHQ.Services.GitHub.Contracts.Enums;
-using CompanyHQ.Services.GitHub.Contracts.Forms;
-using CompanyHQ.Services.GitHub.Services;
-using CompanyHQ.Services.Inbox.Contracts.Enums;
-using CompanyHQ.Services.Inbox.Services;
-using CompanyHQ.Services.Postgres.Contracts.Enums;
-using CompanyHQ.Services.Widget.Contracts.Dtos;
-using CompanyHQ.Services.Widget.Contracts.Enums;
-using CompanyHQ.Services.Widget.Contracts.Ports;
+using CompanyHQ.GitHub.Contracts.Enums;
+using CompanyHQ.GitHub.Contracts.Forms;
+using CompanyHQ.GitHub.Services;
+using CompanyHQ.Inbox.Contracts.Enums;
+using CompanyHQ.Inbox.Services;
+using CompanyHQ.Postgres.Contracts.Enums;
+using CompanyHQ.Widget.Contracts.Dtos;
+using CompanyHQ.Widget.Contracts.Enums;
+using CompanyHQ.Widget.Contracts.Ports;
 
 namespace Api.Integrations;
 

@@ -1,6 +1,6 @@
-using CompanyHQ.Services.Company.Contracts.Dtos;
+using CompanyHQ.Company.Contracts.Dtos;
 
-namespace CompanyHQ.Services.Company.Contracts.Ports;
+namespace CompanyHQ.Company.Contracts.Ports;
 
 /// <summary>
 /// The company profile as another service reads it (for example, to route a contact message to the

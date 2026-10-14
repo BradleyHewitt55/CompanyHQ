@@ -1,8 +1,8 @@
 using System.ComponentModel.DataAnnotations;
 
-using CompanyHQ.Services.Mcp.Contracts.Enums;
+using CompanyHQ.Mcp.Contracts.Enums;
 
-namespace CompanyHQ.Services.Mcp.Contracts.Forms;
+namespace CompanyHQ.Mcp.Contracts.Forms;
 
 public sealed record IssueAgentKeyRequest(
     [Required, MaxLength(60)] string Name,

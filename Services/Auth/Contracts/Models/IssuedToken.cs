@@ -1,4 +1,4 @@
-namespace CompanyHQ.Services.Auth.Contracts.Models;
+namespace CompanyHQ.Auth.Contracts.Models;
 
 /// <summary>A signed bearer token and the instant it stops being accepted.</summary>
 public readonly record struct IssuedAccessToken(string Value, DateTimeOffset ExpiresAt);

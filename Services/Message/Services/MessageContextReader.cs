@@ -1,9 +1,9 @@
 
-using CompanyHQ.Services.Messages.Contracts.Models;
-using CompanyHQ.Services.Messages.Contracts.Ports;
-using CompanyHQ.Services.Persistence.Services;
+using CompanyHQ.Messages.Contracts.Models;
+using CompanyHQ.Messages.Contracts.Ports;
+using CompanyHQ.Persistence.Services;
 
-namespace CompanyHQ.Services.Messages.Services;
+namespace CompanyHQ.Messages.Services;
 
 /// <summary>
 /// Reads one message with a bounded window of its neighbours. Message uses it for spam-flag evidence;

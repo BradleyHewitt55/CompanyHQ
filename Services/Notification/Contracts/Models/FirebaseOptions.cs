@@ -1,4 +1,4 @@
-namespace CompanyHQ.Services.Notifications.Contracts.Models;
+namespace CompanyHQ.Notifications.Contracts.Models;
 
 /// <summary>Optional Firebase Cloud Messaging credentials and project identity.</summary>
 public sealed class FirebaseOptions

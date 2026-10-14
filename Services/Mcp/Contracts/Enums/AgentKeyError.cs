@@ -1,4 +1,4 @@
-namespace CompanyHQ.Services.Mcp.Contracts.Enums;
+namespace CompanyHQ.Mcp.Contracts.Enums;
 
 public enum AgentKeyError
 {

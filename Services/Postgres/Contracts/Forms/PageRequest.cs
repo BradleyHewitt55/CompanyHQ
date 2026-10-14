@@ -1,4 +1,4 @@
-namespace CompanyHQ.Services.Postgres.Contracts.Forms;
+namespace CompanyHQ.Postgres.Contracts.Forms;
 
 /// <summary>
 /// Paging window for a list endpoint. Bindable straight from the query string

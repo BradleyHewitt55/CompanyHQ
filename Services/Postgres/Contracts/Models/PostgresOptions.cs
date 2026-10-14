@@ -1,6 +1,6 @@
 using Npgsql;
 
-namespace CompanyHQ.Services.Postgres.Contracts.Models;
+namespace CompanyHQ.Postgres.Contracts.Models;
 
 /// <summary>
 /// Configuration for the shared CompanyHQ PostgreSQL connection, bound from the

@@ -2,17 +2,17 @@ using System.Security.Claims;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
-using CompanyHQ.Services.Faqs.Contracts.Dtos;
-using CompanyHQ.Services.Faqs.Contracts.Forms;
-using CompanyHQ.Services.Faqs.Services;
-using CompanyHQ.Services.Postgres.Contracts.Dtos;
-using CompanyHQ.Services.Postgres.Contracts;
-using CompanyHQ.Services.Postgres.Contracts.Enums;
-using CompanyHQ.Services.Postgres.Contracts.Forms;
-using CompanyHQ.Services.Users.Extensions;
-using CompanyHQ.Services.Auth.Contracts.Identity;
+using CompanyHQ.Faqs.Contracts.Dtos;
+using CompanyHQ.Faqs.Contracts.Forms;
+using CompanyHQ.Faqs.Services;
+using CompanyHQ.Postgres.Contracts.Dtos;
+using CompanyHQ.Postgres.Contracts;
+using CompanyHQ.Postgres.Contracts.Enums;
+using CompanyHQ.Postgres.Contracts.Forms;
+using CompanyHQ.Users.Extensions;
+using CompanyHQ.Auth.Contracts.Identity;
 
-namespace CompanyHQ.Services.Faqs.Controllers;
+namespace CompanyHQ.Faqs.Controllers;
 
 /// <summary>Public published FAQ reads and administrator authoring.</summary>
 [ApiController]

@@ -9,13 +9,13 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 
-using CompanyHQ.Services.Mcp.Contracts.Models;
-using CompanyHQ.Services.Postgres.Contracts;
-using CompanyHQ.Services.Persistence.Services;
-using CompanyHQ.Services.Users.Contracts.Models;
-using CompanyHQ.Services.Auth.Contracts.Identity;
+using CompanyHQ.Mcp.Contracts.Models;
+using CompanyHQ.Postgres.Contracts;
+using CompanyHQ.Persistence.Services;
+using CompanyHQ.Users.Contracts.Models;
+using CompanyHQ.Auth.Contracts.Identity;
 
-namespace CompanyHQ.Services.Mcp.Authentication;
+namespace CompanyHQ.Mcp.Authentication;
 
 /// <summary>
 /// Turns a <c>pgk_</c> agent key into the same shape of <see cref="ClaimsPrincipal"/> a JWT produces —
@@ -117,13 +117,13 @@ public sealed class AgentKeyAuthenticationHandler(
             new(AuthClaims.FirstName, account.FirstName ?? string.Empty),
             new(AuthClaims.LastName, account.LastName ?? string.Empty),
             new(AuthClaims.Role, assignedRoleId is null ? account.Role.ToString()
-                : account.Role == CompanyHQ.Services.Users.Contracts.Enums.UserRole.Admin && assignedRole!.Name == "Admin" ? "Admin" : "Client"),
+                : account.Role == CompanyHQ.Users.Contracts.Enums.UserRole.Admin && assignedRole!.Name == "Admin" ? "Admin" : "Client"),
             new(McpClaims.Agent, "true"),
             new(McpClaims.AgentKeyId, key.Id.ToString()),
             new(McpClaims.AgentKeyAccess, key.Access.ToString())
         };
         var ownerPermissions = account.AccessRoleId is null
-            ? account.Role == CompanyHQ.Services.Users.Contracts.Enums.UserRole.Admin
+            ? account.Role == CompanyHQ.Users.Contracts.Enums.UserRole.Admin
                 ? AccessPermissions.All : AccessPermissions.Client
             : account.OwnerPermissions ?? [];
         var permissions = assignedRole is not null

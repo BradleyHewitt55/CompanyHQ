@@ -1,4 +1,4 @@
-namespace CompanyHQ.Services.OpenStreetMap.Contracts.Models;
+namespace CompanyHQ.OpenStreetMap.Contracts.Models;
 
 /// <summary>
 /// Endpoints, identity and pacing for the public OpenStreetMap services, bound from the

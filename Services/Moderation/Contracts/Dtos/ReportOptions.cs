@@ -1,6 +1,6 @@
-using CompanyHQ.Services.Moderation.Contracts.Enums;
+using CompanyHQ.Moderation.Contracts.Enums;
 
-namespace CompanyHQ.Services.Moderation.Contracts.Dtos;
+namespace CompanyHQ.Moderation.Contracts.Dtos;
 
 /// <summary>Server-authoritative report reasons for one normalized target kind.</summary>
 public sealed record ReportOptionsDto(

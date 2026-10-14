@@ -1,6 +1,6 @@
-using CompanyHQ.Services.Persistence.Contracts.Models;
+using CompanyHQ.Persistence.Contracts.Models;
 
-namespace CompanyHQ.Services.Inbox.Contracts.Models;
+namespace CompanyHQ.Inbox.Contracts.Models;
 
 /// <summary>A follow-up in a visitor conversation, written by the visitor or by staff.</summary>
 public sealed class InboxReply : BaseModel

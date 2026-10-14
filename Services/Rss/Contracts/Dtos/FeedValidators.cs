@@ -1,4 +1,4 @@
-namespace CompanyHQ.Services.Rss.Contracts.Dtos;
+namespace CompanyHQ.Rss.Contracts.Dtos;
 
 /// <summary>
 /// The publisher's own markers for one version of a feed, kept verbatim. Store both and send them

@@ -4,8 +4,8 @@
     <TargetFramework>net10.0</TargetFramework>
     <Nullable>enable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
-    <AssemblyName>CompanyHQ.Services.Contact</AssemblyName>
-    <RootNamespace>CompanyHQ.Services.Contact</RootNamespace>
+    <AssemblyName>CompanyHQ.Contact</AssemblyName>
+    <RootNamespace>CompanyHQ.Contact</RootNamespace>
   </PropertyGroup>
 
   <ItemGroup>

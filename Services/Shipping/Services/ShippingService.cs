@@ -1,16 +1,16 @@
-using CompanyHQ.Services.Persistence.Services;
-using CompanyHQ.Services.Postgres.Contracts;
-using CompanyHQ.Services.Postgres.Contracts.Dtos;
-using CompanyHQ.Services.Postgres.Contracts.Enums;
-using CompanyHQ.Services.Postgres.Contracts.Forms;
-using CompanyHQ.Services.Shipping.Contracts.Dtos;
-using CompanyHQ.Services.Shipping.Contracts.Enums;
-using CompanyHQ.Services.Shipping.Contracts.Forms;
-using CompanyHQ.Services.Shipping.Contracts.Models;
-using CompanyHQ.Services.Shipping.Contracts.Ports;
-using CompanyHQ.Services.Users.Services;
+using CompanyHQ.Persistence.Services;
+using CompanyHQ.Postgres.Contracts;
+using CompanyHQ.Postgres.Contracts.Dtos;
+using CompanyHQ.Postgres.Contracts.Enums;
+using CompanyHQ.Postgres.Contracts.Forms;
+using CompanyHQ.Shipping.Contracts.Dtos;
+using CompanyHQ.Shipping.Contracts.Enums;
+using CompanyHQ.Shipping.Contracts.Forms;
+using CompanyHQ.Shipping.Contracts.Models;
+using CompanyHQ.Shipping.Contracts.Ports;
+using CompanyHQ.Users.Services;
 
-namespace CompanyHQ.Services.Shipping.Services;
+namespace CompanyHQ.Shipping.Services;
 
 /// <inheritdoc cref="IShippingService" />
 public sealed class ShippingService(

@@ -2,7 +2,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 
-namespace CompanyHQ.Services.Inbox.Services;
+namespace CompanyHQ.Inbox.Services;
 
 /// <summary>Deletes expired resolved conversations once at startup and then hourly.</summary>
 internal sealed class InboxRetentionWorker(

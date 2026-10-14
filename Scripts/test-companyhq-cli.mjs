@@ -41,7 +41,7 @@ try {
   // Generic services arrive as exact-pinned packages referenced directly, never through CompanyHQ.Api.
   const csproj = await readFile(path.join(project, 'Apps/Api/Company.Api.csproj'), 'utf8');
   const references = [...csproj.matchAll(/PackageReference Include="(CompanyHQ[^"]*)" Version="([^"]+)"/g)].map(match => [match[1], match[2]]);
-  assert.deepEqual(references, [['CompanyHQ.Services.Rss', '[$(CompanyHQVersion)]'], ['CompanyHQ.Services.Rss.Contracts', '[$(CompanyHQVersion)]']]);
+  assert.deepEqual(references, [['CompanyHQ.Rss', '[$(CompanyHQVersion)]'], ['CompanyHQ.Rss.Contracts', '[$(CompanyHQVersion)]']]);
   const program = await readFile(path.join(project, 'Apps/Api/Program.cs'), 'utf8');
   assert.match(program, /AddRss\(builder\.Configuration\)/);
   assert.match(program, /MapHealthChecks\("\/health"\)/);

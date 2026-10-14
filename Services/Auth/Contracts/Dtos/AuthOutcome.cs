@@ -1,6 +1,6 @@
-using CompanyHQ.Services.Auth.Contracts.Enums;
+using CompanyHQ.Auth.Contracts.Enums;
 
-namespace CompanyHQ.Services.Auth.Contracts.Dtos;
+namespace CompanyHQ.Auth.Contracts.Dtos;
 
 /// <summary>
 /// The result of an auth attempt: a session, or the reason there is none.

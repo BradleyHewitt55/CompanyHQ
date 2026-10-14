@@ -1,6 +1,6 @@
 using System.ComponentModel.DataAnnotations;
 
-namespace CompanyHQ.Services.Auth.Contracts.Forms;
+namespace CompanyHQ.Auth.Contracts.Forms;
 
 /// <summary>
 /// <see cref="RefreshToken"/> identifies which of the caller's sessions to keep alive (rotated) while

@@ -1,6 +1,6 @@
 using System.ComponentModel.DataAnnotations;
 
-namespace CompanyHQ.Services.Widget.Contracts.Forms;
+namespace CompanyHQ.Widget.Contracts.Forms;
 
 /// <summary>Body for <c>POST /api/widget/conversations</c>. Anonymous public input.</summary>
 /// <param name="Source">One of the deployment's allowed sources; the first of them when left out.</param>

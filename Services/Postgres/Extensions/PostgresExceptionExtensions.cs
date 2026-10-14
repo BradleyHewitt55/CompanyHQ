@@ -1,7 +1,7 @@
 using Microsoft.EntityFrameworkCore;
 using Npgsql;
 
-namespace CompanyHQ.Services.Postgres.Extensions;
+namespace CompanyHQ.Postgres.Extensions;
 
 /// <summary>Safe, provider-specific classification kept inside the Postgres service boundary.</summary>
 public static class PostgresExceptionExtensions

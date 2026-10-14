@@ -1,7 +1,7 @@
-using CompanyHQ.Services.Email.Contracts.Enums;
-using CompanyHQ.Services.Persistence.Contracts.Models;
+using CompanyHQ.Email.Contracts.Enums;
+using CompanyHQ.Persistence.Contracts.Models;
 
-namespace CompanyHQ.Services.Email.Contracts.Models;
+namespace CompanyHQ.Email.Contracts.Models;
 
 /// <summary>
 /// A rendered transactional email waiting for, or finished with, the email worker. The bodies are

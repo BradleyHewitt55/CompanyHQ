@@ -1,6 +1,6 @@
 using System.Text.Json.Serialization;
 
-namespace CompanyHQ.Services.Mcp.Contracts.Dtos;
+namespace CompanyHQ.Mcp.Contracts.Dtos;
 
 public sealed record McpOAuthClientDto(
     [property: JsonPropertyName("client_id")] string ClientId,

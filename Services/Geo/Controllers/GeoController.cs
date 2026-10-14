@@ -2,11 +2,11 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.RateLimiting;
 
-using CompanyHQ.Services.Geo.Contracts.Dtos;
-using CompanyHQ.Services.Geo.Contracts.Models;
-using CompanyHQ.Services.Geo.Services;
+using CompanyHQ.Geo.Contracts.Dtos;
+using CompanyHQ.Geo.Contracts.Models;
+using CompanyHQ.Geo.Services;
 
-namespace CompanyHQ.Services.Geo.Controllers;
+namespace CompanyHQ.Geo.Controllers;
 
 /// <summary>
 /// Area naming and area search on <c>/api/geo</c>. Every endpoint is anonymous: a signed-out user
@@ -77,9 +77,9 @@ public sealed class GeoController(IGeoService geo) : ControllerBase
 
     /// <summary>Free-text area search, for the picker a user gets when they decline location.</summary>
     [HttpGet("areas")]
-    [CompanyHQ.Services.Postgres.Contracts.McpAction(
-        CompanyHQ.Services.Postgres.Contracts.McpCapabilityCatalog.SearchArea,
-        CompanyHQ.Services.Postgres.Contracts.McpCapabilityCatalog.SearchArea,
+    [CompanyHQ.Postgres.Contracts.McpAction(
+        CompanyHQ.Postgres.Contracts.McpCapabilityCatalog.SearchArea,
+        CompanyHQ.Postgres.Contracts.McpCapabilityCatalog.SearchArea,
         "Search area names or partial addresses for a location picker. Results are bounded; repeat a new query to refine the location.")]
     [ProducesResponseType<IReadOnlyList<AreaDto>>(StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]

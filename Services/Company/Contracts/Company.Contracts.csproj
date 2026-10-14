@@ -4,8 +4,8 @@
     <TargetFramework>net10.0</TargetFramework>
     <Nullable>enable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
-    <AssemblyName>CompanyHQ.Services.Company.Contracts</AssemblyName>
-    <RootNamespace>CompanyHQ.Services.Company.Contracts</RootNamespace>
+    <AssemblyName>CompanyHQ.Company.Contracts</AssemblyName>
+    <RootNamespace>CompanyHQ.Company.Contracts</RootNamespace>
   </PropertyGroup>
 
   <ItemGroup>

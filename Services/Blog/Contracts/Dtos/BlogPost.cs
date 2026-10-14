@@ -1,6 +1,6 @@
 using System.Text.Json.Serialization;
 
-namespace CompanyHQ.Services.Blogs.Contracts.Dtos;
+namespace CompanyHQ.Blogs.Contracts.Dtos;
 
 /// <summary>Published blog content for anonymous readers. Body is HTML and must be sanitized before rendering.</summary>
 [JsonDerivedType(typeof(AdminBlogPostDto))]

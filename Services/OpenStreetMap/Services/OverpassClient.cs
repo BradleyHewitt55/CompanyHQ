@@ -4,10 +4,10 @@ using System.Text.Json;
 
 using Microsoft.Extensions.Logging;
 
-using CompanyHQ.Services.Geo.Contracts.Models;
-using CompanyHQ.Services.OpenStreetMap.Contracts.Dtos;
+using CompanyHQ.Geo.Contracts.Models;
+using CompanyHQ.OpenStreetMap.Contracts.Dtos;
 
-namespace CompanyHQ.Services.OpenStreetMap.Services;
+namespace CompanyHQ.OpenStreetMap.Services;
 
 /// <summary>Owns the bounded OpenStreetMap Overpass request used to find places.</summary>
 public sealed class OverpassClient(

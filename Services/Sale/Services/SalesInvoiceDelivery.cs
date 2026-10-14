@@ -1,8 +1,8 @@
-using CompanyHQ.Services.Persistence.Services;
-using CompanyHQ.Services.Sales.Contracts.Models;
-using CompanyHQ.Services.Sales.Contracts.Ports;
+using CompanyHQ.Persistence.Services;
+using CompanyHQ.Sales.Contracts.Models;
+using CompanyHQ.Sales.Contracts.Ports;
 
-namespace CompanyHQ.Services.Sales.Services;
+namespace CompanyHQ.Sales.Services;
 
 public sealed partial class SalesOrderService
 {

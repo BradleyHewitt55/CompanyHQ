@@ -1,9 +1,9 @@
-using CompanyHQ.Services.Auth.Contracts.Dtos;
-using CompanyHQ.Services.Auth.Contracts.Forms;
-using CompanyHQ.Services.Postgres.Contracts.Dtos;
-using CompanyHQ.Services.Postgres.Contracts.Forms;
+using CompanyHQ.Auth.Contracts.Dtos;
+using CompanyHQ.Auth.Contracts.Forms;
+using CompanyHQ.Postgres.Contracts.Dtos;
+using CompanyHQ.Postgres.Contracts.Forms;
 
-namespace CompanyHQ.Services.Auth.Services;
+namespace CompanyHQ.Auth.Services;
 
 /// <summary>
 /// Registration, sign-in, and the lifecycle of a session's refresh token.

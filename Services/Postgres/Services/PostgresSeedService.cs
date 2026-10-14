@@ -1,9 +1,9 @@
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
-using CompanyHQ.Services.Postgres.Data;
+using CompanyHQ.Postgres.Data;
 
-namespace CompanyHQ.Services.Postgres.Services;
+namespace CompanyHQ.Postgres.Services;
 
 /// <summary>
 /// Runs every registered <see cref="IDataSeeder"/> once the schema is up to date.

@@ -1,6 +1,6 @@
-using CompanyHQ.Services.Auth.Contracts.Models;
-using CompanyHQ.Services.Auth.Services;
-using CompanyHQ.Services.Email.Contracts.Ports;
+using CompanyHQ.Auth.Contracts.Models;
+using CompanyHQ.Auth.Services;
+using CompanyHQ.Email.Contracts.Ports;
 
 namespace Api.Integrations;
 

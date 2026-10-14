@@ -1,16 +1,16 @@
 
-using CompanyHQ.Services.Appointments.Contracts.Dtos;
-using CompanyHQ.Services.Appointments.Contracts.Forms;
-using CompanyHQ.Services.Appointments.Contracts.Models;
-using CompanyHQ.Services.Postgres.Contracts;
-using CompanyHQ.Services.Postgres.Contracts.Dtos;
-using CompanyHQ.Services.Postgres.Contracts.Enums;
-using CompanyHQ.Services.Postgres.Contracts.Forms;
-using CompanyHQ.Services.Persistence.Services;
-using CompanyHQ.Services.Users.Contracts.Models;
-using CompanyHQ.Services.Users.Services;
+using CompanyHQ.Appointments.Contracts.Dtos;
+using CompanyHQ.Appointments.Contracts.Forms;
+using CompanyHQ.Appointments.Contracts.Models;
+using CompanyHQ.Postgres.Contracts;
+using CompanyHQ.Postgres.Contracts.Dtos;
+using CompanyHQ.Postgres.Contracts.Enums;
+using CompanyHQ.Postgres.Contracts.Forms;
+using CompanyHQ.Persistence.Services;
+using CompanyHQ.Users.Contracts.Models;
+using CompanyHQ.Users.Services;
 
-namespace CompanyHQ.Services.Appointments.Services;
+namespace CompanyHQ.Appointments.Services;
 
 /// <inheritdoc cref="IAppointmentService" />
 public sealed class AppointmentService(

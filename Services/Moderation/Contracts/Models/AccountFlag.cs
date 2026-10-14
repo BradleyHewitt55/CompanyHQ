@@ -1,7 +1,7 @@
-using CompanyHQ.Services.Moderation.Contracts.Enums;
-using CompanyHQ.Services.Persistence.Contracts.Models;
+using CompanyHQ.Moderation.Contracts.Enums;
+using CompanyHQ.Persistence.Contracts.Models;
 
-namespace CompanyHQ.Services.Moderation.Contracts.Models;
+namespace CompanyHQ.Moderation.Contracts.Models;
 
 /// <summary>A standing judgement about an account, separate from reports of individual targets.</summary>
 public sealed class AccountFlag : BaseModel

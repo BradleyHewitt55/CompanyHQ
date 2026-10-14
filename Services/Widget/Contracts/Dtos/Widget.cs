@@ -1,4 +1,4 @@
-namespace CompanyHQ.Services.Widget.Contracts.Dtos;
+namespace CompanyHQ.Widget.Contracts.Dtos;
 
 /// <summary>What a widget can offer on this deployment right now, so a UI shows only what works.</summary>
 public sealed record ClientWidgetDto(

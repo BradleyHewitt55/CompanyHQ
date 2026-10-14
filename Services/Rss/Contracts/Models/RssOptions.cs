@@ -1,4 +1,4 @@
-namespace CompanyHQ.Services.Rss.Contracts.Models;
+namespace CompanyHQ.Rss.Contracts.Models;
 
 /// <summary>
 /// Limits for every outbound feed request, bound from the <see cref="SectionName"/> configuration

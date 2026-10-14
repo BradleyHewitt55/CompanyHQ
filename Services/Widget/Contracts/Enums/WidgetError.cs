@@ -1,4 +1,4 @@
-namespace CompanyHQ.Services.Widget.Contracts.Enums;
+namespace CompanyHQ.Widget.Contracts.Enums;
 
 /// <summary>Why a widget submission did not go through.</summary>
 public enum WidgetError

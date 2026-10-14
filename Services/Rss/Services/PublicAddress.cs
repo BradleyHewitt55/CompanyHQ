@@ -1,7 +1,7 @@
 using System.Net;
 using System.Net.Sockets;
 
-namespace CompanyHQ.Services.Rss.Services;
+namespace CompanyHQ.Rss.Services;
 
 /// <summary>
 /// Decides whether an address is one on the public internet. Everything else — this machine, the

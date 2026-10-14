@@ -1,8 +1,8 @@
-using CompanyHQ.Services.Messages.Contracts.Models;
-using CompanyHQ.Services.Persistence.Services;
-using CompanyHQ.Services.Users.Contracts.Ports;
+using CompanyHQ.Messages.Contracts.Models;
+using CompanyHQ.Persistence.Services;
+using CompanyHQ.Users.Contracts.Ports;
 
-namespace CompanyHQ.Services.Messages.Services;
+namespace CompanyHQ.Messages.Services;
 
 /// <summary>Shared conversation history must be explicitly removed before an account disappears.</summary>
 public sealed class MessageAccountDeletionGuard(IPersistence context) : IAccountDeletionGuard

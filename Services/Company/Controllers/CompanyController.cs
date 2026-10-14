@@ -2,13 +2,13 @@ using System.Security.Claims;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
-using CompanyHQ.Services.Company.Contracts.Dtos;
-using CompanyHQ.Services.Company.Contracts.Forms;
-using CompanyHQ.Services.Company.Services;
-using CompanyHQ.Services.Postgres.Contracts;
-using CompanyHQ.Services.Auth.Contracts.Identity;
+using CompanyHQ.Company.Contracts.Dtos;
+using CompanyHQ.Company.Contracts.Forms;
+using CompanyHQ.Company.Services;
+using CompanyHQ.Postgres.Contracts;
+using CompanyHQ.Auth.Contracts.Identity;
 
-namespace CompanyHQ.Services.Company.Controllers;
+namespace CompanyHQ.Company.Controllers;
 
 /// <summary>The operating company profile: public to read, <c>company.manage</c> to change.</summary>
 [ApiController]

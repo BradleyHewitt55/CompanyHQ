@@ -1,4 +1,4 @@
-namespace CompanyHQ.Services.Moderation.Contracts.Dtos;
+namespace CompanyHQ.Moderation.Contracts.Dtos;
 
 /// <summary>Block creation outcome, kept free of HTTP concerns.</summary>
 public readonly record struct BlockResult(ClientUserBlockDto? Value, BlockFailure? Failure)

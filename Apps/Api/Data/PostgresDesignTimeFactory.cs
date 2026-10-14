@@ -1,6 +1,6 @@
 using Microsoft.EntityFrameworkCore.Design;
-using CompanyHQ.Services.Postgres.Data;
-using CompanyHQ.Services.Postgres.Extensions;
+using CompanyHQ.Postgres.Data;
+using CompanyHQ.Postgres.Extensions;
 
 namespace Api.Data;
 

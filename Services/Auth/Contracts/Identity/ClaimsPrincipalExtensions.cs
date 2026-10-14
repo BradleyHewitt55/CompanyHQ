@@ -1,6 +1,6 @@
 using System.Security.Claims;
 
-namespace CompanyHQ.Services.Auth.Contracts.Identity;
+namespace CompanyHQ.Auth.Contracts.Identity;
 
 /// <summary>
 /// Reads CompanyHQ's claims off the caller. Every endpoint that needs "who is this" goes through

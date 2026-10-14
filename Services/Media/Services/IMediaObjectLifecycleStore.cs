@@ -1,6 +1,6 @@
-using CompanyHQ.Services.Media.Contracts.Enums;
+using CompanyHQ.Media.Contracts.Enums;
 
-namespace CompanyHQ.Services.Media.Services;
+namespace CompanyHQ.Media.Services;
 
 /// <summary>Applies media lifecycle transitions only while the expected state still holds.</summary>
 public interface IMediaObjectLifecycleStore

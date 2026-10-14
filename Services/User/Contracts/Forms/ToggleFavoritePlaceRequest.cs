@@ -1,6 +1,6 @@
 using System.ComponentModel.DataAnnotations;
 
-namespace CompanyHQ.Services.Users.Contracts.Forms;
+namespace CompanyHQ.Users.Contracts.Forms;
 
 public sealed record ToggleFavoritePlaceRequest(
     [Range(-90, 90)] double Latitude,

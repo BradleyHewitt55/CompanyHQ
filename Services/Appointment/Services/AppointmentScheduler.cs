@@ -1,12 +1,12 @@
 
-using CompanyHQ.Services.Appointments.Contracts.Dtos;
-using CompanyHQ.Services.Appointments.Contracts.Forms;
-using CompanyHQ.Services.Appointments.Contracts.Models;
-using CompanyHQ.Services.Appointments.Contracts.Ports;
-using CompanyHQ.Services.Postgres.Contracts.Enums;
-using CompanyHQ.Services.Persistence.Services;
+using CompanyHQ.Appointments.Contracts.Dtos;
+using CompanyHQ.Appointments.Contracts.Forms;
+using CompanyHQ.Appointments.Contracts.Models;
+using CompanyHQ.Appointments.Contracts.Ports;
+using CompanyHQ.Postgres.Contracts.Enums;
+using CompanyHQ.Persistence.Services;
 
-namespace CompanyHQ.Services.Appointments.Services;
+namespace CompanyHQ.Appointments.Services;
 
 /// <inheritdoc cref="IAppointmentScheduler" />
 /// <remarks>

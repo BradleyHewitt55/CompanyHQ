@@ -1,8 +1,8 @@
 using System.ComponentModel.DataAnnotations;
 
-using CompanyHQ.Services.Shipping.Contracts.Dtos;
+using CompanyHQ.Shipping.Contracts.Dtos;
 
-namespace CompanyHQ.Services.Shipping.Contracts.Forms;
+namespace CompanyHQ.Shipping.Contracts.Forms;
 
 /// <summary>A basket and where it is going. Nothing in it is a price: every amount is the server's.</summary>
 public sealed record ShippingQuoteRequest(

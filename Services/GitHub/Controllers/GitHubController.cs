@@ -2,17 +2,17 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 
-using CompanyHQ.Services.Auth.Contracts.Identity;
-using CompanyHQ.Services.GitHub.Contracts.Dtos;
-using CompanyHQ.Services.GitHub.Contracts.Enums;
-using CompanyHQ.Services.GitHub.Contracts.Forms;
-using CompanyHQ.Services.GitHub.Services;
-using CompanyHQ.Services.Postgres.Contracts;
-using CompanyHQ.Services.Postgres.Contracts.Dtos;
-using CompanyHQ.Services.Postgres.Contracts.Forms;
-using CompanyHQ.Services.Users.Extensions;
+using CompanyHQ.Auth.Contracts.Identity;
+using CompanyHQ.GitHub.Contracts.Dtos;
+using CompanyHQ.GitHub.Contracts.Enums;
+using CompanyHQ.GitHub.Contracts.Forms;
+using CompanyHQ.GitHub.Services;
+using CompanyHQ.Postgres.Contracts;
+using CompanyHQ.Postgres.Contracts.Dtos;
+using CompanyHQ.Postgres.Contracts.Forms;
+using CompanyHQ.Users.Extensions;
 
-namespace CompanyHQ.Services.GitHub.Controllers;
+namespace CompanyHQ.GitHub.Controllers;
 
 /// <summary>The connected issue repository and its issues. Everything but the status read needs <c>github.manage</c>.</summary>
 [ApiController]

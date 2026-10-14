@@ -1,6 +1,6 @@
-using CompanyHQ.Services.Geo.Contracts.Models;
+using CompanyHQ.Geo.Contracts.Models;
 
-namespace CompanyHQ.Services.Geo.Contracts.Ports;
+namespace CompanyHQ.Geo.Contracts.Ports;
 
 /// <summary>
 /// One reverse lookup. <see cref="Zoom"/> is the map zoom whose granularity the area should have

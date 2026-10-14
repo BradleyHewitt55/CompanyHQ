@@ -1,7 +1,7 @@
 using System.Globalization;
 using System.Text.Json.Serialization;
 
-namespace CompanyHQ.Services.OpenStreetMap.Contracts.Dtos;
+namespace CompanyHQ.OpenStreetMap.Contracts.Dtos;
 
 /// <summary>
 /// The subset of a Nominatim <c>jsonv2</c> place that CompanyHQ reads. Internal: the wire shape of a

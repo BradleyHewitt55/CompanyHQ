@@ -4,9 +4,9 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.RateLimiting;
 
-using CompanyHQ.Services.Geo.Contracts.Models;
+using CompanyHQ.Geo.Contracts.Models;
 
-namespace CompanyHQ.Services.Geo.Extensions;
+namespace CompanyHQ.Geo.Extensions;
 
 /// <summary>
 /// The per-client inbound limit on <c>/api/geo</c>. A policy class rather than a lambda because it

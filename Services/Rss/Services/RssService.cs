@@ -1,12 +1,12 @@
 using System.Text;
 using Microsoft.Extensions.Logging;
-using CompanyHQ.Services.Rss.Contracts.Dtos;
-using CompanyHQ.Services.Rss.Contracts.Enums;
-using CompanyHQ.Services.Rss.Contracts.Forms;
-using CompanyHQ.Services.Rss.Contracts.Models;
-using CompanyHQ.Services.Rss.Contracts.Ports;
+using CompanyHQ.Rss.Contracts.Dtos;
+using CompanyHQ.Rss.Contracts.Enums;
+using CompanyHQ.Rss.Contracts.Forms;
+using CompanyHQ.Rss.Contracts.Models;
+using CompanyHQ.Rss.Contracts.Ports;
 
-namespace CompanyHQ.Services.Rss.Services;
+namespace CompanyHQ.Rss.Services;
 
 /// <inheritdoc cref="IRssService"/>
 public sealed class RssService : IRssService, IDisposable

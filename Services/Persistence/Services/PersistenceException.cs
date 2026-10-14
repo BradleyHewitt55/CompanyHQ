@@ -1,4 +1,4 @@
-namespace CompanyHQ.Services.Persistence.Services;
+namespace CompanyHQ.Persistence.Services;
 
 /// <summary>
 /// A write the store refused because of the data: a constraint it enforces was violated, or the row

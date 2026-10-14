@@ -1,6 +1,6 @@
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Filters;
-using CompanyHQ.Services.Postgres.Extensions;
+using CompanyHQ.Postgres.Extensions;
 
 namespace Api.Validation;
 

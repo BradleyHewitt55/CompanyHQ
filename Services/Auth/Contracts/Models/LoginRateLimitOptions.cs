@@ -1,4 +1,4 @@
-namespace CompanyHQ.Services.Auth.Contracts.Models;
+namespace CompanyHQ.Auth.Contracts.Models;
 
 /// <summary>Distributed login-attempt limits.</summary>
 public sealed class LoginRateLimitOptions

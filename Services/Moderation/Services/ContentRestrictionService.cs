@@ -1,10 +1,10 @@
 
-using CompanyHQ.Services.Cache.Services;
-using CompanyHQ.Services.Moderation.Contracts.Enums;
-using CompanyHQ.Services.Moderation.Contracts.Models;
-using CompanyHQ.Services.Persistence.Services;
+using CompanyHQ.Cache.Services;
+using CompanyHQ.Moderation.Contracts.Enums;
+using CompanyHQ.Moderation.Contracts.Models;
+using CompanyHQ.Persistence.Services;
 
-namespace CompanyHQ.Services.Moderation.Services;
+namespace CompanyHQ.Moderation.Services;
 
 /// <inheritdoc cref="IContentRestrictionService" />
 public sealed class ContentRestrictionService(

@@ -1,4 +1,4 @@
-namespace CompanyHQ.Services.Moderation.Contracts.Ports;
+namespace CompanyHQ.Moderation.Contracts.Ports;
 
 /// <summary>
 /// Raising and reading operator review flags on an account. Callers reference this Contracts

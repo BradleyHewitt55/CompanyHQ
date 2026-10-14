@@ -1,6 +1,6 @@
 using System.Text.Json.Serialization;
 
-namespace CompanyHQ.Services.Rss.Contracts.Enums;
+namespace CompanyHQ.Rss.Contracts.Enums;
 
 /// <summary>What one feed download established.</summary>
 [JsonConverter(typeof(JsonStringEnumConverter<FeedFetchStatus>))]

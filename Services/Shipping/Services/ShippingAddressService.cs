@@ -1,6 +1,6 @@
-using CompanyHQ.Services.Shipping.Contracts.Dtos;
-using CompanyHQ.Services.Shipping.Contracts.Ports;
-namespace CompanyHQ.Services.Shipping.Services;
+using CompanyHQ.Shipping.Contracts.Dtos;
+using CompanyHQ.Shipping.Contracts.Ports;
+namespace CompanyHQ.Shipping.Services;
 /// <summary>Bounded provider-neutral address search and hydration.</summary>
 public sealed class ShippingAddressService(IShippingAddressDirectory? directory=null)
 {

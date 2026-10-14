@@ -1,9 +1,9 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
-using CompanyHQ.Services.Moderation.Contracts.Models;
+using CompanyHQ.Moderation.Contracts.Models;
 
-namespace CompanyHQ.Services.Moderation.Data;
+namespace CompanyHQ.Moderation.Data;
 
 internal sealed class ReportedContentSnapshotConfiguration : IEntityTypeConfiguration<ReportedContentSnapshot>
 {

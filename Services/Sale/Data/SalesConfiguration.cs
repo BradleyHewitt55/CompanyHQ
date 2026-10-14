@@ -1,7 +1,7 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
-using CompanyHQ.Services.Sales.Contracts.Models;
-namespace CompanyHQ.Services.Sales.Data;
+using CompanyHQ.Sales.Contracts.Models;
+namespace CompanyHQ.Sales.Data;
 internal sealed class ProductConfiguration : IEntityTypeConfiguration<Product>
 {
     public void Configure(EntityTypeBuilder<Product> b) { b.ToTable("sales_product"); b.Property(x=>x.Name).HasMaxLength(255); b.Property(x=>x.Slug).HasMaxLength(255); b.HasIndex(x=>x.Slug).IsUnique(); b.HasIndex(x=>new{x.IsVisible,x.Name}); b.Property(x=>x.DefinitionJson).HasColumnType("jsonb"); b.Property(x=>x.EffectivePrice).HasPrecision(18,2);b.Property(x=>x.AverageRating).HasPrecision(5,2);b.HasIndex(x=>x.EffectivePrice);b.HasIndex(x=>x.AverageRating); }

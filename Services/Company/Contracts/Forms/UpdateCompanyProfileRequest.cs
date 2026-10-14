@@ -1,7 +1,7 @@
 using System.ComponentModel.DataAnnotations;
-using CompanyHQ.Services.Company.Contracts.Dtos;
+using CompanyHQ.Company.Contracts.Dtos;
 
-namespace CompanyHQ.Services.Company.Contracts.Forms;
+namespace CompanyHQ.Company.Contracts.Forms;
 
 /// <summary>The full company profile. A save replaces every field, so an omitted optional one is cleared.</summary>
 public sealed record UpdateCompanyProfileRequest(

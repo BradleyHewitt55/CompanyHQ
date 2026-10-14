@@ -1,12 +1,12 @@
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 
-using CompanyHQ.Services.Media.Contracts.Models;
-using CompanyHQ.Services.Media.Services;
-using CompanyHQ.Services.Media.Contracts.Ports;
-using CompanyHQ.Services.Users.Contracts.Ports;
+using CompanyHQ.Media.Contracts.Models;
+using CompanyHQ.Media.Services;
+using CompanyHQ.Media.Contracts.Ports;
+using CompanyHQ.Users.Contracts.Ports;
 
-namespace CompanyHQ.Services.Media.Extensions;
+namespace CompanyHQ.Media.Extensions;
 
 /// <summary>Registers Media's object lifecycle, domain services, and S3 object storage.</summary>
 public static class MediaServiceCollectionExtensions

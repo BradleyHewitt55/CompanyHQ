@@ -1,6 +1,6 @@
-using CompanyHQ.Services.Rss.Contracts.Dtos;
+using CompanyHQ.Rss.Contracts.Dtos;
 
-namespace CompanyHQ.Services.Rss.Contracts.Forms;
+namespace CompanyHQ.Rss.Contracts.Forms;
 
 /// <summary>
 /// One feed download. <see cref="Validators"/> are the pair returned by the previous fetch of this

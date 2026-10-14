@@ -1,8 +1,8 @@
 using System.Text.Json.Serialization;
 
-using CompanyHQ.Services.Mcp.Contracts.Enums;
+using CompanyHQ.Mcp.Contracts.Enums;
 
-namespace CompanyHQ.Services.Mcp.Contracts.Dtos;
+namespace CompanyHQ.Mcp.Contracts.Dtos;
 
 /// <summary>An owner's own key. Never the hash — the plaintext existed exactly once, at issue.</summary>
 [JsonDerivedType(typeof(AdminAgentKeyDto))]

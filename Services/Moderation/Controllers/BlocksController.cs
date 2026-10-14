@@ -4,14 +4,14 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 
-using CompanyHQ.Services.Moderation.Contracts.Dtos;
-using CompanyHQ.Services.Moderation.Contracts.Forms;
-using CompanyHQ.Services.Moderation.Services;
-using CompanyHQ.Services.Postgres.Contracts.Dtos;
-using CompanyHQ.Services.Postgres.Contracts.Forms;
-using CompanyHQ.Services.Auth.Contracts.Identity;
+using CompanyHQ.Moderation.Contracts.Dtos;
+using CompanyHQ.Moderation.Contracts.Forms;
+using CompanyHQ.Moderation.Services;
+using CompanyHQ.Postgres.Contracts.Dtos;
+using CompanyHQ.Postgres.Contracts.Forms;
+using CompanyHQ.Auth.Contracts.Identity;
 
-namespace CompanyHQ.Services.Moderation.Controllers;
+namespace CompanyHQ.Moderation.Controllers;
 
 /// <summary>The caller's block actions. Inbound blocks are deliberately absent from the list route.</summary>
 [ApiController]

@@ -2,10 +2,10 @@ using System.ComponentModel;
 
 using ModelContextProtocol.Server;
 
-using CompanyHQ.Services.Geo.Contracts.Dtos;
-using CompanyHQ.Services.Geo.Services;
+using CompanyHQ.Geo.Contracts.Dtos;
+using CompanyHQ.Geo.Services;
 
-namespace CompanyHQ.Services.Geo.Mcp;
+namespace CompanyHQ.Geo.Mcp;
 
 [McpServerToolType]
 public sealed class GeoTools(IGeoService geo)

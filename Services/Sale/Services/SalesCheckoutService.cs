@@ -1,8 +1,8 @@
-using CompanyHQ.Services.Sales.Contracts.Dtos;
-using CompanyHQ.Services.Sales.Contracts.Forms;
-using CompanyHQ.Services.Sales.Contracts.Models;
-using CompanyHQ.Services.Sales.Contracts.Ports;
-namespace CompanyHQ.Services.Sales.Services;
+using CompanyHQ.Sales.Contracts.Dtos;
+using CompanyHQ.Sales.Contracts.Forms;
+using CompanyHQ.Sales.Contracts.Models;
+using CompanyHQ.Sales.Contracts.Ports;
+namespace CompanyHQ.Sales.Services;
 /// <summary>Coordinates fresh basket pricing with server shipping quotes.</summary>
 public sealed class SalesCheckoutService(SalesBasketPricing basket,SalesCatalogService catalog,SalesOptions options,ISalesShipping? shipping=null) : ISalesCheckoutService
 {

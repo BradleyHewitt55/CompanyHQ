@@ -1,8 +1,8 @@
 using System.ComponentModel.DataAnnotations;
 using System.Text.Json.Serialization;
-using CompanyHQ.Services.Sales.Contracts.Dtos;
-using CompanyHQ.Services.Sales.Contracts.Enums;
-namespace CompanyHQ.Services.Sales.Contracts.Forms;
+using CompanyHQ.Sales.Contracts.Dtos;
+using CompanyHQ.Sales.Contracts.Enums;
+namespace CompanyHQ.Sales.Contracts.Forms;
 
 /// <summary>Client cart identity and selections only. No client prices are accepted.</summary>
 [JsonUnmappedMemberHandling(JsonUnmappedMemberHandling.Disallow)]

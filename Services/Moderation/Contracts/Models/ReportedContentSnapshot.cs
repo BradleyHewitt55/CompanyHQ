@@ -1,6 +1,6 @@
-using CompanyHQ.Services.Persistence.Contracts.Models;
+using CompanyHQ.Persistence.Contracts.Models;
 
-namespace CompanyHQ.Services.Moderation.Contracts.Models;
+namespace CompanyHQ.Moderation.Contracts.Models;
 
 /// <summary>Frozen report evidence copied from a consumer at report time.</summary>
 public sealed class ReportedContentSnapshot : BaseModel

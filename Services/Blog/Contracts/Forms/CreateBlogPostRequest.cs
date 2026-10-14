@@ -1,6 +1,6 @@
 using System.ComponentModel.DataAnnotations;
 
-namespace CompanyHQ.Services.Blogs.Contracts.Forms;
+namespace CompanyHQ.Blogs.Contracts.Forms;
 
 /// <summary>Administrator body for creating a blog post.</summary>
 public sealed record CreateBlogPostRequest(

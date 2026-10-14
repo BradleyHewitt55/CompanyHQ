@@ -1,4 +1,4 @@
-namespace CompanyHQ.Services.Persistence.Services;
+namespace CompanyHQ.Persistence.Services;
 
 /// <summary>
 /// A unit of startup data that must exist before the host serves traffic. Implementations run once

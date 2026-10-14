@@ -1,8 +1,8 @@
 
-using CompanyHQ.Services.Messages.Contracts.Models;
-using CompanyHQ.Services.Persistence.Services;
+using CompanyHQ.Messages.Contracts.Models;
+using CompanyHQ.Persistence.Services;
 
-namespace CompanyHQ.Services.Messages.Services;
+namespace CompanyHQ.Messages.Services;
 
 /// <summary>
 /// Clears one participant's view of conversations; message rows remain immutable. The host calls it

@@ -1,8 +1,8 @@
 using System.Runtime.CompilerServices;
-using CompanyHQ.Services.Cache.Contracts.Ports;
+using CompanyHQ.Cache.Contracts.Ports;
 using StackExchange.Redis;
 
-namespace CompanyHQ.Services.Cache.Services;
+namespace CompanyHQ.Cache.Services;
 
 /// <summary>
 /// <see cref="ICacheProvider"/> over the host's <see cref="IConnectionMultiplexer"/>. It carries

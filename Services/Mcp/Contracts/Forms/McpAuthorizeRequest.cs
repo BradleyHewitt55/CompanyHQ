@@ -1,6 +1,6 @@
 using System.ComponentModel.DataAnnotations;
 
-namespace CompanyHQ.Services.Mcp.Contracts.Forms;
+namespace CompanyHQ.Mcp.Contracts.Forms;
 
 public sealed record McpAuthorizeRequest(
     [Required] string ResponseType,

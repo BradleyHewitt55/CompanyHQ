@@ -1,6 +1,6 @@
-using CompanyHQ.Services.Users.Contracts.Enums;
+using CompanyHQ.Users.Contracts.Enums;
 
-namespace CompanyHQ.Services.Auth.Contracts.Dtos;
+namespace CompanyHQ.Auth.Contracts.Dtos;
 
 /// <summary>
 /// The signed-in account, as it is handed back to its own owner.

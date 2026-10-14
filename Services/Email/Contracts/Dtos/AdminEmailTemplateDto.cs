@@ -1,4 +1,4 @@
-namespace CompanyHQ.Services.Email.Contracts.Dtos;
+namespace CompanyHQ.Email.Contracts.Dtos;
 
 /// <summary>The administrator-only view of a controlled transactional email template.</summary>
 public sealed record AdminEmailTemplateDto(

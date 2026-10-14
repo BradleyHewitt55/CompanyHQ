@@ -2,7 +2,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 
-namespace CompanyHQ.Services.Sales.Services;
+namespace CompanyHQ.Sales.Services;
 
 /// <summary>Warms date/policy-invalidated projections in small, resumable transactions.</summary>
 internal sealed class SalesCatalogPriceWorker(IServiceScopeFactory scopes, ILogger<SalesCatalogPriceWorker> log) : BackgroundService

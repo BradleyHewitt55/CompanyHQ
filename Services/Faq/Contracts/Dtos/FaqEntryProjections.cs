@@ -1,8 +1,8 @@
 using System.Linq.Expressions;
-using CompanyHQ.Services.Faqs.Contracts.Models;
-using CompanyHQ.Services.Postgres.Contracts.Enums;
+using CompanyHQ.Faqs.Contracts.Models;
+using CompanyHQ.Postgres.Contracts.Enums;
 
-namespace CompanyHQ.Services.Faqs.Contracts.Dtos;
+namespace CompanyHQ.Faqs.Contracts.Dtos;
 
 /// <summary>SQL projections and write-result mapping for FAQ content.</summary>
 public static class FaqEntryProjections

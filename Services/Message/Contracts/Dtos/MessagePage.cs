@@ -1,4 +1,4 @@
-namespace CompanyHQ.Services.Messages.Contracts.Dtos;
+namespace CompanyHQ.Messages.Contracts.Dtos;
 
 public sealed record MessagePageDto(
     IReadOnlyList<ClientMessageDto> Messages,

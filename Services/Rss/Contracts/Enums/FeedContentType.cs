@@ -1,6 +1,6 @@
 using System.Text.Json.Serialization;
 
-namespace CompanyHQ.Services.Rss.Contracts.Enums;
+namespace CompanyHQ.Rss.Contracts.Enums;
 
 /// <summary>How the value of a feed text must be treated.</summary>
 [JsonConverter(typeof(JsonStringEnumConverter<FeedContentType>))]

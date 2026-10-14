@@ -1,7 +1,7 @@
 using Microsoft.Extensions.Diagnostics.HealthChecks;
-using CompanyHQ.Services.Cache.Contracts.Ports;
+using CompanyHQ.Cache.Contracts.Ports;
 
-namespace CompanyHQ.Services.Cache.Services;
+namespace CompanyHQ.Cache.Services;
 
 /// <summary>
 /// The <c>cache</c> health entry: a round trip through the provider.

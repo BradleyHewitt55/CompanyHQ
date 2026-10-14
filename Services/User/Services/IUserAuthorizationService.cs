@@ -1,4 +1,4 @@
-namespace CompanyHQ.Services.Users.Services;
+namespace CompanyHQ.Users.Services;
 
 /// <summary>Reads current account authority for in-process callers.</summary>
 public interface IUserAuthorizationService

@@ -1,6 +1,6 @@
-using CompanyHQ.Services.Notifications.Contracts.Models;
+using CompanyHQ.Notifications.Contracts.Models;
 
-namespace CompanyHQ.Services.Notifications.Services;
+namespace CompanyHQ.Notifications.Services;
 
 internal interface INotificationDeliveryService
 {

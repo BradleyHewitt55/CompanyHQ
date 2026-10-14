@@ -1,4 +1,4 @@
-namespace CompanyHQ.Services.Email.Contracts.Ports;
+namespace CompanyHQ.Email.Contracts.Ports;
 
 /// <summary>The provider result. A retryable failure was not accepted after the provider's local retries.</summary>
 public readonly record struct EmailSendResult(string? EmailId, bool IsRetryable, string? Error)

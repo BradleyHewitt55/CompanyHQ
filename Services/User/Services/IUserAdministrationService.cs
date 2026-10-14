@@ -1,7 +1,7 @@
-using CompanyHQ.Services.Users.Contracts.Dtos;
-using CompanyHQ.Services.Users.Contracts.Forms;
+using CompanyHQ.Users.Contracts.Dtos;
+using CompanyHQ.Users.Contracts.Forms;
 
-namespace CompanyHQ.Services.Users.Services;
+namespace CompanyHQ.Users.Services;
 
 /// <summary>Current-database-admin account mutations shared by API and Web.</summary>
 public interface IUserAdministrationService

@@ -1,9 +1,9 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
-using CompanyHQ.Services.Mcp.Contracts.Models;
+using CompanyHQ.Mcp.Contracts.Models;
 
-namespace CompanyHQ.Services.Mcp.Data;
+namespace CompanyHQ.Mcp.Data;
 
 internal sealed class McpOAuthClientConfiguration : IEntityTypeConfiguration<McpOAuthClient>
 {

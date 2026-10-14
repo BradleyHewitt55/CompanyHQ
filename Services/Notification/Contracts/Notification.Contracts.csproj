@@ -4,8 +4,8 @@
     <TargetFramework>net10.0</TargetFramework>
     <Nullable>enable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
-    <AssemblyName>CompanyHQ.Services.Notifications.Contracts</AssemblyName>
-    <RootNamespace>CompanyHQ.Services.Notifications.Contracts</RootNamespace>
+    <AssemblyName>CompanyHQ.Notifications.Contracts</AssemblyName>
+    <RootNamespace>CompanyHQ.Notifications.Contracts</RootNamespace>
   </PropertyGroup>
 
   <!--

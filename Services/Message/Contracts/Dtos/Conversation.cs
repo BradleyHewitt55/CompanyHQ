@@ -1,4 +1,4 @@
-namespace CompanyHQ.Services.Messages.Contracts.Dtos;
+namespace CompanyHQ.Messages.Contracts.Dtos;
 
 /// <summary>One conversation as seen by the requesting participant.</summary>
 public sealed record ClientConversationDto(

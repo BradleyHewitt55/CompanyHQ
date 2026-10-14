@@ -1,9 +1,9 @@
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Routing;
 
-using CompanyHQ.Services.Messages.Hubs;
+using CompanyHQ.Messages.Hubs;
 
-namespace CompanyHQ.Services.Messages.Extensions;
+namespace CompanyHQ.Messages.Extensions;
 
 public static class MessageEndpointRouteBuilderExtensions
 {

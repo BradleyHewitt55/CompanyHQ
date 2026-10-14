@@ -1,10 +1,10 @@
 using Microsoft.Extensions.Logging;
-using CompanyHQ.Services.Email.Contracts.Enums;
-using CompanyHQ.Services.Email.Contracts.Models;
-using CompanyHQ.Services.Email.Contracts.Ports;
-using CompanyHQ.Services.Persistence.Services;
+using CompanyHQ.Email.Contracts.Enums;
+using CompanyHQ.Email.Contracts.Models;
+using CompanyHQ.Email.Contracts.Ports;
+using CompanyHQ.Persistence.Services;
 
-namespace CompanyHQ.Services.Email.Services;
+namespace CompanyHQ.Email.Services;
 
 /// <summary>
 /// Claims one due batch of <c>queued_email</c> and sends it through the active

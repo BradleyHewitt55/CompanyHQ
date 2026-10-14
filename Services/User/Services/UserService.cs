@@ -1,16 +1,16 @@
 
-using CompanyHQ.Services.Postgres.Contracts.Dtos;
-using CompanyHQ.Services.Postgres.Contracts.Enums;
-using CompanyHQ.Services.Postgres.Contracts.Forms;
-using CompanyHQ.Services.Persistence.Services;
-using CompanyHQ.Services.Users.Contracts.Dtos;
-using CompanyHQ.Services.Users.Contracts.Enums;
-using CompanyHQ.Services.Users.Contracts.Forms;
-using CompanyHQ.Services.Users.Contracts.Models;
-using CompanyHQ.Services.Users.Contracts.Ports;
-using CompanyHQ.Services.Users.Extensions;
+using CompanyHQ.Postgres.Contracts.Dtos;
+using CompanyHQ.Postgres.Contracts.Enums;
+using CompanyHQ.Postgres.Contracts.Forms;
+using CompanyHQ.Persistence.Services;
+using CompanyHQ.Users.Contracts.Dtos;
+using CompanyHQ.Users.Contracts.Enums;
+using CompanyHQ.Users.Contracts.Forms;
+using CompanyHQ.Users.Contracts.Models;
+using CompanyHQ.Users.Contracts.Ports;
+using CompanyHQ.Users.Extensions;
 
-namespace CompanyHQ.Services.Users.Services;
+namespace CompanyHQ.Users.Services;
 
 /// <inheritdoc cref="IUserService" />
 /// <remarks>

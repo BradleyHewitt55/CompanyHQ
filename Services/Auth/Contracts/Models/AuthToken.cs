@@ -1,7 +1,7 @@
-using CompanyHQ.Services.Auth.Contracts.Enums;
-using CompanyHQ.Services.Persistence.Contracts.Models;
+using CompanyHQ.Auth.Contracts.Enums;
+using CompanyHQ.Persistence.Contracts.Models;
 
-namespace CompanyHQ.Services.Auth.Contracts.Models;
+namespace CompanyHQ.Auth.Contracts.Models;
 
 /// <summary>
 /// One single-use, mailed credential — a password reset link, an email verification link, or an

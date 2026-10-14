@@ -4,14 +4,14 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 
-using CompanyHQ.Services.Media.Contracts.Dtos;
-using CompanyHQ.Services.Media.Contracts.Forms;
-using CompanyHQ.Services.Media.Services;
-using CompanyHQ.Services.Postgres.Contracts;
-using CompanyHQ.Services.Users.Extensions;
-using CompanyHQ.Services.Auth.Contracts.Identity;
+using CompanyHQ.Media.Contracts.Dtos;
+using CompanyHQ.Media.Contracts.Forms;
+using CompanyHQ.Media.Services;
+using CompanyHQ.Postgres.Contracts;
+using CompanyHQ.Users.Extensions;
+using CompanyHQ.Auth.Contracts.Identity;
 
-namespace CompanyHQ.Services.Media.Controllers;
+namespace CompanyHQ.Media.Controllers;
 
 /// <summary>Issues direct object-storage upload tickets for image and video media.</summary>
 [ApiController]

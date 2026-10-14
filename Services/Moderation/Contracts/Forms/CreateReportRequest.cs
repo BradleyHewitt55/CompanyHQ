@@ -1,8 +1,8 @@
 using System.ComponentModel.DataAnnotations;
 
-using CompanyHQ.Services.Moderation.Contracts.Enums;
+using CompanyHQ.Moderation.Contracts.Enums;
 
-namespace CompanyHQ.Services.Moderation.Contracts.Forms;
+namespace CompanyHQ.Moderation.Contracts.Forms;
 
 /// <summary>Body for filing a report and optionally clearing the reporter's chat history.</summary>
 public sealed record CreateReportRequest(

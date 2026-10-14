@@ -2,14 +2,14 @@ using System.Data;
 
 using Microsoft.AspNetCore.Identity;
 
-using CompanyHQ.Services.Postgres.Contracts;
-using CompanyHQ.Services.Persistence.Services;
-using CompanyHQ.Services.Users.Contracts.Dtos;
-using CompanyHQ.Services.Users.Contracts.Enums;
-using CompanyHQ.Services.Users.Contracts.Forms;
-using CompanyHQ.Services.Users.Contracts.Models;
+using CompanyHQ.Postgres.Contracts;
+using CompanyHQ.Persistence.Services;
+using CompanyHQ.Users.Contracts.Dtos;
+using CompanyHQ.Users.Contracts.Enums;
+using CompanyHQ.Users.Contracts.Forms;
+using CompanyHQ.Users.Contracts.Models;
 
-namespace CompanyHQ.Services.Users.Services;
+namespace CompanyHQ.Users.Services;
 
 /// <summary>
 /// Performs user writes only after locking and rechecking the acting administrator in the same

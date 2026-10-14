@@ -1,6 +1,6 @@
-using CompanyHQ.Services.Persistence.Contracts.Models;
+using CompanyHQ.Persistence.Contracts.Models;
 
-namespace CompanyHQ.Services.Inbox.Contracts.Models;
+namespace CompanyHQ.Inbox.Contracts.Models;
 
 /// <summary>One conversation a visitor without an account opened. The first message is the row itself.</summary>
 public sealed class InboxConversation : BaseModel

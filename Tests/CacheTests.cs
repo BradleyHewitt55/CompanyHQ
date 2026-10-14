@@ -5,10 +5,10 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 using Microsoft.Extensions.Diagnostics.HealthChecks;
 using Microsoft.Extensions.Options;
-using CompanyHQ.Services.Cache.Contracts.Models;
-using CompanyHQ.Services.Cache.Contracts.Ports;
-using CompanyHQ.Services.Cache.Extensions;
-using CompanyHQ.Services.Cache.Services;
+using CompanyHQ.Cache.Contracts.Models;
+using CompanyHQ.Cache.Contracts.Ports;
+using CompanyHQ.Cache.Extensions;
+using CompanyHQ.Cache.Services;
 using StackExchange.Redis;
 using Xunit;
 

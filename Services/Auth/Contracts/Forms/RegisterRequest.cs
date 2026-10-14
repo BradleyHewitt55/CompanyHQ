@@ -1,6 +1,6 @@
 using System.ComponentModel.DataAnnotations;
 
-namespace CompanyHQ.Services.Auth.Contracts.Forms;
+namespace CompanyHQ.Auth.Contracts.Forms;
 
 /// <summary>
 /// Body for <c>POST /api/auth/register</c>. Self-service signup, so the role is not a field —

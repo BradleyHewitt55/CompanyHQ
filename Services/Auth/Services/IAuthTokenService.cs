@@ -1,7 +1,7 @@
-using CompanyHQ.Services.Auth.Contracts.Enums;
-using CompanyHQ.Services.Auth.Contracts.Models;
+using CompanyHQ.Auth.Contracts.Enums;
+using CompanyHQ.Auth.Contracts.Models;
 
-namespace CompanyHQ.Services.Auth.Services;
+namespace CompanyHQ.Auth.Services;
 
 /// <summary>
 /// Issues, consumes, and invalidates the single-use tokens behind password reset, email

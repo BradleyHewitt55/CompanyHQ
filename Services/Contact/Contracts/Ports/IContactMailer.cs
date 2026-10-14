@@ -1,4 +1,4 @@
-namespace CompanyHQ.Services.Contact.Contracts.Ports;
+namespace CompanyHQ.Contact.Contracts.Ports;
 
 /// <summary>
 /// Queues one contact message for delivery. The host bridges it to whichever email service is

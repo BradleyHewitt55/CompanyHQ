@@ -1,8 +1,8 @@
-using CompanyHQ.Services.Users.Contracts.Models;
+using CompanyHQ.Users.Contracts.Models;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
-namespace CompanyHQ.Services.Users.Data;
+namespace CompanyHQ.Users.Data;
 
 internal sealed class AccessRoleConfiguration : IEntityTypeConfiguration<AccessRole>
 {

@@ -1,7 +1,7 @@
 using Microsoft.Extensions.Diagnostics.HealthChecks;
 using Npgsql;
 
-namespace CompanyHQ.Services.Postgres.Services;
+namespace CompanyHQ.Postgres.Services;
 
 /// <summary>
 /// Verifies the shared data source can open a connection and round-trip a statement.

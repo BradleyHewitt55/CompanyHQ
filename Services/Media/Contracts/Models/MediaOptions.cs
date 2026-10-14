@@ -1,4 +1,4 @@
-namespace CompanyHQ.Services.Media.Contracts.Models;
+namespace CompanyHQ.Media.Contracts.Models;
 
 /// <summary>Media storage, delivery, lifecycle, and validation settings.</summary>
 public sealed class MediaOptions

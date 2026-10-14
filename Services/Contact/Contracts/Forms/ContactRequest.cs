@@ -1,8 +1,8 @@
 using System.ComponentModel.DataAnnotations;
 
-using CompanyHQ.Services.Contact.Contracts.Enums;
+using CompanyHQ.Contact.Contracts.Enums;
 
-namespace CompanyHQ.Services.Contact.Contracts.Forms;
+namespace CompanyHQ.Contact.Contracts.Forms;
 
 /// <summary>Body for <c>POST /api/contact</c>.</summary>
 /// <remarks>

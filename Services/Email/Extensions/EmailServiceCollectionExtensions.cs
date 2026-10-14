@@ -1,11 +1,11 @@
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 
-using CompanyHQ.Services.Email.Contracts.Models;
-using CompanyHQ.Services.Email.Contracts.Ports;
-using CompanyHQ.Services.Email.Services;
+using CompanyHQ.Email.Contracts.Models;
+using CompanyHQ.Email.Contracts.Ports;
+using CompanyHQ.Email.Services;
 
-namespace CompanyHQ.Services.Email.Extensions;
+namespace CompanyHQ.Email.Extensions;
 
 public static class EmailServiceCollectionExtensions
 {

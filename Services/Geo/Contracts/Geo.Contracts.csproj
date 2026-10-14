@@ -4,8 +4,8 @@
     <TargetFramework>net10.0</TargetFramework>
     <Nullable>enable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
-    <AssemblyName>CompanyHQ.Services.Geo.Contracts</AssemblyName>
-    <RootNamespace>CompanyHQ.Services.Geo.Contracts</RootNamespace>
+    <AssemblyName>CompanyHQ.Geo.Contracts</AssemblyName>
+    <RootNamespace>CompanyHQ.Geo.Contracts</RootNamespace>
   </PropertyGroup>
 
   <!--

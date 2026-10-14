@@ -1,4 +1,4 @@
-namespace CompanyHQ.Services.Geo.Contracts.Dtos;
+namespace CompanyHQ.Geo.Contracts.Dtos;
 
 /// <summary>One cached map tile's worth of nearby places, with the time it was fetched.</summary>
 /// <remarks>

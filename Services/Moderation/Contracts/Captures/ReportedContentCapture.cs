@@ -1,4 +1,4 @@
-namespace CompanyHQ.Services.Moderation.Contracts.Captures;
+namespace CompanyHQ.Moderation.Contracts.Captures;
 
 /// <summary>Evidence handed to Moderation by a reportable consumer.</summary>
 public sealed record ReportedContentCapture(

@@ -1,9 +1,9 @@
-using CompanyHQ.Services.Persistence.Services;
-using CompanyHQ.Services.Postgres.Contracts;
-using CompanyHQ.Services.Users.Contracts.Enums;
-using CompanyHQ.Services.Users.Contracts.Models;
+using CompanyHQ.Persistence.Services;
+using CompanyHQ.Postgres.Contracts;
+using CompanyHQ.Users.Contracts.Enums;
+using CompanyHQ.Users.Contracts.Models;
 
-namespace CompanyHQ.Services.Users.Services;
+namespace CompanyHQ.Users.Services;
 
 /// <summary>Reads the role row on every call; never treats a cookie or JWT claim as current authority.</summary>
 public sealed class UserAuthorizationService(IRepository<User> users) : IUserAuthorizationService

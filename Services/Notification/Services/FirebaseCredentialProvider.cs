@@ -4,9 +4,9 @@ using FirebaseAdmin;
 using Google.Apis.Auth.OAuth2;
 using Microsoft.Extensions.Logging;
 
-using CompanyHQ.Services.Notifications.Contracts.Models;
+using CompanyHQ.Notifications.Contracts.Models;
 
-namespace CompanyHQ.Services.Notifications.Services;
+namespace CompanyHQ.Notifications.Services;
 
 /// <summary>Loads the optional service account and owns the named Firebase app.</summary>
 internal sealed class FirebaseCredentialProvider

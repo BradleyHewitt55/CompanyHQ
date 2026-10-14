@@ -1,6 +1,6 @@
-using CompanyHQ.Services.Users.Contracts.Enums;
+using CompanyHQ.Users.Contracts.Enums;
 
-namespace CompanyHQ.Services.Users.Services;
+namespace CompanyHQ.Users.Services;
 
 /// <summary>
 /// The one place an account is deleted: every <c>IAccountDeletionGuard</c> inspects and releases

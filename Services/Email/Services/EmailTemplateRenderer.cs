@@ -1,8 +1,8 @@
 using System.Net;
 using System.Text.RegularExpressions;
-using CompanyHQ.Services.Email.Contracts.Dtos;
+using CompanyHQ.Email.Contracts.Dtos;
 
-namespace CompanyHQ.Services.Email.Services;
+namespace CompanyHQ.Email.Services;
 
 internal static partial class EmailTemplateRenderer
 {

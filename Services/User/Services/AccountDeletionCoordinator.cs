@@ -1,13 +1,13 @@
 using System.Data;
 
 
-using CompanyHQ.Services.Persistence.Services;
-using CompanyHQ.Services.Postgres.Contracts;
-using CompanyHQ.Services.Users.Contracts.Enums;
-using CompanyHQ.Services.Users.Contracts.Models;
-using CompanyHQ.Services.Users.Contracts.Ports;
+using CompanyHQ.Persistence.Services;
+using CompanyHQ.Postgres.Contracts;
+using CompanyHQ.Users.Contracts.Enums;
+using CompanyHQ.Users.Contracts.Models;
+using CompanyHQ.Users.Contracts.Ports;
 
-namespace CompanyHQ.Services.Users.Services;
+namespace CompanyHQ.Users.Services;
 
 /// <inheritdoc cref="IAccountDeletionCoordinator" />
 /// <remarks>

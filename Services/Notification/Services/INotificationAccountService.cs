@@ -1,8 +1,8 @@
-using CompanyHQ.Services.Notifications.Contracts.Dtos;
-using CompanyHQ.Services.Notifications.Contracts.Enums;
-using CompanyHQ.Services.Notifications.Contracts.Forms;
+using CompanyHQ.Notifications.Contracts.Dtos;
+using CompanyHQ.Notifications.Contracts.Enums;
+using CompanyHQ.Notifications.Contracts.Forms;
 
-namespace CompanyHQ.Services.Notifications.Services;
+namespace CompanyHQ.Notifications.Services;
 
 /// <summary>Owns authenticated device/preferences writes and read-only admin summaries.</summary>
 public interface INotificationAccountService

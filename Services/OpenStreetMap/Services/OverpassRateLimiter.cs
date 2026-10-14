@@ -1,6 +1,6 @@
-using CompanyHQ.Services.OpenStreetMap.Contracts.Models;
+using CompanyHQ.OpenStreetMap.Contracts.Models;
 
-namespace CompanyHQ.Services.OpenStreetMap.Services;
+namespace CompanyHQ.OpenStreetMap.Services;
 
 /// <summary>Serialises Overpass calls so the shared public endpoint is not burst by concurrent maps.</summary>
 public sealed class OverpassRateLimiter(OpenStreetMapOptions options, TimeProvider time) : IDisposable

@@ -1,6 +1,6 @@
 using System.Text.Json.Serialization;
 
-namespace CompanyHQ.Services.Faqs.Contracts.Dtos;
+namespace CompanyHQ.Faqs.Contracts.Dtos;
 
 /// <summary>Published FAQ content safe for anonymous readers.</summary>
 [JsonDerivedType(typeof(AdminFaqEntryDto))]

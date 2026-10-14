@@ -1,4 +1,4 @@
-namespace CompanyHQ.Services.Cache.Contracts.Models;
+namespace CompanyHQ.Cache.Contracts.Models;
 
 /// <summary>
 /// Configuration for the shared CompanyHQ cache, bound from the <see cref="SectionName"/>

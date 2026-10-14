@@ -1,4 +1,4 @@
-namespace CompanyHQ.Services.Moderation.Contracts.Ports;
+namespace CompanyHQ.Moderation.Contracts.Ports;
 
 /// <summary>
 /// Who has blocked whom, for another service to honour. Callers reference this Contracts assembly

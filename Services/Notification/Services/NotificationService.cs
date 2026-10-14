@@ -1,10 +1,10 @@
 using System.Text.Json;
-using CompanyHQ.Services.Notifications.Contracts.Enums;
-using CompanyHQ.Services.Notifications.Contracts.Models;
-using CompanyHQ.Services.Notifications.Contracts.Ports;
-using CompanyHQ.Services.Persistence.Services;
+using CompanyHQ.Notifications.Contracts.Enums;
+using CompanyHQ.Notifications.Contracts.Models;
+using CompanyHQ.Notifications.Contracts.Ports;
+using CompanyHQ.Persistence.Services;
 
-namespace CompanyHQ.Services.Notifications.Services;
+namespace CompanyHQ.Notifications.Services;
 
 /// <inheritdoc cref="INotificationService" />
 public sealed class NotificationService(

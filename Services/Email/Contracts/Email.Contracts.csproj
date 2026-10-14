@@ -4,8 +4,8 @@
     <TargetFramework>net10.0</TargetFramework>
     <Nullable>enable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
-    <AssemblyName>CompanyHQ.Services.Email.Contracts</AssemblyName>
-    <RootNamespace>CompanyHQ.Services.Email.Contracts</RootNamespace>
+    <AssemblyName>CompanyHQ.Email.Contracts</AssemblyName>
+    <RootNamespace>CompanyHQ.Email.Contracts</RootNamespace>
   </PropertyGroup>
 
   <!--

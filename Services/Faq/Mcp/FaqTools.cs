@@ -4,17 +4,17 @@ using Microsoft.AspNetCore.Http;
 
 using ModelContextProtocol.Server;
 
-using CompanyHQ.Services.Faqs.Contracts.Dtos;
-using CompanyHQ.Services.Faqs.Contracts.Forms;
-using CompanyHQ.Services.Faqs.Services;
-using CompanyHQ.Services.Postgres.Contracts.Dtos;
-using CompanyHQ.Services.Postgres.Contracts;
-using CompanyHQ.Services.Postgres.Contracts.Enums;
-using CompanyHQ.Services.Postgres.Contracts.Forms;
-using CompanyHQ.Services.Users.Extensions;
-using CompanyHQ.Services.Auth.Contracts.Identity;
+using CompanyHQ.Faqs.Contracts.Dtos;
+using CompanyHQ.Faqs.Contracts.Forms;
+using CompanyHQ.Faqs.Services;
+using CompanyHQ.Postgres.Contracts.Dtos;
+using CompanyHQ.Postgres.Contracts;
+using CompanyHQ.Postgres.Contracts.Enums;
+using CompanyHQ.Postgres.Contracts.Forms;
+using CompanyHQ.Users.Extensions;
+using CompanyHQ.Auth.Contracts.Identity;
 
-namespace CompanyHQ.Services.Faqs.Mcp;
+namespace CompanyHQ.Faqs.Mcp;
 
 [McpServerToolType]
 public sealed class FaqTools(IFaqService faqs, IHttpContextAccessor httpContextAccessor)

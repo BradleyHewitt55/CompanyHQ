@@ -1,7 +1,7 @@
-using CompanyHQ.Services.Persistence.Contracts.Models;
-using CompanyHQ.Services.Company.Contracts.Dtos;
+using CompanyHQ.Persistence.Contracts.Models;
+using CompanyHQ.Company.Contracts.Dtos;
 
-namespace CompanyHQ.Services.Company.Contracts.Models;
+namespace CompanyHQ.Company.Contracts.Models;
 
 /// <summary>The one row describing the operating company behind CompanyHQ.</summary>
 public sealed class CompanyProfile : BaseModel

@@ -1,7 +1,7 @@
 using System.Text;
 using System.Text.RegularExpressions;
 
-namespace CompanyHQ.Services.Persistence.Services;
+namespace CompanyHQ.Persistence.Services;
 
 /// <summary>
 /// Functions a query expression may call that a store evaluates itself. Each also works in memory

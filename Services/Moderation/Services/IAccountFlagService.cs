@@ -1,12 +1,12 @@
-using CompanyHQ.Services.Moderation.Contracts.Dtos;
-using CompanyHQ.Services.Moderation.Contracts.Enums;
-using CompanyHQ.Services.Moderation.Contracts.Forms;
-using CompanyHQ.Services.Moderation.Contracts.Ports;
-using CompanyHQ.Services.Postgres.Contracts.Dtos;
-using CompanyHQ.Services.Postgres.Contracts.Enums;
-using CompanyHQ.Services.Postgres.Contracts.Forms;
+using CompanyHQ.Moderation.Contracts.Dtos;
+using CompanyHQ.Moderation.Contracts.Enums;
+using CompanyHQ.Moderation.Contracts.Forms;
+using CompanyHQ.Moderation.Contracts.Ports;
+using CompanyHQ.Postgres.Contracts.Dtos;
+using CompanyHQ.Postgres.Contracts.Enums;
+using CompanyHQ.Postgres.Contracts.Forms;
 
-namespace CompanyHQ.Services.Moderation.Services;
+namespace CompanyHQ.Moderation.Services;
 
 /// <summary>Flag review for the HTTP routes; the raise-and-read other services use is <see cref="IAccountFlags"/>.</summary>
 public interface IAccountFlagService : IAccountFlags

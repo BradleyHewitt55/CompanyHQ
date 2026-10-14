@@ -1,8 +1,8 @@
 using System.Text.Json.Serialization;
 
-using CompanyHQ.Services.Sales.Contracts.Enums;
+using CompanyHQ.Sales.Contracts.Enums;
 
-namespace CompanyHQ.Services.Sales.Contracts.Dtos;
+namespace CompanyHQ.Sales.Contracts.Dtos;
 
 /// <summary>One row of an order list, for the customer whose order it is.</summary>
 [JsonDerivedType(typeof(AdminOrderSummaryDto))]

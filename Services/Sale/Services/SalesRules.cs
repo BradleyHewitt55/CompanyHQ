@@ -2,17 +2,17 @@ using System.ComponentModel.DataAnnotations;
 using System.Globalization;
 using System.Reflection;
 using System.Text.Json;
-using CompanyHQ.Services.Sales.Contracts.Dtos;
-using CompanyHQ.Services.Sales.Contracts.Enums;
-using CompanyHQ.Services.Sales.Contracts.Forms;
-using CompanyHQ.Services.Sales.Contracts.Models;
-namespace CompanyHQ.Services.Sales.Services;
+using CompanyHQ.Sales.Contracts.Dtos;
+using CompanyHQ.Sales.Contracts.Enums;
+using CompanyHQ.Sales.Contracts.Forms;
+using CompanyHQ.Sales.Contracts.Models;
+namespace CompanyHQ.Sales.Services;
 
 internal static class SalesRules
 {
     internal static readonly JsonSerializerOptions Json = new(JsonSerializerDefaults.Web);
-    public static string Write<T>(T value) => CompanyHQ.Services.Sales.Storage.SalesStorage.Write(value);
-    public static T Read<T>(string json) => CompanyHQ.Services.Sales.Storage.SalesStorage.Read<T>(json);
+    public static string Write<T>(T value) => CompanyHQ.Sales.Storage.SalesStorage.Write(value);
+    public static T Read<T>(string json) => CompanyHQ.Sales.Storage.SalesStorage.Read<T>(json);
     public static decimal Money(decimal value) => decimal.Round(value, 2, MidpointRounding.AwayFromZero);
     public static string Normalize(string value) => value.Trim().ToUpperInvariant();
     public static Dictionary<string,string> Selections(IReadOnlyDictionary<string,string>? source) =>

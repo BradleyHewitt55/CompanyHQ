@@ -1,6 +1,6 @@
 using System.ComponentModel.DataAnnotations;
 
-namespace CompanyHQ.Services.Shipping.Contracts.Dtos;
+namespace CompanyHQ.Shipping.Contracts.Dtos;
 
 /// <summary>
 /// A street address, with coordinates when the caller already has them. It is both what a caller

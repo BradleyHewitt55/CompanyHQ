@@ -4,19 +4,19 @@ using System.Text;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.Extensions.Logging;
 
-using CompanyHQ.Services.Auth.Contracts.Dtos;
-using CompanyHQ.Services.Auth.Contracts.Enums;
-using CompanyHQ.Services.Auth.Contracts.Forms;
-using CompanyHQ.Services.Auth.Contracts.Models;
-using CompanyHQ.Services.Postgres.Contracts;
-using CompanyHQ.Services.Postgres.Contracts.Dtos;
-using CompanyHQ.Services.Postgres.Contracts.Forms;
-using CompanyHQ.Services.Persistence.Services;
-using CompanyHQ.Services.Users.Contracts.Enums;
-using CompanyHQ.Services.Users.Contracts.Models;
-using CompanyHQ.Services.Users.Services;
+using CompanyHQ.Auth.Contracts.Dtos;
+using CompanyHQ.Auth.Contracts.Enums;
+using CompanyHQ.Auth.Contracts.Forms;
+using CompanyHQ.Auth.Contracts.Models;
+using CompanyHQ.Postgres.Contracts;
+using CompanyHQ.Postgres.Contracts.Dtos;
+using CompanyHQ.Postgres.Contracts.Forms;
+using CompanyHQ.Persistence.Services;
+using CompanyHQ.Users.Contracts.Enums;
+using CompanyHQ.Users.Contracts.Models;
+using CompanyHQ.Users.Services;
 
-namespace CompanyHQ.Services.Auth.Services;
+namespace CompanyHQ.Auth.Services;
 
 /// <inheritdoc cref="IAuthService"/>
 /// <remarks>

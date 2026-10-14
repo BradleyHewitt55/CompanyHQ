@@ -1,6 +1,6 @@
-using CompanyHQ.Services.Email.Contracts.Enums;
+using CompanyHQ.Email.Contracts.Enums;
 
-namespace CompanyHQ.Services.Email.Contracts.Ports;
+namespace CompanyHQ.Email.Contracts.Ports;
 
 /// <summary>Read the durable outbox outcome without sending or exposing message bodies.</summary>
 public interface IEmailDeliveryQuery

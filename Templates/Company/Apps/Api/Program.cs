@@ -1,5 +1,5 @@
 using System.Text.Json.Serialization;
-using CompanyHQ.Services.Rss.Extensions;
+using CompanyHQ.Rss.Extensions;
 
 var builder = WebApplication.CreateBuilder(args);
 

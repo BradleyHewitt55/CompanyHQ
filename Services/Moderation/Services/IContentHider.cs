@@ -1,10 +1,10 @@
-using CompanyHQ.Services.Moderation.Contracts.Dtos;
-using CompanyHQ.Services.Moderation.Contracts.Enums;
-using CompanyHQ.Services.Moderation.Contracts.Forms;
-using CompanyHQ.Services.Postgres.Contracts.Dtos;
-using CompanyHQ.Services.Postgres.Contracts.Forms;
+using CompanyHQ.Moderation.Contracts.Dtos;
+using CompanyHQ.Moderation.Contracts.Enums;
+using CompanyHQ.Moderation.Contracts.Forms;
+using CompanyHQ.Postgres.Contracts.Dtos;
+using CompanyHQ.Postgres.Contracts.Forms;
 
-namespace CompanyHQ.Services.Moderation.Services;
+namespace CompanyHQ.Moderation.Services;
 
 public interface IContentHider
 {

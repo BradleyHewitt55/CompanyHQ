@@ -1,6 +1,6 @@
 using System.ComponentModel.DataAnnotations;
 
-namespace CompanyHQ.Services.Blogs.Contracts.Forms;
+namespace CompanyHQ.Blogs.Contracts.Forms;
 
 /// <summary>Administrator body for changing content without changing its stable slug.</summary>
 public sealed record UpdateBlogPostRequest(

@@ -1,4 +1,4 @@
-namespace CompanyHQ.Services.Auth.Contracts.Models;
+namespace CompanyHQ.Auth.Contracts.Models;
 
 /// <summary>
 /// An <see cref="AuthToken"/> as it exists for the one moment both halves are known:

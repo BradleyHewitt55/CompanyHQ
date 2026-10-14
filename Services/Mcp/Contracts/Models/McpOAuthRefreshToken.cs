@@ -1,6 +1,6 @@
-using CompanyHQ.Services.Persistence.Contracts.Models;
+using CompanyHQ.Persistence.Contracts.Models;
 
-namespace CompanyHQ.Services.Mcp.Contracts.Models;
+namespace CompanyHQ.Mcp.Contracts.Models;
 
 /// <summary>One rotating OAuth refresh token. Only its hash is persisted.</summary>
 public sealed class McpOAuthRefreshToken : BaseModel

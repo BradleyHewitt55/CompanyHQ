@@ -11,7 +11,7 @@ models, contracts, and HTTP surface; hosts register services and consumers call 
 
 ```text
 Services/{Name}/
-  {Name}.csproj              AssemblyName + RootNamespace = CompanyHQ.Services.{Plural}
+  {Name}.csproj              AssemblyName + RootNamespace = CompanyHQ.{Plural}
   {Name}.http                Requests for every endpoint, including failure cases
   AGENTS.md                  This service's rules, decisions, and wiring
   Contracts/

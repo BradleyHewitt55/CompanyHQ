@@ -1,6 +1,6 @@
 using System.Text.Json.Serialization;
 
-namespace CompanyHQ.Services.Appointments.Contracts.Dtos;
+namespace CompanyHQ.Appointments.Contracts.Dtos;
 
 /// <summary>One appointment returned to the member whose diary it is.</summary>
 [JsonDerivedType(typeof(AdminAppointmentDto))]

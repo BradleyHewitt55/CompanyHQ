@@ -1,6 +1,6 @@
 using System.Text.Json.Serialization;
 
-namespace CompanyHQ.Services.OpenStreetMap.Contracts.Dtos;
+namespace CompanyHQ.OpenStreetMap.Contracts.Dtos;
 
 /// <summary>An OpenStreetMap node, way, or relation returned by Overpass.</summary>
 internal sealed record OverpassElement

@@ -1,4 +1,4 @@
-namespace CompanyHQ.Services.Cache.Contracts.Models;
+namespace CompanyHQ.Cache.Contracts.Models;
 
 /// <summary>The result of an atomic distributed counter increment.</summary>
 public readonly record struct CacheCounterResult(

@@ -1,7 +1,7 @@
-using CompanyHQ.Services.Persistence.Contracts.Models;
+using CompanyHQ.Persistence.Contracts.Models;
 
-using CompanyHQ.Services.Users.Contracts.Enums;
-namespace CompanyHQ.Services.Users.Contracts.Models;
+using CompanyHQ.Users.Contracts.Enums;
+namespace CompanyHQ.Users.Contracts.Models;
 
 public sealed class User : BaseModel
 {

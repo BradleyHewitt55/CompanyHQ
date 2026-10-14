@@ -1,8 +1,8 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
-using CompanyHQ.Services.Blogs.Contracts.Models;
+using CompanyHQ.Blogs.Contracts.Models;
 
-namespace CompanyHQ.Services.Blogs.Data;
+namespace CompanyHQ.Blogs.Data;
 
 internal sealed class BlogPostConfiguration : IEntityTypeConfiguration<BlogPost>
 {

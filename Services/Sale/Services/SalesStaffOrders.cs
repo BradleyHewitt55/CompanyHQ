@@ -1,9 +1,9 @@
-using CompanyHQ.Services.Sales.Contracts.Dtos;
-using CompanyHQ.Services.Sales.Contracts.Enums;
-using CompanyHQ.Services.Sales.Contracts.Forms;
-using CompanyHQ.Services.Sales.Contracts.Models;
-using CompanyHQ.Services.Persistence.Services;
-namespace CompanyHQ.Services.Sales.Services;
+using CompanyHQ.Sales.Contracts.Dtos;
+using CompanyHQ.Sales.Contracts.Enums;
+using CompanyHQ.Sales.Contracts.Forms;
+using CompanyHQ.Sales.Contracts.Models;
+using CompanyHQ.Persistence.Services;
+namespace CompanyHQ.Sales.Services;
 public sealed partial class SalesOrderService
 {
     internal async Task<PreparedOrder> PrepareStaffAsync(PlaceOrderRequest request,Guid? userId,StaffPricingRequest? adjustment,CancellationToken ct)

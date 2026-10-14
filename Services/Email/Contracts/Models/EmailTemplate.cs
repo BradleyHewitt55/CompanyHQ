@@ -1,6 +1,6 @@
-using CompanyHQ.Services.Persistence.Contracts.Models;
+using CompanyHQ.Persistence.Contracts.Models;
 
-namespace CompanyHQ.Services.Email.Contracts.Models;
+namespace CompanyHQ.Email.Contracts.Models;
 
 /// <summary>An administrator-managed override for one controlled transactional email template.</summary>
 public sealed class EmailTemplate : BaseModel

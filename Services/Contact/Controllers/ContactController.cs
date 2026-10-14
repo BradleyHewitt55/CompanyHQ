@@ -3,11 +3,11 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.RateLimiting;
 
-using CompanyHQ.Services.Contact.Contracts.Dtos;
-using CompanyHQ.Services.Contact.Contracts.Forms;
-using CompanyHQ.Services.Contact.Services;
+using CompanyHQ.Contact.Contracts.Dtos;
+using CompanyHQ.Contact.Contracts.Forms;
+using CompanyHQ.Contact.Services;
 
-namespace CompanyHQ.Services.Contact.Controllers;
+namespace CompanyHQ.Contact.Controllers;
 
 /// <summary>The public contact form behind the marketing site.</summary>
 /// <remarks>

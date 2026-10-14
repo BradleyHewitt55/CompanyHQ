@@ -1,10 +1,10 @@
 using Microsoft.Extensions.Logging;
-using CompanyHQ.Services.Email.Contracts.Models;
-using CompanyHQ.Services.Email.Contracts.Ports;
+using CompanyHQ.Email.Contracts.Models;
+using CompanyHQ.Email.Contracts.Ports;
 using Resend;
-using EmailMessage = CompanyHQ.Services.Email.Contracts.Ports.EmailMessage;
+using EmailMessage = CompanyHQ.Email.Contracts.Ports.EmailMessage;
 
-namespace CompanyHQ.Services.Email.Services;
+namespace CompanyHQ.Email.Services;
 
 /// <summary>
 /// Sends one message through the host's <see cref="IResend"/> client. It makes a single attempt:

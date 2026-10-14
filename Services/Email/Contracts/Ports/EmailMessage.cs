@@ -1,4 +1,4 @@
-namespace CompanyHQ.Services.Email.Contracts.Ports;
+namespace CompanyHQ.Email.Contracts.Ports;
 
 /// <summary>
 /// A transactional message. The caller owns the stable idempotency key for its business event.

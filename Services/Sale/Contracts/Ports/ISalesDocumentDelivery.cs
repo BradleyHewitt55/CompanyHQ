@@ -1,5 +1,5 @@
-using CompanyHQ.Services.Sales.Contracts.Dtos;
-namespace CompanyHQ.Services.Sales.Contracts.Ports;
+using CompanyHQ.Sales.Contracts.Dtos;
+namespace CompanyHQ.Sales.Contracts.Ports;
 /// <summary>Company-controlled rendering/delivery. The adapter must honor the stable idempotency key and return the actual provider outcome.</summary>
 public interface ISalesDocumentDelivery
 {

@@ -1,7 +1,7 @@
-using CompanyHQ.Services.Auth.Contracts.Models;
-using CompanyHQ.Services.Users.Contracts.Models;
+using CompanyHQ.Auth.Contracts.Models;
+using CompanyHQ.Users.Contracts.Models;
 
-namespace CompanyHQ.Services.Auth.Services;
+namespace CompanyHQ.Auth.Services;
 
 /// <summary>
 /// Mints the two token kinds. It reads no database and makes no policy decision — whether a caller

@@ -2,16 +2,16 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 
-using CompanyHQ.Services.Auth.Contracts.Identity;
-using CompanyHQ.Services.Inbox.Contracts.Dtos;
-using CompanyHQ.Services.Inbox.Contracts.Enums;
-using CompanyHQ.Services.Inbox.Contracts.Forms;
-using CompanyHQ.Services.Inbox.Services;
-using CompanyHQ.Services.Postgres.Contracts;
-using CompanyHQ.Services.Postgres.Contracts.Dtos;
-using CompanyHQ.Services.Postgres.Contracts.Forms;
+using CompanyHQ.Auth.Contracts.Identity;
+using CompanyHQ.Inbox.Contracts.Dtos;
+using CompanyHQ.Inbox.Contracts.Enums;
+using CompanyHQ.Inbox.Contracts.Forms;
+using CompanyHQ.Inbox.Services;
+using CompanyHQ.Postgres.Contracts;
+using CompanyHQ.Postgres.Contracts.Dtos;
+using CompanyHQ.Postgres.Contracts.Forms;
 
-namespace CompanyHQ.Services.Inbox.Controllers;
+namespace CompanyHQ.Inbox.Controllers;
 
 /// <summary>
 /// The staff inbox. Every route needs <c>inbox.manage</c>; a channel's own permission is checked by

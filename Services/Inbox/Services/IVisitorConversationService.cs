@@ -1,4 +1,4 @@
-namespace CompanyHQ.Services.Inbox.Services;
+namespace CompanyHQ.Inbox.Services;
 
 /// <summary>What a collecting service hands over to open a conversation. All of it is anonymous public input.</summary>
 public sealed record VisitorConversationStart(

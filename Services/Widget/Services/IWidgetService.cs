@@ -1,8 +1,8 @@
-using CompanyHQ.Services.Widget.Contracts.Dtos;
-using CompanyHQ.Services.Widget.Contracts.Enums;
-using CompanyHQ.Services.Widget.Contracts.Forms;
+using CompanyHQ.Widget.Contracts.Dtos;
+using CompanyHQ.Widget.Contracts.Enums;
+using CompanyHQ.Widget.Contracts.Forms;
 
-namespace CompanyHQ.Services.Widget.Services;
+namespace CompanyHQ.Widget.Services;
 
 /// <summary>
 /// The public front door for a contact widget. It stores nothing: it checks where a submission

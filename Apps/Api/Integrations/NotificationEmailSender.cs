@@ -1,5 +1,5 @@
-using CompanyHQ.Services.Email.Contracts.Ports;
-using CompanyHQ.Services.Notifications.Contracts.Ports;
+using CompanyHQ.Email.Contracts.Ports;
+using CompanyHQ.Notifications.Contracts.Ports;
 
 namespace Api.Integrations;
 

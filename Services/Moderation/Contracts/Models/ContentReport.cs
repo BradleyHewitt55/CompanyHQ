@@ -1,7 +1,7 @@
-using CompanyHQ.Services.Moderation.Contracts.Enums;
-using CompanyHQ.Services.Persistence.Contracts.Models;
+using CompanyHQ.Moderation.Contracts.Enums;
+using CompanyHQ.Persistence.Contracts.Models;
 
-namespace CompanyHQ.Services.Moderation.Contracts.Models;
+namespace CompanyHQ.Moderation.Contracts.Models;
 
 /// <summary>One caller's report of one target and its operator review state.</summary>
 public sealed class ContentReport : BaseModel

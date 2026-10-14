@@ -1,6 +1,6 @@
-using CompanyHQ.Services.Shipping.Contracts.Enums;
+using CompanyHQ.Shipping.Contracts.Enums;
 
-namespace CompanyHQ.Services.Shipping.Contracts.Dtos;
+namespace CompanyHQ.Shipping.Contracts.Dtos;
 
 /// <summary>
 /// The cheapest way to ship a basket to one address, or why it cannot be shipped. Self-service: the

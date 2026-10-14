@@ -1,4 +1,4 @@
-namespace CompanyHQ.Services.Messages.Contracts.Forms;
+namespace CompanyHQ.Messages.Contracts.Forms;
 
 public sealed record SendMessageRequest
 {

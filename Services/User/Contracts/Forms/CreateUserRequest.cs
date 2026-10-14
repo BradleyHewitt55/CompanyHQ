@@ -1,7 +1,7 @@
 using System.ComponentModel.DataAnnotations;
 
-using CompanyHQ.Services.Users.Contracts.Enums;
-namespace CompanyHQ.Services.Users.Contracts.Forms;
+using CompanyHQ.Users.Contracts.Enums;
+namespace CompanyHQ.Users.Contracts.Forms;
 
 /// <summary>
 /// Body for <c>POST /api/users</c>. The password arrives in plaintext and is hashed before it

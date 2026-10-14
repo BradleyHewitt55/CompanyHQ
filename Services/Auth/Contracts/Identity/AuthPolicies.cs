@@ -1,4 +1,4 @@
-namespace CompanyHQ.Services.Auth.Contracts.Identity;
+namespace CompanyHQ.Auth.Contracts.Identity;
 
 /// <summary>
 /// Named authorization policies <c>AddAuth</c> registers for other services to apply. Auth owns the

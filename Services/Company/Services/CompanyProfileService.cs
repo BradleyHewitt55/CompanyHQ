@@ -1,11 +1,11 @@
-using CompanyHQ.Services.Company.Contracts.Dtos;
-using CompanyHQ.Services.Company.Contracts.Forms;
-using CompanyHQ.Services.Company.Contracts.Models;
-using CompanyHQ.Services.Postgres.Contracts;
-using CompanyHQ.Services.Persistence.Services;
-using CompanyHQ.Services.Users.Services;
+using CompanyHQ.Company.Contracts.Dtos;
+using CompanyHQ.Company.Contracts.Forms;
+using CompanyHQ.Company.Contracts.Models;
+using CompanyHQ.Postgres.Contracts;
+using CompanyHQ.Persistence.Services;
+using CompanyHQ.Users.Services;
 
-namespace CompanyHQ.Services.Company.Services;
+namespace CompanyHQ.Company.Services;
 
 public sealed class CompanyProfileService(
     IRepository<CompanyProfile> profiles,

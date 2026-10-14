@@ -5,13 +5,13 @@ using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage;
 using Microsoft.Extensions.DependencyInjection;
 using Npgsql;
-using CompanyHQ.Services.Auth.Contracts.Models;
-using CompanyHQ.Services.Auth.Services;
-using CompanyHQ.Services.Persistence.Services;
-using CompanyHQ.Services.Postgres.Data;
-using CompanyHQ.Services.Postgres.Services;
-using CompanyHQ.Services.Users.Contracts.Dtos;
-using CompanyHQ.Services.Users.Contracts.Models;
+using CompanyHQ.Auth.Contracts.Models;
+using CompanyHQ.Auth.Services;
+using CompanyHQ.Persistence.Services;
+using CompanyHQ.Postgres.Data;
+using CompanyHQ.Postgres.Services;
+using CompanyHQ.Users.Contracts.Dtos;
+using CompanyHQ.Users.Contracts.Models;
 using Xunit;
 
 namespace CompanyHQ.Tests;
@@ -21,13 +21,13 @@ public sealed class PersistenceTests(FeatureFixture fixture) : IClassFixture<Fea
     [Fact]
     public async Task ModelAndLegacyContractsPreserveSchemaAndAssignability()
     {
-        CompanyHQ.Services.Postgres.Contracts.Models.BaseModel original = new User { Email = "contract@example.test", PasswordHash = "test" };
-        Assert.IsAssignableFrom<CompanyHQ.Services.Postgres.Contracts.Models.BaseModel>(original);
+        CompanyHQ.Postgres.Contracts.Models.BaseModel original = new User { Email = "contract@example.test", PasswordHash = "test" };
+        Assert.IsAssignableFrom<CompanyHQ.Postgres.Contracts.Models.BaseModel>(original);
         await using var scope = fixture.Services.CreateAsyncScope();
         var db = scope.ServiceProvider.GetRequiredService<PostgresDbContext>();
         Assert.NotNull(scope.ServiceProvider.GetRequiredService<IPostgresService<User>>());
         Assert.DoesNotContain(typeof(IPersistence).Assembly.GetReferencedAssemblies(), assembly =>
-            assembly.Name!.Contains("EntityFramework") || assembly.Name.Contains("Npgsql") || assembly.Name == "CompanyHQ.Services.Postgres");
+            assembly.Name!.Contains("EntityFramework") || assembly.Name.Contains("Npgsql") || assembly.Name == "CompanyHQ.Postgres");
         var differ = db.GetService<IMigrationsModelDiffer>();
         var snapshot = db.GetService<IMigrationsAssembly>().ModelSnapshot!.Model;
         var initialized = db.GetService<IModelRuntimeInitializer>().Initialize(snapshot, designTime: true);
@@ -84,7 +84,7 @@ public sealed class PersistenceTests(FeatureFixture fixture) : IClassFixture<Fea
         Assert.Single(page.Items);
         Assert.Equal(1, await repository.Query().Where(row => row.Id == user.Id && QueryFunctions.LikeIgnoreCase(row.FirstName, @"%Case\_\%%")).CountAsync());
         Assert.True(QueryFunctions.LikeIgnoreCase("Case_%", @"%Case\_\%%"));
-        Assert.ThrowsAny<CompanyHQ.Services.Persistence.Services.SearchFieldException>(() => repository.Query().Search("passwordHash", "secret", typeof(AdminUserDto)));
+        Assert.ThrowsAny<CompanyHQ.Persistence.Services.SearchFieldException>(() => repository.Query().Search("passwordHash", "secret", typeof(AdminUserDto)));
         var stale = (await repository.GetAsync(user.Id))!;
         await using var second = fixture.Services.CreateAsyncScope();
         Assert.True(await second.ServiceProvider.GetRequiredService<IRepository<User>>().DeleteAsync(user.Id));
@@ -158,30 +158,30 @@ public sealed class PersistenceTests(FeatureFixture fixture) : IClassFixture<Fea
         async Task<Guid> Report(Guid id)
         {
             await using var scope = fixture.Services.CreateAsyncScope();
-            var service = scope.ServiceProvider.GetRequiredService<CompanyHQ.Services.Moderation.Services.IContentReportService>();
-            var result = await service.CreateAsync(id, new("user", target.Id, CompanyHQ.Services.Moderation.Contracts.Enums.ReportReason.Other, "Fixture allegation"));
+            var service = scope.ServiceProvider.GetRequiredService<CompanyHQ.Moderation.Services.IContentReportService>();
+            var result = await service.CreateAsync(id, new("user", target.Id, CompanyHQ.Moderation.Contracts.Enums.ReportReason.Other, "Fixture allegation"));
             Assert.True(result.Succeeded);
             return result.Value!.Id;
         }
         var firstId = await Report(reporter.Id);
         var secondId = await Report(reporter2.Id);
         await using var decide = fixture.Services.CreateAsyncScope();
-        var reports = decide.ServiceProvider.GetRequiredService<CompanyHQ.Services.Moderation.Services.IContentReportService>();
-        var list = await reports.ListAdminAsync(new(), search: CompanyHQ.Services.Postgres.Contracts.Forms.SearchRequest.For("Fixture", "details"),
-            audience: CompanyHQ.Services.Postgres.Contracts.Enums.ResponseAudience.Admin);
+        var reports = decide.ServiceProvider.GetRequiredService<CompanyHQ.Moderation.Services.IContentReportService>();
+        var list = await reports.ListAdminAsync(new(), search: CompanyHQ.Postgres.Contracts.Forms.SearchRequest.For("Fixture", "details"),
+            audience: CompanyHQ.Postgres.Contracts.Enums.ResponseAudience.Admin);
         Assert.Contains(list.Items, report => report.Id == firstId);
-        Assert.True(await reports.DecideAsync(admin.Id, firstId, new(CompanyHQ.Services.Moderation.Contracts.Enums.ReportStatus.ActionTaken)));
+        Assert.True(await reports.DecideAsync(admin.Id, firstId, new(CompanyHQ.Moderation.Contracts.Enums.ReportStatus.ActionTaken)));
         var store = setup.ServiceProvider.GetRequiredService<IPersistence>();
         var ids = new[] { firstId, secondId };
-        Assert.Equal(2, await store.Query<CompanyHQ.Services.Moderation.Contracts.Models.ContentReportDecision>().CountAsync(row => ids.Contains(row.ContentReportId)));
-        Assert.Equal(2, await store.Query<CompanyHQ.Services.Moderation.Contracts.Models.HiddenContent>().CountAsync(row => row.TargetId == target.Id));
-        var details = Assert.IsType<CompanyHQ.Services.Moderation.Contracts.Dtos.AdminContentReportDetailsDto>(
-            await reports.GetAdminAsync(firstId, CompanyHQ.Services.Postgres.Contracts.Enums.ResponseAudience.Admin));
+        Assert.Equal(2, await store.Query<CompanyHQ.Moderation.Contracts.Models.ContentReportDecision>().CountAsync(row => ids.Contains(row.ContentReportId)));
+        Assert.Equal(2, await store.Query<CompanyHQ.Moderation.Contracts.Models.HiddenContent>().CountAsync(row => row.TargetId == target.Id));
+        var details = Assert.IsType<CompanyHQ.Moderation.Contracts.Dtos.AdminContentReportDetailsDto>(
+            await reports.GetAdminAsync(firstId, CompanyHQ.Postgres.Contracts.Enums.ResponseAudience.Admin));
         Assert.True(details.IsGloballyRestricted);
         decide.ServiceProvider.GetRequiredService<IPersistence>().Clear();
-        Assert.True(await reports.DecideAsync(admin.Id, firstId, new(CompanyHQ.Services.Moderation.Contracts.Enums.ReportStatus.Dismissed)));
-        Assert.Equal(4, await store.Query<CompanyHQ.Services.Moderation.Contracts.Models.ContentReportDecision>().CountAsync(row => ids.Contains(row.ContentReportId)));
-        Assert.False(await store.Query<CompanyHQ.Services.Moderation.Contracts.Models.HiddenContent>().AnyAsync(row => row.TargetId == target.Id));
+        Assert.True(await reports.DecideAsync(admin.Id, firstId, new(CompanyHQ.Moderation.Contracts.Enums.ReportStatus.Dismissed)));
+        Assert.Equal(4, await store.Query<CompanyHQ.Moderation.Contracts.Models.ContentReportDecision>().CountAsync(row => ids.Contains(row.ContentReportId)));
+        Assert.False(await store.Query<CompanyHQ.Moderation.Contracts.Models.HiddenContent>().AnyAsync(row => row.TargetId == target.Id));
     }
 
     [Fact]
@@ -190,7 +190,7 @@ public sealed class PersistenceTests(FeatureFixture fixture) : IClassFixture<Fea
         var prefix = "worker-" + Guid.NewGuid().ToString("N");
         await using var setup = fixture.Services.CreateAsyncScope();
         var db = setup.ServiceProvider.GetRequiredService<PostgresDbContext>();
-        db.AddRange(Enumerable.Range(0, 15).Select(index => new CompanyHQ.Services.Email.Contracts.Models.QueuedEmail
+        db.AddRange(Enumerable.Range(0, 15).Select(index => new CompanyHQ.Email.Contracts.Models.QueuedEmail
         {
             To = ["fixture@example.test"],
             Subject = "Fixture",
@@ -203,8 +203,8 @@ public sealed class PersistenceTests(FeatureFixture fixture) : IClassFixture<Fea
         await using var first = fixture.Services.CreateAsyncScope();
         await using var second = fixture.Services.CreateAsyncScope();
         var provider = new BlockingEmailProvider();
-        var type = typeof(CompanyHQ.Services.Email.Extensions.EmailServiceCollectionExtensions).Assembly
-            .GetType("CompanyHQ.Services.Email.Services.EmailQueueProcessor", throwOnError: true)!;
+        var type = typeof(CompanyHQ.Email.Extensions.EmailServiceCollectionExtensions).Assembly
+            .GetType("CompanyHQ.Email.Services.EmailQueueProcessor", throwOnError: true)!;
         var method = type.GetMethod("ProcessBatchAsync")!;
         var processor1 = ActivatorUtilities.CreateInstance(first.ServiceProvider, type, provider);
         var processor2 = ActivatorUtilities.CreateInstance(second.ServiceProvider, type, provider);
@@ -213,7 +213,7 @@ public sealed class PersistenceTests(FeatureFixture fixture) : IClassFixture<Fea
         try
         {
             Assert.Null(first.ServiceProvider.GetRequiredService<PostgresDbContext>().Database.CurrentTransaction);
-            Assert.Equal(10, await setup.ServiceProvider.GetRequiredService<IPersistence>().Query<CompanyHQ.Services.Email.Contracts.Models.QueuedEmail>()
+            Assert.Equal(10, await setup.ServiceProvider.GetRequiredService<IPersistence>().Query<CompanyHQ.Email.Contracts.Models.QueuedEmail>()
                 .CountAsync(row => row.IdempotencyKey.StartsWith(prefix) && row.NextAttemptAt > DateTimeOffset.UtcNow.AddMinutes(9)));
             Assert.Equal(5, await ((Task<int>)method.Invoke(processor2, [CancellationToken.None])!).WaitAsync(TimeSpan.FromSeconds(10)));
         }
@@ -221,11 +221,11 @@ public sealed class PersistenceTests(FeatureFixture fixture) : IClassFixture<Fea
         Assert.Equal(10, await batch1);
         Assert.Equal(15, provider.Keys.Count);
         Assert.Equal(15, provider.Keys.Distinct().Count());
-        var rows = await setup.ServiceProvider.GetRequiredService<IPersistence>().Query<CompanyHQ.Services.Email.Contracts.Models.QueuedEmail>()
+        var rows = await setup.ServiceProvider.GetRequiredService<IPersistence>().Query<CompanyHQ.Email.Contracts.Models.QueuedEmail>()
             .Where(row => row.IdempotencyKey.StartsWith(prefix)).ToListAsync();
         Assert.All(rows, row =>
         {
-            Assert.Equal(CompanyHQ.Services.Email.Contracts.Enums.QueuedEmailStatus.Sent, row.Status);
+            Assert.Equal(CompanyHQ.Email.Contracts.Enums.QueuedEmailStatus.Sent, row.Status);
             Assert.Equal("", row.Html); Assert.Equal("", row.Text);
         });
     }

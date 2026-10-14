@@ -1,11 +1,11 @@
 using Microsoft.AspNetCore.Identity;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
-using CompanyHQ.Services.Persistence.Services;
-using CompanyHQ.Services.Users.Contracts.Models;
-using CompanyHQ.Services.Users.Services;
+using CompanyHQ.Persistence.Services;
+using CompanyHQ.Users.Contracts.Models;
+using CompanyHQ.Users.Services;
 
-namespace CompanyHQ.Services.Users.Extensions;
+namespace CompanyHQ.Users.Extensions;
 
 public static class UserServiceCollectionExtensions
 {

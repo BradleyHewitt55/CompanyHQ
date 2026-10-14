@@ -1,12 +1,12 @@
 using System.Text.Json;
 using Microsoft.Extensions.Logging;
-using CompanyHQ.Services.Notifications.Contracts.Enums;
-using CompanyHQ.Services.Notifications.Contracts.Models;
-using CompanyHQ.Services.Notifications.Contracts.Ports;
-using CompanyHQ.Services.Persistence.Services;
-using CompanyHQ.Services.Users.Contracts.Models;
+using CompanyHQ.Notifications.Contracts.Enums;
+using CompanyHQ.Notifications.Contracts.Models;
+using CompanyHQ.Notifications.Contracts.Ports;
+using CompanyHQ.Persistence.Services;
+using CompanyHQ.Users.Contracts.Models;
 
-namespace CompanyHQ.Services.Notifications.Services;
+namespace CompanyHQ.Notifications.Services;
 
 /// <summary>
 /// Delivers one claimed notification over the channels the recipient allows. Each channel is an

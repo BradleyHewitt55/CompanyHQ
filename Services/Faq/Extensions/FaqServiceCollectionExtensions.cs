@@ -1,7 +1,7 @@
 using Microsoft.Extensions.DependencyInjection;
-using CompanyHQ.Services.Faqs.Services;
+using CompanyHQ.Faqs.Services;
 
-namespace CompanyHQ.Services.Faqs.Extensions;
+namespace CompanyHQ.Faqs.Extensions;
 
 /// <summary>Registers the FAQ content service and its controller assembly.</summary>
 public static class FaqServiceCollectionExtensions

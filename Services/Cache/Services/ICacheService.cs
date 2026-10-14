@@ -1,6 +1,6 @@
-using CompanyHQ.Services.Cache.Contracts.Models;
+using CompanyHQ.Cache.Contracts.Models;
 
-namespace CompanyHQ.Services.Cache.Services;
+namespace CompanyHQ.Cache.Services;
 
 /// <summary>
 /// The only way CompanyHQ reads or writes the shared cache. Values are stored as JSON, keys are

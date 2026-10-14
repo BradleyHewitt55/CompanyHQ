@@ -1,9 +1,9 @@
 using System.Linq.Expressions;
 
-using CompanyHQ.Services.Appointments.Contracts.Models;
-using CompanyHQ.Services.Postgres.Contracts.Enums;
+using CompanyHQ.Appointments.Contracts.Models;
+using CompanyHQ.Postgres.Contracts.Enums;
 
-namespace CompanyHQ.Services.Appointments.Contracts.Dtos;
+namespace CompanyHQ.Appointments.Contracts.Dtos;
 
 /// <summary>The only place an <see cref="Appointment" /> becomes a wire DTO.</summary>
 public static class AppointmentProjections

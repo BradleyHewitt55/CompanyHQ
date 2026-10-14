@@ -1,4 +1,4 @@
-namespace CompanyHQ.Services.Notifications.Contracts.Ports;
+namespace CompanyHQ.Notifications.Contracts.Ports;
 
 /// <summary>
 /// The email channel. Optional: with no adapter plugged in, the email channel is skipped, not

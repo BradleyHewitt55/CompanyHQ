@@ -1,7 +1,7 @@
-using CompanyHQ.Services.Moderation.Contracts.Captures;
-using CompanyHQ.Services.Moderation.Contracts.Enums;
+using CompanyHQ.Moderation.Contracts.Captures;
+using CompanyHQ.Moderation.Contracts.Enums;
 
-namespace CompanyHQ.Services.Moderation.Contracts.Ports;
+namespace CompanyHQ.Moderation.Contracts.Ports;
 
 /// <summary>Consumer hook for resolving a target and copying frozen evidence without a Moderation-to-domain dependency.</summary>
 public interface IReportableContentSource

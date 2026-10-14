@@ -1,13 +1,13 @@
-using CompanyHQ.Services.Media.Contracts.Enums;
-using CompanyHQ.Services.Media.Contracts.Ports;
-using CompanyHQ.Services.Media.Services;
-using CompanyHQ.Services.Messages.Contracts.Ports;
-using CompanyHQ.Services.Messages.Services;
-using CompanyHQ.Services.Moderation.Contracts.Captures;
-using CompanyHQ.Services.Moderation.Contracts.Enums;
-using CompanyHQ.Services.Moderation.Contracts.Ports;
-using CompanyHQ.Services.Notifications.Contracts.Enums;
-using CompanyHQ.Services.Notifications.Contracts.Ports;
+using CompanyHQ.Media.Contracts.Enums;
+using CompanyHQ.Media.Contracts.Ports;
+using CompanyHQ.Media.Services;
+using CompanyHQ.Messages.Contracts.Ports;
+using CompanyHQ.Messages.Services;
+using CompanyHQ.Moderation.Contracts.Captures;
+using CompanyHQ.Moderation.Contracts.Enums;
+using CompanyHQ.Moderation.Contracts.Ports;
+using CompanyHQ.Notifications.Contracts.Enums;
+using CompanyHQ.Notifications.Contracts.Ports;
 
 namespace Api.Integrations;
 

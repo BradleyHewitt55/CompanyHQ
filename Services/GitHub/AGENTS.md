@@ -1,6 +1,6 @@
 # GitHub service
 
-`Services/GitHub` (`CompanyHQ.Services.GitHub`) connects one GitHub repository to the deployment,
+`Services/GitHub` (`CompanyHQ.GitHub`) connects one GitHub repository to the deployment,
 files issues in it for other services, and lets staff read, comment on and close them. It owns the
 single `GitHubConnection` row and the encryption of its access token. It does not own the form that
 collects a report (that is `Widget`), the staff inbox the issues appear in (that is `Inbox`), the

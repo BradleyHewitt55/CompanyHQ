@@ -1,6 +1,6 @@
 using System.ComponentModel.DataAnnotations;
-using CompanyHQ.Services.Sales.Contracts.Enums;
-namespace CompanyHQ.Services.Sales.Contracts.Forms;
+using CompanyHQ.Sales.Contracts.Enums;
+namespace CompanyHQ.Sales.Contracts.Forms;
 /// <summary>Staff-only line adjustment applied after calculated promotions.</summary>
 public sealed record StaffLineDiscountRequest(Guid LineId,DiscountType Type,[Range(0,1000000000)] decimal Value);
 /// <summary>Authorized negotiated pricing. No field is accepted by self-service checkout.</summary>

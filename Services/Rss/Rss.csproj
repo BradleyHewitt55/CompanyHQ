@@ -4,8 +4,8 @@
     <TargetFramework>net10.0</TargetFramework>
     <Nullable>enable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
-    <AssemblyName>CompanyHQ.Services.Rss</AssemblyName>
-    <RootNamespace>CompanyHQ.Services.Rss</RootNamespace>
+    <AssemblyName>CompanyHQ.Rss</AssemblyName>
+    <RootNamespace>CompanyHQ.Rss</RootNamespace>
   </PropertyGroup>
 
   <ItemGroup>

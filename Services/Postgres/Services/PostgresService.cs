@@ -1,12 +1,12 @@
 using System.Linq.Expressions;
 using Microsoft.EntityFrameworkCore;
-using CompanyHQ.Services.Postgres.Contracts.Dtos;
-using CompanyHQ.Services.Postgres.Contracts.Forms;
-using CompanyHQ.Services.Postgres.Contracts.Models;
-using CompanyHQ.Services.Postgres.Data;
-using CompanyHQ.Services.Postgres.Extensions;
+using CompanyHQ.Postgres.Contracts.Dtos;
+using CompanyHQ.Postgres.Contracts.Forms;
+using CompanyHQ.Postgres.Contracts.Models;
+using CompanyHQ.Postgres.Data;
+using CompanyHQ.Postgres.Extensions;
 
-namespace CompanyHQ.Services.Postgres.Services;
+namespace CompanyHQ.Postgres.Services;
 
 /// <inheritdoc cref="IPostgresService{TModel}"/>
 public sealed class PostgresService<TModel>(PostgresDbContext context)

@@ -1,4 +1,4 @@
-namespace CompanyHQ.Services.Geo.Contracts.Models;
+namespace CompanyHQ.Geo.Contracts.Models;
 
 /// <summary>A south/west/north/east bounding box in degrees — the area a map request asks about.</summary>
 public readonly record struct GeoViewport(double South, double West, double North, double East)

@@ -1,6 +1,6 @@
 using System.ComponentModel.DataAnnotations;
 
-namespace CompanyHQ.Services.Faqs.Contracts.Forms;
+namespace CompanyHQ.Faqs.Contracts.Forms;
 
 /// <summary>Administrator body for changing an FAQ without changing its stable key.</summary>
 public sealed record UpdateFaqEntryRequest(

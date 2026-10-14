@@ -2,14 +2,14 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 
-using CompanyHQ.Services.Appointments.Contracts.Dtos;
-using CompanyHQ.Services.Appointments.Contracts.Forms;
-using CompanyHQ.Services.Appointments.Services;
-using CompanyHQ.Services.Postgres.Contracts.Dtos;
-using CompanyHQ.Services.Postgres.Contracts.Forms;
-using CompanyHQ.Services.Auth.Contracts.Identity;
+using CompanyHQ.Appointments.Contracts.Dtos;
+using CompanyHQ.Appointments.Contracts.Forms;
+using CompanyHQ.Appointments.Services;
+using CompanyHQ.Postgres.Contracts.Dtos;
+using CompanyHQ.Postgres.Contracts.Forms;
+using CompanyHQ.Auth.Contracts.Identity;
 
-namespace CompanyHQ.Services.Appointments.Controllers;
+namespace CompanyHQ.Appointments.Controllers;
 
 /// <summary>
 /// Appointment diaries: the caller's own, or every diary for a role with <c>appointments.manage</c>.

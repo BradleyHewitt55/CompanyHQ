@@ -1,6 +1,6 @@
 using System.Text.Json.Serialization;
 
-namespace CompanyHQ.Services.Mcp.Contracts.Dtos;
+namespace CompanyHQ.Mcp.Contracts.Dtos;
 
 public sealed record McpOAuthTokenDto(
     [property: JsonPropertyName("access_token")] string AccessToken,

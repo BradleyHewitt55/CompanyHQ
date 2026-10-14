@@ -1,4 +1,4 @@
-namespace CompanyHQ.Services.Moderation.Contracts.Dtos;
+namespace CompanyHQ.Moderation.Contracts.Dtos;
 
 /// <summary>The caller's outbound block without the private reason they supplied.</summary>
 public sealed record ClientUserBlockDto(

@@ -1,7 +1,7 @@
-using CompanyHQ.Services.Widget.Contracts.Dtos;
-using CompanyHQ.Services.Widget.Contracts.Enums;
+using CompanyHQ.Widget.Contracts.Dtos;
+using CompanyHQ.Widget.Contracts.Enums;
 
-namespace CompanyHQ.Services.Widget.Contracts.Ports;
+namespace CompanyHQ.Widget.Contracts.Ports;
 
 /// <summary>A conversation to open, with the source already checked against the allowed list.</summary>
 public sealed record WidgetConversationStart(

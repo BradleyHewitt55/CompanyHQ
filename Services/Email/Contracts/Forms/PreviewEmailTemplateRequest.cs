@@ -1,6 +1,6 @@
 using System.ComponentModel.DataAnnotations;
 
-namespace CompanyHQ.Services.Email.Contracts.Forms;
+namespace CompanyHQ.Email.Contracts.Forms;
 
 public sealed record PreviewEmailTemplateRequest(
     [Required, MaxLength(200_000)] string Html,

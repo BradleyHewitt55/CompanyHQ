@@ -1,10 +1,10 @@
-using CompanyHQ.Services.Notifications.Contracts.Dtos;
-using CompanyHQ.Services.Notifications.Contracts.Enums;
-using CompanyHQ.Services.Notifications.Contracts.Forms;
-using CompanyHQ.Services.Notifications.Contracts.Models;
-using CompanyHQ.Services.Persistence.Services;
+using CompanyHQ.Notifications.Contracts.Dtos;
+using CompanyHQ.Notifications.Contracts.Enums;
+using CompanyHQ.Notifications.Contracts.Forms;
+using CompanyHQ.Notifications.Contracts.Models;
+using CompanyHQ.Persistence.Services;
 
-namespace CompanyHQ.Services.Notifications.Services;
+namespace CompanyHQ.Notifications.Services;
 
 /// <inheritdoc cref="INotificationAccountService" />
 public sealed class NotificationAccountService(

@@ -1,6 +1,6 @@
 using System.ComponentModel.DataAnnotations;
 
-namespace CompanyHQ.Services.Auth.Contracts.Forms;
+namespace CompanyHQ.Auth.Contracts.Forms;
 
 public sealed record ChangeEmailRequest(
     [Required] string CurrentPassword,

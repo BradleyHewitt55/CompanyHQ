@@ -1,9 +1,9 @@
 using System.Linq.Expressions;
-using CompanyHQ.Services.Postgres.Contracts.Dtos;
-using CompanyHQ.Services.Postgres.Contracts.Forms;
-using CompanyHQ.Services.Postgres.Contracts.Models;
+using CompanyHQ.Postgres.Contracts.Dtos;
+using CompanyHQ.Postgres.Contracts.Forms;
+using CompanyHQ.Postgres.Contracts.Models;
 
-namespace CompanyHQ.Services.Postgres.Services;
+namespace CompanyHQ.Postgres.Services;
 
 /// <summary>
 /// Generic persistence for any <see cref="BaseModel"/>, in this provider's own terms: it hands

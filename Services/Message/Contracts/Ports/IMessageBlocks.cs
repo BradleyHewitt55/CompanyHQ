@@ -1,4 +1,4 @@
-namespace CompanyHQ.Services.Messages.Contracts.Ports;
+namespace CompanyHQ.Messages.Contracts.Ports;
 
 /// <summary>
 /// Who may not message whom. Optional: with no adapter plugged in, nobody is blocked. The host

@@ -1,7 +1,7 @@
 using System.Net;
 using System.Net.Sockets;
 
-namespace CompanyHQ.Services.Rss.Services;
+namespace CompanyHQ.Rss.Services;
 
 /// <summary>
 /// The two things the feed fetcher asks of the operating system: name resolution and a TCP

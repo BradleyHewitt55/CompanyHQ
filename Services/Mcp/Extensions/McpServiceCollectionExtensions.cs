@@ -5,11 +5,11 @@ using Microsoft.AspNetCore.RateLimiting;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 
-using CompanyHQ.Services.Mcp.Authentication;
-using CompanyHQ.Services.Mcp.Contracts.Models;
-using CompanyHQ.Services.Mcp.Services;
+using CompanyHQ.Mcp.Authentication;
+using CompanyHQ.Mcp.Contracts.Models;
+using CompanyHQ.Mcp.Services;
 
-namespace CompanyHQ.Services.Mcp.Extensions;
+namespace CompanyHQ.Mcp.Extensions;
 
 public static class McpServiceCollectionExtensions
 {

@@ -1,4 +1,4 @@
-namespace CompanyHQ.Services.Messages.Contracts.Ports;
+namespace CompanyHQ.Messages.Contracts.Ports;
 
 /// <summary>
 /// Message ids an operator has confirmed a report against. Optional: with no adapter plugged in,

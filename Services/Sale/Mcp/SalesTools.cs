@@ -4,17 +4,17 @@ using Microsoft.AspNetCore.Http;
 
 using ModelContextProtocol.Server;
 
-using CompanyHQ.Services.Auth.Contracts.Identity;
-using CompanyHQ.Services.Postgres.Contracts;
-using CompanyHQ.Services.Postgres.Contracts.Dtos;
-using CompanyHQ.Services.Postgres.Contracts.Enums;
-using CompanyHQ.Services.Postgres.Contracts.Forms;
-using CompanyHQ.Services.Sales.Contracts.Dtos;
-using CompanyHQ.Services.Sales.Contracts.Forms;
-using CompanyHQ.Services.Sales.Services;
-using CompanyHQ.Services.Users.Extensions;
+using CompanyHQ.Auth.Contracts.Identity;
+using CompanyHQ.Postgres.Contracts;
+using CompanyHQ.Postgres.Contracts.Dtos;
+using CompanyHQ.Postgres.Contracts.Enums;
+using CompanyHQ.Postgres.Contracts.Forms;
+using CompanyHQ.Sales.Contracts.Dtos;
+using CompanyHQ.Sales.Contracts.Forms;
+using CompanyHQ.Sales.Services;
+using CompanyHQ.Users.Extensions;
 
-namespace CompanyHQ.Services.Sales.Mcp;
+namespace CompanyHQ.Sales.Mcp;
 
 [McpServerToolType]
 public sealed class SalesTools(SalesCatalogService catalog, IHttpContextAccessor httpContextAccessor)

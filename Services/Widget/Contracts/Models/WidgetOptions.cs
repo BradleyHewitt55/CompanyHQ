@@ -1,4 +1,4 @@
-namespace CompanyHQ.Services.Widget.Contracts.Models;
+namespace CompanyHQ.Widget.Contracts.Models;
 
 /// <summary>Which sites and apps may send through the widget.</summary>
 public sealed class WidgetOptions

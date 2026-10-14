@@ -1,6 +1,6 @@
-using CompanyHQ.Services.Shipping.Contracts.Forms;
+using CompanyHQ.Shipping.Contracts.Forms;
 
-namespace CompanyHQ.Services.Shipping.Contracts.Ports;
+namespace CompanyHQ.Shipping.Contracts.Ports;
 
 /// <summary>
 /// Whoever owns promotions decides what comes off a shipping cost. Optional: without it a quote is

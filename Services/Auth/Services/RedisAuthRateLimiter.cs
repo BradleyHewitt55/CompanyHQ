@@ -1,9 +1,9 @@
 using System.Security.Cryptography;
 using System.Text;
 
-using CompanyHQ.Services.Cache.Services;
+using CompanyHQ.Cache.Services;
 
-namespace CompanyHQ.Services.Auth.Services;
+namespace CompanyHQ.Auth.Services;
 
 /// <summary>Fixed-window limiting backed by the shared Redis cache, namespaced by purpose.</summary>
 public sealed class RedisAuthRateLimiter(ICacheService cache) : IAuthRateLimiter

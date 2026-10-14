@@ -2,17 +2,17 @@ using System.Collections.Concurrent;
 using System.Linq.Expressions;
 using System.Reflection;
 using Microsoft.EntityFrameworkCore;
-using CompanyHQ.Services.Postgres.Contracts.Forms;
+using CompanyHQ.Postgres.Contracts.Forms;
 
-namespace CompanyHQ.Services.Postgres.Extensions;
+namespace CompanyHQ.Postgres.Extensions;
 
 /// <summary>
 /// Thrown when a caller names a search field their role's shape does not carry. It is the
-/// provider-neutral <see cref="CompanyHQ.Services.Persistence.Services.SearchFieldException"/> under
+/// provider-neutral <see cref="CompanyHQ.Persistence.Services.SearchFieldException"/> under
 /// its earlier name, so code catching either one keeps working.
 /// </summary>
 public sealed class SearchFieldException(string field, IReadOnlyList<string> allowed)
-    : CompanyHQ.Services.Persistence.Services.SearchFieldException(field, allowed);
+    : CompanyHQ.Persistence.Services.SearchFieldException(field, allowed);
 
 /// <summary>
 /// One keyword filter for every list endpoint. The searchable fields are not a hand-kept list: they

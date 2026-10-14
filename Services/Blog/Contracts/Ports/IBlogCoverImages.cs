@@ -1,4 +1,4 @@
-namespace CompanyHQ.Services.Blogs.Contracts.Ports;
+namespace CompanyHQ.Blogs.Contracts.Ports;
 
 /// <summary>Optional host integration for managed public cover images.</summary>
 public interface IBlogCoverImages

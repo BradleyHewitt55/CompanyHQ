@@ -1,4 +1,4 @@
-namespace CompanyHQ.Services.Contact.Contracts.Ports;
+namespace CompanyHQ.Contact.Contracts.Ports;
 
 /// <summary>
 /// Where contact messages go. The host bridges it to whatever stores the company's published

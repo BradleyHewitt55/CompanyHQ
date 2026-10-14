@@ -2,17 +2,17 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 
-using CompanyHQ.Services.Mcp.Contracts.Dtos;
-using CompanyHQ.Services.Mcp.Contracts.Enums;
-using CompanyHQ.Services.Mcp.Contracts.Forms;
-using CompanyHQ.Services.Mcp.Services;
-using CompanyHQ.Services.Postgres.Contracts.Dtos;
-using CompanyHQ.Services.Postgres.Contracts;
-using CompanyHQ.Services.Postgres.Contracts.Forms;
-using CompanyHQ.Services.Users.Contracts.Enums;
-using CompanyHQ.Services.Auth.Contracts.Identity;
+using CompanyHQ.Mcp.Contracts.Dtos;
+using CompanyHQ.Mcp.Contracts.Enums;
+using CompanyHQ.Mcp.Contracts.Forms;
+using CompanyHQ.Mcp.Services;
+using CompanyHQ.Postgres.Contracts.Dtos;
+using CompanyHQ.Postgres.Contracts;
+using CompanyHQ.Postgres.Contracts.Forms;
+using CompanyHQ.Users.Contracts.Enums;
+using CompanyHQ.Auth.Contracts.Identity;
 
-namespace CompanyHQ.Services.Mcp.Controllers;
+namespace CompanyHQ.Mcp.Controllers;
 
 /// <summary>Key lifecycle. Every route is bearer-only and scoped to the caller's own keys by default.</summary>
 [ApiController]

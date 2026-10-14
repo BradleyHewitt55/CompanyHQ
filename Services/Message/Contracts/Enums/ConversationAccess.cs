@@ -1,4 +1,4 @@
-namespace CompanyHQ.Services.Messages.Contracts.Enums;
+namespace CompanyHQ.Messages.Contracts.Enums;
 
 /// <summary>Who a deployment lets close or delete a conversation.</summary>
 public enum ConversationAccess

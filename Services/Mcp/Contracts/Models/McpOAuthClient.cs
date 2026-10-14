@@ -1,6 +1,6 @@
-using CompanyHQ.Services.Persistence.Contracts.Models;
+using CompanyHQ.Persistence.Contracts.Models;
 
-namespace CompanyHQ.Services.Mcp.Contracts.Models;
+namespace CompanyHQ.Mcp.Contracts.Models;
 
 /// <summary>Public OAuth client registration metadata. No client secret is issued or stored.</summary>
 public sealed class McpOAuthClient : BaseModel

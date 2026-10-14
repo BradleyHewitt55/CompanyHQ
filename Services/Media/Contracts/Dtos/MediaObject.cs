@@ -1,8 +1,8 @@
 using System.Text.Json.Serialization;
 
-using CompanyHQ.Services.Media.Contracts.Enums;
+using CompanyHQ.Media.Contracts.Enums;
 
-namespace CompanyHQ.Services.Media.Contracts.Dtos;
+namespace CompanyHQ.Media.Contracts.Dtos;
 
 /// <summary>The client-safe view of a ready media object.</summary>
 [JsonDerivedType(typeof(AdminMediaObjectDto))]

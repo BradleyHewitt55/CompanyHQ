@@ -2,10 +2,10 @@ using Microsoft.EntityFrameworkCore.Metadata.Builders;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.ChangeTracking;
 using System.Text.Json;
-using CompanyHQ.Services.Company.Contracts.Dtos;
-using CompanyHQ.Services.Company.Contracts.Models;
+using CompanyHQ.Company.Contracts.Dtos;
+using CompanyHQ.Company.Contracts.Models;
 
-namespace CompanyHQ.Services.Company.Data;
+namespace CompanyHQ.Company.Data;
 
 internal sealed class CompanyProfileConfiguration : IEntityTypeConfiguration<CompanyProfile>
 {

@@ -1,11 +1,11 @@
 using Microsoft.Extensions.Logging;
 
-using CompanyHQ.Services.Media.Contracts.Enums;
-using CompanyHQ.Services.Media.Contracts.Models;
-using CompanyHQ.Services.Media.Contracts.Ports;
-using CompanyHQ.Services.Persistence.Services;
+using CompanyHQ.Media.Contracts.Enums;
+using CompanyHQ.Media.Contracts.Models;
+using CompanyHQ.Media.Contracts.Ports;
+using CompanyHQ.Persistence.Services;
 
-namespace CompanyHQ.Services.Media.Services;
+namespace CompanyHQ.Media.Services;
 
 /// <summary>
 /// Removes one batch of abandoned media objects after their lifecycle rows are marked deleted.

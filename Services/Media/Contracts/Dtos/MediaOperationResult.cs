@@ -1,6 +1,6 @@
-using CompanyHQ.Services.Media.Contracts.Enums;
+using CompanyHQ.Media.Contracts.Enums;
 
-namespace CompanyHQ.Services.Media.Contracts.Dtos;
+namespace CompanyHQ.Media.Contracts.Dtos;
 
 /// <summary>Typed result for lifecycle operations whose HTTP status belongs to the controller.</summary>
 public readonly record struct MediaOperationResult(MediaOperationError Error)

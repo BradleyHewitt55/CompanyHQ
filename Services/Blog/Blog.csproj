@@ -4,8 +4,8 @@
     <TargetFramework>net10.0</TargetFramework>
     <Nullable>enable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
-    <AssemblyName>CompanyHQ.Services.Blogs</AssemblyName>
-    <RootNamespace>CompanyHQ.Services.Blogs</RootNamespace>
+    <AssemblyName>CompanyHQ.Blogs</AssemblyName>
+    <RootNamespace>CompanyHQ.Blogs</RootNamespace>
   </PropertyGroup>
 
   <ItemGroup>

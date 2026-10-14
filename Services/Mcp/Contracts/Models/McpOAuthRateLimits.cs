@@ -1,4 +1,4 @@
-namespace CompanyHQ.Services.Mcp.Contracts.Models;
+namespace CompanyHQ.Mcp.Contracts.Models;
 
 public static class McpOAuthRateLimits
 {

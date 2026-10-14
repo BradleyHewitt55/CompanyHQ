@@ -1,6 +1,6 @@
 using System.Text.Json.Serialization;
 
-namespace CompanyHQ.Services.Auth.Contracts.Enums;
+namespace CompanyHQ.Auth.Contracts.Enums;
 
 /// <summary>
 /// Why an auth attempt failed, in the terms the controller maps to a status code.

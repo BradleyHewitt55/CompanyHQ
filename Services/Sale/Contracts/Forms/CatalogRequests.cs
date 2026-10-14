@@ -1,7 +1,7 @@
 using System.ComponentModel.DataAnnotations;
-using CompanyHQ.Services.Sales.Contracts.Dtos;
-using CompanyHQ.Services.Sales.Contracts.Enums;
-namespace CompanyHQ.Services.Sales.Contracts.Forms;
+using CompanyHQ.Sales.Contracts.Dtos;
+using CompanyHQ.Sales.Contracts.Enums;
+namespace CompanyHQ.Sales.Contracts.Forms;
 
 /// <summary>Complete catalog definition. Variant ids are stable across updates.</summary>
 public sealed record SaveProductRequest(

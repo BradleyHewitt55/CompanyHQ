@@ -1,4 +1,4 @@
-namespace CompanyHQ.Services.Users.Contracts.Ports;
+namespace CompanyHQ.Users.Contracts.Ports;
 
 /// <summary>
 /// Lets another service veto an account deletion, and then release whatever it was holding once the

@@ -1,6 +1,6 @@
 using System.ComponentModel.DataAnnotations;
 
-namespace CompanyHQ.Services.GitHub.Contracts.Forms;
+namespace CompanyHQ.GitHub.Contracts.Forms;
 
 /// <summary>Body for <c>PUT /api/github</c>: an <c>owner/name</c> repository and a token that can reach it.</summary>
 public sealed record ConnectGitHubRepositoryRequest(

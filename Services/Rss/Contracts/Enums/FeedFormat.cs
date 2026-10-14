@@ -1,6 +1,6 @@
 using System.Text.Json.Serialization;
 
-namespace CompanyHQ.Services.Rss.Contracts.Enums;
+namespace CompanyHQ.Rss.Contracts.Enums;
 
 /// <summary>The syndication family a document or an advertised link belongs to.</summary>
 [JsonConverter(typeof(JsonStringEnumConverter<FeedFormat>))]

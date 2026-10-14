@@ -1,4 +1,4 @@
-namespace CompanyHQ.Services.Users.Contracts.Models;
+namespace CompanyHQ.Users.Contracts.Models;
 
 /// <summary>Joins a person's stored first and last name into the single line some surfaces show.</summary>
 public static class UserNames

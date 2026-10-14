@@ -1,7 +1,7 @@
-using CompanyHQ.Services.Media.Contracts.Ports;
-using CompanyHQ.Services.Media.Contracts.Enums;
+using CompanyHQ.Media.Contracts.Ports;
+using CompanyHQ.Media.Contracts.Enums;
 
-namespace CompanyHQ.Services.Media.Services;
+namespace CompanyHQ.Media.Services;
 
 /// <summary>
 /// Hands every private read to the owning feature's policy and fails closed when none is registered.

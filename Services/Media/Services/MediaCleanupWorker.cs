@@ -2,9 +2,9 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 
-using CompanyHQ.Services.Media.Contracts.Models;
+using CompanyHQ.Media.Contracts.Models;
 
-namespace CompanyHQ.Services.Media.Services;
+namespace CompanyHQ.Media.Services;
 
 /// <summary>Runs one <see cref="MediaCleanupProcessor"/> pass per scope, every cleanup interval.</summary>
 public sealed class MediaCleanupWorker(

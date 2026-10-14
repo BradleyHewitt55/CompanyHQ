@@ -1,17 +1,17 @@
 using System.Data;
 using System.Text.RegularExpressions;
-using CompanyHQ.Services.Persistence.Services;
-using CompanyHQ.Services.Postgres.Contracts;
-using CompanyHQ.Services.Postgres.Contracts.Dtos;
-using CompanyHQ.Services.Postgres.Contracts.Enums;
-using CompanyHQ.Services.Postgres.Contracts.Forms;
-using CompanyHQ.Services.Sales.Contracts.Dtos;
-using CompanyHQ.Services.Sales.Contracts.Enums;
-using CompanyHQ.Services.Sales.Contracts.Forms;
-using CompanyHQ.Services.Sales.Contracts.Models;
-using CompanyHQ.Services.Sales.Contracts.Ports;
-using CompanyHQ.Services.Users.Services;
-namespace CompanyHQ.Services.Sales.Services;
+using CompanyHQ.Persistence.Services;
+using CompanyHQ.Postgres.Contracts;
+using CompanyHQ.Postgres.Contracts.Dtos;
+using CompanyHQ.Postgres.Contracts.Enums;
+using CompanyHQ.Postgres.Contracts.Forms;
+using CompanyHQ.Sales.Contracts.Dtos;
+using CompanyHQ.Sales.Contracts.Enums;
+using CompanyHQ.Sales.Contracts.Forms;
+using CompanyHQ.Sales.Contracts.Models;
+using CompanyHQ.Sales.Contracts.Ports;
+using CompanyHQ.Users.Services;
+namespace CompanyHQ.Sales.Services;
 
 /// <summary>Owns the reusable persisted catalog and calculated product prices.</summary>
 public sealed partial class SalesCatalogService(IPersistence db, IUserAuthorizationService auth, TimeProvider clock, SalesOptions options) : ISalesCatalogService

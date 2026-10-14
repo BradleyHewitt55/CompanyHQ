@@ -1,7 +1,7 @@
 using System.ComponentModel.DataAnnotations;
 
-using CompanyHQ.Services.Users.Contracts.Enums;
-namespace CompanyHQ.Services.Users.Contracts.Forms;
+using CompanyHQ.Users.Contracts.Enums;
+namespace CompanyHQ.Users.Contracts.Forms;
 
 /// <summary>
 /// Body for <c>PUT /api/users/{id}</c>. Every field is optional; omitting one leaves the stored

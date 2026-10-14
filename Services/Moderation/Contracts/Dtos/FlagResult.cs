@@ -1,4 +1,4 @@
-namespace CompanyHQ.Services.Moderation.Contracts.Dtos;
+namespace CompanyHQ.Moderation.Contracts.Dtos;
 
 /// <summary>Typed account-flag raise outcome.</summary>
 public readonly record struct FlagResult(ClientAccountFlagDto Value, bool AlreadyActive)

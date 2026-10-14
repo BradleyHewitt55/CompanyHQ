@@ -1,4 +1,4 @@
-namespace CompanyHQ.Services.Auth.Services;
+namespace CompanyHQ.Auth.Services;
 
 /// <summary>
 /// Distributed protection for anonymous and authenticated credential endpoints — register, login,

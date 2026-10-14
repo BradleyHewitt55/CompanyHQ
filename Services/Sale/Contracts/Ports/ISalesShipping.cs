@@ -1,6 +1,6 @@
-using CompanyHQ.Services.Sales.Contracts.Dtos;
-using CompanyHQ.Services.Sales.Contracts.Forms;
-namespace CompanyHQ.Services.Sales.Contracts.Ports;
+using CompanyHQ.Sales.Contracts.Dtos;
+using CompanyHQ.Sales.Contracts.Forms;
+namespace CompanyHQ.Sales.Contracts.Ports;
 /// <summary>Optional shipping capability. Physical checkout with an address fails when it is absent.</summary>
 public interface ISalesShipping
 {

@@ -1,8 +1,8 @@
-using CompanyHQ.Services.Moderation.Contracts.Ports;
-using CompanyHQ.Services.Moderation.Contracts.Dtos;
-using CompanyHQ.Services.Moderation.Contracts.Enums;
+using CompanyHQ.Moderation.Contracts.Ports;
+using CompanyHQ.Moderation.Contracts.Dtos;
+using CompanyHQ.Moderation.Contracts.Enums;
 
-namespace CompanyHQ.Services.Moderation.Services;
+namespace CompanyHQ.Moderation.Services;
 
 /// <inheritdoc cref="IReportTargetRegistry" />
 public sealed class ReportTargetRegistry : IReportTargetRegistry

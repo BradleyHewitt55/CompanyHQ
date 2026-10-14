@@ -1,8 +1,8 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
-using CompanyHQ.Services.Inbox.Contracts.Models;
+using CompanyHQ.Inbox.Contracts.Models;
 
-namespace CompanyHQ.Services.Inbox.Data;
+namespace CompanyHQ.Inbox.Data;
 
 internal sealed class InboxConversationConfiguration : IEntityTypeConfiguration<InboxConversation>
 {

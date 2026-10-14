@@ -1,6 +1,6 @@
 using System.ComponentModel.DataAnnotations;
 
-namespace CompanyHQ.Services.Company.Contracts.Forms;
+namespace CompanyHQ.Company.Contracts.Forms;
 
 /// <summary>Validation shared by the administrator company-profile save.</summary>
 public static class CompanyProfileValidation

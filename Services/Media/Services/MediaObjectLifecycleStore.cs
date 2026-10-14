@@ -1,10 +1,10 @@
-using CompanyHQ.Services.Media.Contracts.Ports;
+using CompanyHQ.Media.Contracts.Ports;
 
-using CompanyHQ.Services.Media.Contracts.Enums;
-using CompanyHQ.Services.Media.Contracts.Models;
-using CompanyHQ.Services.Persistence.Services;
+using CompanyHQ.Media.Contracts.Enums;
+using CompanyHQ.Media.Contracts.Models;
+using CompanyHQ.Persistence.Services;
 
-namespace CompanyHQ.Services.Media.Services;
+namespace CompanyHQ.Media.Services;
 
 /// <summary>Persists media lifecycle changes with the state predicate in the write itself.</summary>
 public sealed class MediaObjectLifecycleStore(

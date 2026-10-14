@@ -1,9 +1,9 @@
-using CompanyHQ.Services.Mcp.Contracts.Dtos;
-using CompanyHQ.Services.Mcp.Contracts.Forms;
-using CompanyHQ.Services.Postgres.Contracts.Dtos;
-using CompanyHQ.Services.Postgres.Contracts.Forms;
+using CompanyHQ.Mcp.Contracts.Dtos;
+using CompanyHQ.Mcp.Contracts.Forms;
+using CompanyHQ.Postgres.Contracts.Dtos;
+using CompanyHQ.Postgres.Contracts.Forms;
 
-namespace CompanyHQ.Services.Mcp.Services;
+namespace CompanyHQ.Mcp.Services;
 
 /// <summary>Issues, lists, and revokes agent keys. Never re-displays a plaintext after issue.</summary>
 public interface IAgentKeyService

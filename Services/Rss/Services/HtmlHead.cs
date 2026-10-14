@@ -1,10 +1,10 @@
 using System.Net;
 using System.Text;
 using System.Text.RegularExpressions;
-using CompanyHQ.Services.Rss.Contracts.Dtos;
-using CompanyHQ.Services.Rss.Contracts.Enums;
+using CompanyHQ.Rss.Contracts.Dtos;
+using CompanyHQ.Rss.Contracts.Enums;
 
-namespace CompanyHQ.Services.Rss.Services;
+namespace CompanyHQ.Rss.Services;
 
 /// <summary>
 /// Reads what a web page's head says about its feeds and its publisher. It is a tag scanner, not

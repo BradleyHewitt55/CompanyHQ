@@ -1,16 +1,16 @@
 using Microsoft.Extensions.Logging;
-using CompanyHQ.Services.Blogs.Contracts.Dtos;
-using CompanyHQ.Services.Blogs.Contracts.Forms;
-using CompanyHQ.Services.Blogs.Contracts.Models;
-using CompanyHQ.Services.Blogs.Contracts.Ports;
-using CompanyHQ.Services.Postgres.Contracts.Dtos;
-using CompanyHQ.Services.Postgres.Contracts;
-using CompanyHQ.Services.Postgres.Contracts.Enums;
-using CompanyHQ.Services.Postgres.Contracts.Forms;
-using CompanyHQ.Services.Persistence.Services;
-using CompanyHQ.Services.Users.Services;
+using CompanyHQ.Blogs.Contracts.Dtos;
+using CompanyHQ.Blogs.Contracts.Forms;
+using CompanyHQ.Blogs.Contracts.Models;
+using CompanyHQ.Blogs.Contracts.Ports;
+using CompanyHQ.Postgres.Contracts.Dtos;
+using CompanyHQ.Postgres.Contracts;
+using CompanyHQ.Postgres.Contracts.Enums;
+using CompanyHQ.Postgres.Contracts.Forms;
+using CompanyHQ.Persistence.Services;
+using CompanyHQ.Users.Services;
 
-namespace CompanyHQ.Services.Blogs.Services;
+namespace CompanyHQ.Blogs.Services;
 
 public sealed class BlogService(
     IRepository<BlogPost> posts,

@@ -4,8 +4,8 @@
     <TargetFramework>net10.0</TargetFramework>
     <Nullable>enable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
-    <AssemblyName>CompanyHQ.Services.Shipping</AssemblyName>
-    <RootNamespace>CompanyHQ.Services.Shipping</RootNamespace>
+    <AssemblyName>CompanyHQ.Shipping</AssemblyName>
+    <RootNamespace>CompanyHQ.Shipping</RootNamespace>
   </PropertyGroup>
 
   <ItemGroup>

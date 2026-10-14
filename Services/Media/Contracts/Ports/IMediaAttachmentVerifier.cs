@@ -1,6 +1,6 @@
-using CompanyHQ.Services.Media.Contracts.Enums;
+using CompanyHQ.Media.Contracts.Enums;
 
-namespace CompanyHQ.Services.Media.Contracts.Ports;
+namespace CompanyHQ.Media.Contracts.Ports;
 
 /// <summary>
 /// What a consuming service asks before it links an uploaded object to its own row: is this object

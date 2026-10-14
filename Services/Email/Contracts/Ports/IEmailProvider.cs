@@ -1,4 +1,4 @@
-namespace CompanyHQ.Services.Email.Contracts.Ports;
+namespace CompanyHQ.Email.Contracts.Ports;
 
 /// <summary>
 /// Delivery port between the outbox and the transport. Email fills it itself with the host's Resend

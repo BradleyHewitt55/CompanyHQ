@@ -2,10 +2,10 @@ using Microsoft.AspNetCore.Builder;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 
-using CompanyHQ.Services.Geo.Contracts.Models;
-using CompanyHQ.Services.Geo.Services;
+using CompanyHQ.Geo.Contracts.Models;
+using CompanyHQ.Geo.Services;
 
-namespace CompanyHQ.Services.Geo.Extensions;
+namespace CompanyHQ.Geo.Extensions;
 
 /// <summary>Registers the Geo service and its controller assembly.</summary>
 public static class GeoServiceCollectionExtensions

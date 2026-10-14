@@ -4,8 +4,8 @@
     <TargetFramework>net10.0</TargetFramework>
     <Nullable>enable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
-    <AssemblyName>CompanyHQ.Services.Sales.Contracts</AssemblyName>
-    <RootNamespace>CompanyHQ.Services.Sales.Contracts</RootNamespace>
+    <AssemblyName>CompanyHQ.Sales.Contracts</AssemblyName>
+    <RootNamespace>CompanyHQ.Sales.Contracts</RootNamespace>
   </PropertyGroup>
 
   <!-- Wire shapes and ports only, with no framework, database or provider dependency. The persisted

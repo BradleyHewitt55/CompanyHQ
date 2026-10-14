@@ -2,35 +2,35 @@ using System.Security.Claims;
 using System.Text.Json;
 using Microsoft.AspNetCore.Http;
 using ModelContextProtocol;
-using CompanyHQ.Services.Auth.Contracts.Identity;
-using CompanyHQ.Services.Postgres.Contracts;
-using CompanyHQ.Services.Sales.Mcp;
+using CompanyHQ.Auth.Contracts.Identity;
+using CompanyHQ.Postgres.Contracts;
+using CompanyHQ.Sales.Mcp;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
-using CompanyHQ.Services.Persistence.Services;
-using CompanyHQ.Services.Postgres.Contracts.Enums;
-using CompanyHQ.Services.Postgres.Contracts.Forms;
-using CompanyHQ.Services.Postgres.Data;
-using CompanyHQ.Services.Postgres.Extensions;
-using CompanyHQ.Services.Sales.Contracts.Dtos;
-using CompanyHQ.Services.Sales.Contracts.Enums;
-using CompanyHQ.Services.Sales.Contracts.Forms;
-using CompanyHQ.Services.Sales.Contracts.Models;
-using CompanyHQ.Services.Sales.Contracts.Ports;
-using CompanyHQ.Services.Sales.Extensions;
-using CompanyHQ.Services.Sales.Services;
-using CompanyHQ.Services.Shipping.Contracts.Dtos;
-using CompanyHQ.Services.Shipping.Contracts.Enums;
-using CompanyHQ.Services.Shipping.Contracts.Forms;
-using CompanyHQ.Services.Shipping.Contracts.Ports;
-using CompanyHQ.Services.Users.Services;
-using CompanyHQ.Services.Shipping.Extensions;
-using CompanyHQ.Services.Shipping.Services;
-using CompanyHQ.Services.Users.Contracts.Enums;
-using CompanyHQ.Services.Users.Contracts.Models;
-using CompanyHQ.Services.Users.Extensions;
+using CompanyHQ.Persistence.Services;
+using CompanyHQ.Postgres.Contracts.Enums;
+using CompanyHQ.Postgres.Contracts.Forms;
+using CompanyHQ.Postgres.Data;
+using CompanyHQ.Postgres.Extensions;
+using CompanyHQ.Sales.Contracts.Dtos;
+using CompanyHQ.Sales.Contracts.Enums;
+using CompanyHQ.Sales.Contracts.Forms;
+using CompanyHQ.Sales.Contracts.Models;
+using CompanyHQ.Sales.Contracts.Ports;
+using CompanyHQ.Sales.Extensions;
+using CompanyHQ.Sales.Services;
+using CompanyHQ.Shipping.Contracts.Dtos;
+using CompanyHQ.Shipping.Contracts.Enums;
+using CompanyHQ.Shipping.Contracts.Forms;
+using CompanyHQ.Shipping.Contracts.Ports;
+using CompanyHQ.Users.Services;
+using CompanyHQ.Shipping.Extensions;
+using CompanyHQ.Shipping.Services;
+using CompanyHQ.Users.Contracts.Enums;
+using CompanyHQ.Users.Contracts.Models;
+using CompanyHQ.Users.Extensions;
 using Testcontainers.PostgreSql;
 using Xunit;
 namespace CompanyHQ.Tests;
@@ -230,7 +230,7 @@ public sealed class SalesShippingTests(SalesShippingFixture fixture) : IClassFix
             await Assert.ThrowsAsync<SalesConflictException>(()=>quotes.ChangeStatusAsync(quote.Id,new(QuoteStatus.Accepted),fixture.Admin));
             var provider=new PausedEmailOutcome(acceptProvider);
             await using var worker=fixture.Services.CreateAsyncScope();
-            var processorType=typeof(CompanyHQ.Services.Email.Services.EmailService).Assembly.GetType("CompanyHQ.Services.Email.Services.EmailQueueProcessor",true)!;
+            var processorType=typeof(CompanyHQ.Email.Services.EmailService).Assembly.GetType("CompanyHQ.Email.Services.EmailQueueProcessor",true)!;
             var processor=ActivatorUtilities.CreateInstance(worker.ServiceProvider,processorType,provider);
             var processing=(Task<int>)processorType.GetMethod("ProcessBatchAsync")!.Invoke(processor,[CancellationToken.None])!;
             await provider.Entered.Task.WaitAsync(TimeSpan.FromSeconds(10));
@@ -245,15 +245,15 @@ public sealed class SalesShippingTests(SalesShippingFixture fixture) : IClassFix
         }
     }
 
-    private sealed class PausedEmailOutcome(bool accepted) : CompanyHQ.Services.Email.Contracts.Ports.IEmailProvider
+    private sealed class PausedEmailOutcome(bool accepted) : CompanyHQ.Email.Contracts.Ports.IEmailProvider
     {
         public TaskCompletionSource Entered {get;}=new(TaskCreationOptions.RunContinuationsAsynchronously);
         public TaskCompletionSource Release {get;}=new(TaskCreationOptions.RunContinuationsAsynchronously);
         public int Calls {get;private set;}
-        public async Task<CompanyHQ.Services.Email.Contracts.Ports.EmailSendResult> SendAsync(CompanyHQ.Services.Email.Contracts.Ports.EmailMessage message,CancellationToken cancellationToken=default)
+        public async Task<CompanyHQ.Email.Contracts.Ports.EmailSendResult> SendAsync(CompanyHQ.Email.Contracts.Ports.EmailMessage message,CancellationToken cancellationToken=default)
         {
             Calls++;Entered.TrySetResult();await Release.Task.WaitAsync(cancellationToken);
-            return accepted?CompanyHQ.Services.Email.Contracts.Ports.EmailSendResult.Sent("isolated-provider-id"):CompanyHQ.Services.Email.Contracts.Ports.EmailSendResult.Failed(false,"isolated rejection");
+            return accepted?CompanyHQ.Email.Contracts.Ports.EmailSendResult.Sent("isolated-provider-id"):CompanyHQ.Email.Contracts.Ports.EmailSendResult.Failed(false,"isolated rejection");
         }
     }
     [Fact]
@@ -739,7 +739,7 @@ public sealed class SalesShippingFixture : IAsyncLifetime
     {
         await postgres.StartAsync();var configuration=new ConfigurationBuilder().AddInMemoryCollection(new Dictionary<string,string?>{{"Postgres:ConnectionString",postgres.GetConnectionString()},{"Postgres:AutoMigrate","false"},{"Postgres:AutoSeed","false"},{"Sales:DefaultCurrency","ZAR"},{"Sales:BusinessTimeZone","Africa/Johannesburg"}}).Build();
         var services=new ServiceCollection();services.AddLogging();services.AddSingleton<TimeProvider>(new FrozenClock());services.AddPostgres(configuration,typeof(Program).Assembly);services.AddUsers(configuration);services.AddSales(configuration);services.AddShipping();
-        CompanyHQ.Services.Email.Extensions.EmailServiceCollectionExtensions.AddEmail(services,new ConfigurationBuilder().AddInMemoryCollection(new Dictionary<string,string?>{{"Email:From","test@example.test"}}).Build());
+        CompanyHQ.Email.Extensions.EmailServiceCollectionExtensions.AddEmail(services,new ConfigurationBuilder().AddInMemoryCollection(new Dictionary<string,string?>{{"Email:From","test@example.test"}}).Build());
         foreach(var (port,name) in new[]{(typeof(ISalesShipping),"SalesShippingBridge"),(typeof(ISalesCustomer),"SalesCustomerBridge"),(typeof(IShippingCatalog),"ShippingCatalogBridge"),(typeof(IShippingDiscountPolicy),"ShippingDiscountBridge")})services.AddScoped(port,typeof(Program).Assembly.GetType("Api.Integrations."+name,true)!);
         Services=services.BuildServiceProvider();await using var scope=Services.CreateAsyncScope();var db=scope.ServiceProvider.GetRequiredService<PostgresDbContext>();await db.Database.MigrateAsync();
         var admin=new User{Email="admin@example.test",PasswordHash="test-only",Role=UserRole.Admin};var other=new User{Email="member@example.test",PasswordHash="test-only",Role=UserRole.Client,FirstName="Member",LastName="Buyer"};db.AddRange(admin,other);await db.SaveChangesAsync();Admin=admin.Id;Other=other.Id;

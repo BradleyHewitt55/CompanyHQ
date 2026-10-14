@@ -1,6 +1,6 @@
-using CompanyHQ.Services.Rss.Contracts.Enums;
+using CompanyHQ.Rss.Contracts.Enums;
 
-namespace CompanyHQ.Services.Rss.Contracts.Dtos;
+namespace CompanyHQ.Rss.Contracts.Dtos;
 
 /// <summary>Why a fetch or a discovery produced nothing.</summary>
 /// <remarks>

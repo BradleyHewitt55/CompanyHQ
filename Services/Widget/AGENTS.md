@@ -1,6 +1,6 @@
 # Widget service
 
-`Services/Widget` (`CompanyHQ.Services.Widget`) is the public front door for a contact widget on a
+`Services/Widget` (`CompanyHQ.Widget`) is the public front door for a contact widget on a
 site or in an app: it opens visitor conversations and files bug reports. It owns the anonymous
 routes, their rate limits, and the list of sources a submission may come from. It stores nothing
 and does not own the conversations (that is `Inbox`) or the issue repository (that is `GitHub`).

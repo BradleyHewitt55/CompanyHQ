@@ -1,10 +1,10 @@
 using System.Linq.Expressions;
 using Microsoft.EntityFrameworkCore;
-using CompanyHQ.Services.Postgres.Contracts.Models;
-using CompanyHQ.Services.Persistence.Services;
-using CompanyHQ.Services.Postgres.Data;
+using CompanyHQ.Postgres.Contracts.Models;
+using CompanyHQ.Persistence.Services;
+using CompanyHQ.Postgres.Data;
 
-namespace CompanyHQ.Services.Postgres.Services;
+namespace CompanyHQ.Postgres.Services;
 
 /// <inheritdoc cref="IRepository{TModel}"/>
 internal sealed class PostgresRepository<TModel>(PostgresDbContext context)

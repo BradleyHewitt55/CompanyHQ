@@ -3,13 +3,13 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.RateLimiting;
 
-using CompanyHQ.Services.Widget.Contracts.Dtos;
-using CompanyHQ.Services.Widget.Contracts.Enums;
-using CompanyHQ.Services.Widget.Contracts.Forms;
-using CompanyHQ.Services.Widget.Extensions;
-using CompanyHQ.Services.Widget.Services;
+using CompanyHQ.Widget.Contracts.Dtos;
+using CompanyHQ.Widget.Contracts.Enums;
+using CompanyHQ.Widget.Contracts.Forms;
+using CompanyHQ.Widget.Extensions;
+using CompanyHQ.Widget.Services;
 
-namespace CompanyHQ.Services.Widget.Controllers;
+namespace CompanyHQ.Widget.Controllers;
 
 /// <summary>
 /// Everything a contact widget calls. All of it is anonymous: a conversation is proved by its

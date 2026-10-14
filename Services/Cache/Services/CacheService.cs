@@ -1,9 +1,9 @@
 using System.Text.Json;
 using Microsoft.Extensions.Logging;
-using CompanyHQ.Services.Cache.Contracts.Models;
-using CompanyHQ.Services.Cache.Contracts.Ports;
+using CompanyHQ.Cache.Contracts.Models;
+using CompanyHQ.Cache.Contracts.Ports;
 
-namespace CompanyHQ.Services.Cache.Services;
+namespace CompanyHQ.Cache.Services;
 
 /// <summary>
 /// <see cref="ICacheService"/> over the registered <see cref="ICacheProvider"/>. Every

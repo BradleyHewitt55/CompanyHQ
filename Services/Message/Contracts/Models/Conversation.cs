@@ -1,6 +1,6 @@
-using CompanyHQ.Services.Persistence.Contracts.Models;
+using CompanyHQ.Persistence.Contracts.Models;
 
-namespace CompanyHQ.Services.Messages.Contracts.Models;
+namespace CompanyHQ.Messages.Contracts.Models;
 
 /// <summary>
 /// The stable container for one two-party conversation.

@@ -1,10 +1,10 @@
-using CompanyHQ.Services.Faqs.Contracts.Dtos;
-using CompanyHQ.Services.Faqs.Contracts.Forms;
-using CompanyHQ.Services.Postgres.Contracts.Dtos;
-using CompanyHQ.Services.Postgres.Contracts.Forms;
-using CompanyHQ.Services.Postgres.Contracts.Enums;
+using CompanyHQ.Faqs.Contracts.Dtos;
+using CompanyHQ.Faqs.Contracts.Forms;
+using CompanyHQ.Postgres.Contracts.Dtos;
+using CompanyHQ.Postgres.Contracts.Forms;
+using CompanyHQ.Postgres.Contracts.Enums;
 
-namespace CompanyHQ.Services.Faqs.Services;
+namespace CompanyHQ.Faqs.Services;
 
 public interface IFaqService
 {

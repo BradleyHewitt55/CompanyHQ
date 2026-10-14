@@ -1,11 +1,11 @@
 using System.Linq.Expressions;
 using System.Reflection;
 using Microsoft.EntityFrameworkCore;
-using CompanyHQ.Services.Persistence.Services;
-using CompanyHQ.Services.Postgres.Contracts.Forms;
-using CompanyHQ.Services.Postgres.Extensions;
+using CompanyHQ.Persistence.Services;
+using CompanyHQ.Postgres.Contracts.Forms;
+using CompanyHQ.Postgres.Extensions;
 
-namespace CompanyHQ.Services.Postgres.Data;
+namespace CompanyHQ.Postgres.Data;
 
 /// <summary>The description behind a neutral query, as this provider holds it.</summary>
 internal interface IPostgresQuery

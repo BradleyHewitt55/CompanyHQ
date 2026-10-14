@@ -1,10 +1,10 @@
-using CompanyHQ.Services.Persistence.Services;
-using CompanyHQ.Services.Sales.Contracts.Dtos;
-using CompanyHQ.Services.Sales.Contracts.Enums;
-using CompanyHQ.Services.Sales.Contracts.Forms;
-using CompanyHQ.Services.Sales.Contracts.Models;
-using CompanyHQ.Services.Sales.Contracts.Ports;
-namespace CompanyHQ.Services.Sales.Services;
+using CompanyHQ.Persistence.Services;
+using CompanyHQ.Sales.Contracts.Dtos;
+using CompanyHQ.Sales.Contracts.Enums;
+using CompanyHQ.Sales.Contracts.Forms;
+using CompanyHQ.Sales.Contracts.Models;
+using CompanyHQ.Sales.Contracts.Ports;
+namespace CompanyHQ.Sales.Services;
 
 /// <summary>Prices browser cart selections and promotions without invoking shipping or payment.</summary>
 public sealed class SalesBasketPricing(IPersistence db,SalesCatalogService catalog) : ISalesBasketPricing
@@ -146,4 +146,4 @@ public sealed class SalesBasketPricing(IPersistence db,SalesCatalogService catal
     }
     private sealed record CouponAllocation(CouponRule Coupon,int[] Indexes,decimal Amount);
 }
-internal sealed record PricedBasket(CartDto Cart, PricedSaleDto Price, IReadOnlyList<AdminSalesLineDto> AdminLines, CompanyHQ.Services.Sales.Contracts.Ports.SalesShippingQuote? Shipping);
+internal sealed record PricedBasket(CartDto Cart, PricedSaleDto Price, IReadOnlyList<AdminSalesLineDto> AdminLines, CompanyHQ.Sales.Contracts.Ports.SalesShippingQuote? Shipping);

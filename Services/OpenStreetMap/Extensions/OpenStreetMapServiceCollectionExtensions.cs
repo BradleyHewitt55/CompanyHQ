@@ -1,11 +1,11 @@
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 
-using CompanyHQ.Services.Geo.Contracts.Ports;
-using CompanyHQ.Services.OpenStreetMap.Contracts.Models;
-using CompanyHQ.Services.OpenStreetMap.Services;
+using CompanyHQ.Geo.Contracts.Ports;
+using CompanyHQ.OpenStreetMap.Contracts.Models;
+using CompanyHQ.OpenStreetMap.Services;
 
-namespace CompanyHQ.Services.OpenStreetMap.Extensions;
+namespace CompanyHQ.OpenStreetMap.Extensions;
 
 /// <summary>
 /// Single registration entry point for the CompanyHQ OpenStreetMap adapter.

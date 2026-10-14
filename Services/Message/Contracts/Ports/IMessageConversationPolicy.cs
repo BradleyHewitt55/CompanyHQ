@@ -1,6 +1,6 @@
-using CompanyHQ.Services.Messages.Contracts.Enums;
+using CompanyHQ.Messages.Contracts.Enums;
 
-namespace CompanyHQ.Services.Messages.Contracts.Ports;
+namespace CompanyHQ.Messages.Contracts.Ports;
 
 /// <summary>Optional, additive host rules for general or context-specific conversations.</summary>
 public interface IMessageConversationPolicy

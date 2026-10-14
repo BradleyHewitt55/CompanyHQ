@@ -1,6 +1,6 @@
-using CompanyHQ.Services.Sales.Contracts.Enums;
+using CompanyHQ.Sales.Contracts.Enums;
 
-namespace CompanyHQ.Services.Sales.Contracts.Dtos;
+namespace CompanyHQ.Sales.Contracts.Dtos;
 
 /// <summary>One row of the staff quote list. Quotes are staff documents, so there is no customer shape.</summary>
 public sealed record AdminQuoteSummaryDto(

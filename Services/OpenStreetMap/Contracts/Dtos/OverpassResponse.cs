@@ -1,6 +1,6 @@
 using System.Text.Json.Serialization;
 
-namespace CompanyHQ.Services.OpenStreetMap.Contracts.Dtos;
+namespace CompanyHQ.OpenStreetMap.Contracts.Dtos;
 
 /// <summary>The subset of an Overpass JSON response used to map nearby amenities.</summary>
 internal sealed record OverpassResponse

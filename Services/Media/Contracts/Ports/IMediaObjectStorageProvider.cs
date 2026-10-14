@@ -1,6 +1,6 @@
-using CompanyHQ.Services.Media.Contracts.Enums;
+using CompanyHQ.Media.Contracts.Enums;
 
-namespace CompanyHQ.Services.Media.Contracts.Ports;
+namespace CompanyHQ.Media.Contracts.Ports;
 
 /// <summary>
 /// Storage operations for image and video objects. Media fills it itself with the host's S3 client;

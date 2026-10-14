@@ -1,7 +1,7 @@
 # Company API
 
 A plain ASP.NET API that uses the CompanyHQ packages directly. It starts with the generic RSS
-service as a small working example: `CompanyHQ.Services.Rss` and `CompanyHQ.Services.Rss.Contracts`,
+service as a small working example: `CompanyHQ.Rss` and `CompanyHQ.Rss.Contracts`,
 registered with `AddRss` for in-process use. The API maps `/health` (and OpenAPI in Development) and
 exposes no RSS route; a controller or service you write injects `IRssService` when it needs a feed.
 

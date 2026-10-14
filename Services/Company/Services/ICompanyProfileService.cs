@@ -1,8 +1,8 @@
-using CompanyHQ.Services.Company.Contracts.Dtos;
-using CompanyHQ.Services.Company.Contracts.Forms;
-using CompanyHQ.Services.Company.Contracts.Ports;
+using CompanyHQ.Company.Contracts.Dtos;
+using CompanyHQ.Company.Contracts.Forms;
+using CompanyHQ.Company.Contracts.Ports;
 
-namespace CompanyHQ.Services.Company.Services;
+namespace CompanyHQ.Company.Services;
 
 /// <summary>The company profile and its administrator write; reads come from <see cref="ICompanyProfileReader"/>.</summary>
 public interface ICompanyProfileService : ICompanyProfileReader

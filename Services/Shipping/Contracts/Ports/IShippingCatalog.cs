@@ -1,4 +1,4 @@
-namespace CompanyHQ.Services.Shipping.Contracts.Ports;
+namespace CompanyHQ.Shipping.Contracts.Ports;
 
 /// <summary>
 /// What Shipping may ask about the products in a basket. Optional: without it every product id is

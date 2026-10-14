@@ -1,4 +1,4 @@
-namespace CompanyHQ.Services.Inbox.Contracts.Enums;
+namespace CompanyHQ.Inbox.Contracts.Enums;
 
 /// <summary>Why an inbox operation did not happen.</summary>
 public enum InboxError

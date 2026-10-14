@@ -1,6 +1,6 @@
 using System.ComponentModel.DataAnnotations;
 
-namespace CompanyHQ.Services.Appointments.Contracts.Forms;
+namespace CompanyHQ.Appointments.Contracts.Forms;
 
 /// <summary>
 /// What one service asks for when it schedules on a member's behalf. Never bound from a request

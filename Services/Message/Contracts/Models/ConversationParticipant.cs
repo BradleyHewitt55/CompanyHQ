@@ -1,6 +1,6 @@
-using CompanyHQ.Services.Persistence.Contracts.Models;
+using CompanyHQ.Persistence.Contracts.Models;
 
-namespace CompanyHQ.Services.Messages.Contracts.Models;
+namespace CompanyHQ.Messages.Contracts.Models;
 
 /// <summary>
 /// Per-user state for a conversation. Ordering and read state belong here, not on the conversation.

@@ -1,6 +1,6 @@
-using CompanyHQ.Services.Persistence.Contracts.Models;
+using CompanyHQ.Persistence.Contracts.Models;
 
-namespace CompanyHQ.Services.Users.Contracts.Models;
+namespace CompanyHQ.Users.Contracts.Models;
 
 public sealed class UserFavoritePlace : BaseModel
 {

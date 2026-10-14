@@ -1,4 +1,4 @@
-namespace CompanyHQ.Services.Moderation.Contracts.Ports;
+namespace CompanyHQ.Moderation.Contracts.Ports;
 
 /// <summary>Optional consumer hook for clearing one reporter's history after a report is filed.</summary>
 public interface IReportHistoryClearer

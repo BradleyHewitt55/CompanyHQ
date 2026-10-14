@@ -1,6 +1,6 @@
-using CompanyHQ.Services.Rss.Contracts.Enums;
+using CompanyHQ.Rss.Contracts.Enums;
 
-namespace CompanyHQ.Services.Rss.Contracts.Dtos;
+namespace CompanyHQ.Rss.Contracts.Dtos;
 
 /// <summary>One feed document, in the same shape whether the publisher wrote RSS or Atom.</summary>
 /// <remarks>

@@ -6,10 +6,10 @@ using Microsoft.AspNetCore.RateLimiting;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 
-using CompanyHQ.Services.Widget.Contracts.Models;
-using CompanyHQ.Services.Widget.Services;
+using CompanyHQ.Widget.Contracts.Models;
+using CompanyHQ.Widget.Services;
 
-namespace CompanyHQ.Services.Widget.Extensions;
+namespace CompanyHQ.Widget.Extensions;
 
 /// <summary>Registers the public widget front door and its controller assembly.</summary>
 public static class WidgetServiceCollectionExtensions

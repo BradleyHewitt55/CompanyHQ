@@ -1,8 +1,8 @@
 using System.Text.Json.Serialization;
 
-using CompanyHQ.Services.Sales.Contracts.Enums;
+using CompanyHQ.Sales.Contracts.Enums;
 
-namespace CompanyHQ.Services.Sales.Contracts.Dtos;
+namespace CompanyHQ.Sales.Contracts.Dtos;
 
 /// <summary>
 /// What a product sells for right now. Always computed by the server: the selling price from cost

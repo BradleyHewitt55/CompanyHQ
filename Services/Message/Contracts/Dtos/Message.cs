@@ -1,4 +1,4 @@
-namespace CompanyHQ.Services.Messages.Contracts.Dtos;
+namespace CompanyHQ.Messages.Contracts.Dtos;
 
 /// <summary>
 /// The participant-facing message shape. Suppression is deliberately not represented on the wire.

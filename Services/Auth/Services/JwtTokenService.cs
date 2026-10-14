@@ -4,11 +4,11 @@ using System.Text;
 using Microsoft.IdentityModel.JsonWebTokens;
 using Microsoft.IdentityModel.Tokens;
 
-using CompanyHQ.Services.Auth.Contracts.Models;
-using CompanyHQ.Services.Users.Contracts.Models;
-using CompanyHQ.Services.Auth.Contracts.Identity;
+using CompanyHQ.Auth.Contracts.Models;
+using CompanyHQ.Users.Contracts.Models;
+using CompanyHQ.Auth.Contracts.Identity;
 
-namespace CompanyHQ.Services.Auth.Services;
+namespace CompanyHQ.Auth.Services;
 
 /// <inheritdoc cref="ITokenService"/>
 public sealed class JwtTokenService(JwtOptions options, TimeProvider clock) : ITokenService

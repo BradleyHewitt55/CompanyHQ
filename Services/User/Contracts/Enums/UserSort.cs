@@ -1,6 +1,6 @@
 using System.Text.Json.Serialization;
 
-namespace CompanyHQ.Services.Users.Contracts.Enums;
+namespace CompanyHQ.Users.Contracts.Enums;
 
 /// <summary>Fields the user admin list may sort by.</summary>
 [JsonConverter(typeof(JsonStringEnumConverter<UserSort>))]

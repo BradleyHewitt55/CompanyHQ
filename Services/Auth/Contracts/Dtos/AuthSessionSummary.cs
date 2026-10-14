@@ -1,4 +1,4 @@
-namespace CompanyHQ.Services.Auth.Contracts.Dtos;
+namespace CompanyHQ.Auth.Contracts.Dtos;
 
 /// <summary>
 /// One of the caller's own active sessions, listed at <c>GET /api/auth/sessions</c> so they can end

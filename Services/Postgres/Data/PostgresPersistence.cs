@@ -4,10 +4,10 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Diagnostics;
 using Microsoft.EntityFrameworkCore.Storage;
 using Npgsql;
-using CompanyHQ.Services.Postgres.Contracts.Models;
-using CompanyHQ.Services.Persistence.Services;
+using CompanyHQ.Postgres.Contracts.Models;
+using CompanyHQ.Persistence.Services;
 
-namespace CompanyHQ.Services.Postgres.Data;
+namespace CompanyHQ.Postgres.Data;
 
 /// <summary>
 /// <see cref="IPersistence"/> over the shared <see cref="PostgresDbContext"/>. It is the same scoped

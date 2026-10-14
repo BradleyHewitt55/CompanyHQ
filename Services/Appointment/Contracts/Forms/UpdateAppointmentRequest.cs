@@ -1,6 +1,6 @@
 using System.ComponentModel.DataAnnotations;
 
-namespace CompanyHQ.Services.Appointments.Contracts.Forms;
+namespace CompanyHQ.Appointments.Contracts.Forms;
 
 /// <summary>Replaces one of the caller's own manually booked appointments wholesale.</summary>
 public sealed record UpdateAppointmentRequest(

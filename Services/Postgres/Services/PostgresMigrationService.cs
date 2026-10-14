@@ -5,10 +5,10 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 
-using CompanyHQ.Services.Postgres.Contracts.Models;
-using CompanyHQ.Services.Postgres.Data;
+using CompanyHQ.Postgres.Contracts.Models;
+using CompanyHQ.Postgres.Data;
 
-namespace CompanyHQ.Services.Postgres.Services;
+namespace CompanyHQ.Postgres.Services;
 
 /// <summary>
 /// Serialises database startup, applies migrations, and then runs seeders before the host accepts
@@ -98,8 +98,8 @@ public sealed class PostgresMigrationService(
     {
         // Provider-neutral seeders and this provider's own run as one sequence, so Order means the
         // same thing whichever port a seeder was written against. Both write through this context.
-        var persistence = provider.GetRequiredService<CompanyHQ.Services.Persistence.Services.IPersistence>();
-        var seeders = provider.GetServices<CompanyHQ.Services.Persistence.Services.IDataSeeder>()
+        var persistence = provider.GetRequiredService<CompanyHQ.Persistence.Services.IPersistence>();
+        var seeders = provider.GetServices<CompanyHQ.Persistence.Services.IDataSeeder>()
             .Select(seeder => (seeder.Order, Name: seeder.GetType().Name,
                 Run: (Func<Task>)(() => seeder.SeedAsync(persistence, cancellationToken))))
             .Concat(provider.GetServices<IDataSeeder>()

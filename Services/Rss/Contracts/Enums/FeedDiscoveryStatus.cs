@@ -1,6 +1,6 @@
 using System.Text.Json.Serialization;
 
-namespace CompanyHQ.Services.Rss.Contracts.Enums;
+namespace CompanyHQ.Rss.Contracts.Enums;
 
 /// <summary>What looking at one website established.</summary>
 [JsonConverter(typeof(JsonStringEnumConverter<FeedDiscoveryStatus>))]

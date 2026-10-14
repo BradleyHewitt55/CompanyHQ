@@ -1,5 +1,5 @@
-using CompanyHQ.Services.Sales.Contracts.Forms;
-namespace CompanyHQ.Services.Sales.Contracts.Dtos;
+using CompanyHQ.Sales.Contracts.Forms;
+namespace CompanyHQ.Sales.Contracts.Dtos;
 /// <summary>Public category identity.</summary>
 public sealed record ClientCategoryDto(Guid Id, string Name, string Slug,Guid? ParentId=null,int Position=0,string? Sku=null,string? ImageUrl=null);
 /// <summary>Supplier with staff-managed origin.</summary>

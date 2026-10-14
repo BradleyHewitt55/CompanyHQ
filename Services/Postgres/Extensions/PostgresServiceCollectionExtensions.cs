@@ -6,12 +6,12 @@ using Microsoft.Extensions.Diagnostics.HealthChecks;
 using Microsoft.Extensions.Hosting;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Infrastructure;
 using Npgsql;
-using CompanyHQ.Services.Persistence.Services;
-using CompanyHQ.Services.Postgres.Contracts.Models;
-using CompanyHQ.Services.Postgres.Data;
-using CompanyHQ.Services.Postgres.Services;
+using CompanyHQ.Persistence.Services;
+using CompanyHQ.Postgres.Contracts.Models;
+using CompanyHQ.Postgres.Data;
+using CompanyHQ.Postgres.Services;
 
-namespace CompanyHQ.Services.Postgres.Extensions;
+namespace CompanyHQ.Postgres.Extensions;
 
 /// <summary>
 /// Single registration entry point for the CompanyHQ Postgres service.

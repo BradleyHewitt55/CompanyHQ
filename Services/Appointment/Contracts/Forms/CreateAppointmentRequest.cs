@@ -1,8 +1,8 @@
 using System.ComponentModel.DataAnnotations;
 
-using CompanyHQ.Services.Appointments.Contracts.Enums;
+using CompanyHQ.Appointments.Contracts.Enums;
 
-namespace CompanyHQ.Services.Appointments.Contracts.Forms;
+namespace CompanyHQ.Appointments.Contracts.Forms;
 
 /// <summary>Books independently manageable appointments in an account diary.</summary>
 public sealed record CreateAppointmentRequest(

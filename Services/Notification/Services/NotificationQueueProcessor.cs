@@ -1,8 +1,8 @@
-using CompanyHQ.Services.Notifications.Contracts.Enums;
-using CompanyHQ.Services.Notifications.Contracts.Models;
-using CompanyHQ.Services.Persistence.Services;
+using CompanyHQ.Notifications.Contracts.Enums;
+using CompanyHQ.Notifications.Contracts.Models;
+using CompanyHQ.Persistence.Services;
 
-namespace CompanyHQ.Services.Notifications.Services;
+namespace CompanyHQ.Notifications.Services;
 
 /// <summary>
 /// Claims one due batch of <c>queued_notification</c> and delivers it. Scoped and resolved per batch

@@ -1,6 +1,6 @@
-using CompanyHQ.Services.Persistence.Contracts.Models;
+using CompanyHQ.Persistence.Contracts.Models;
 
-namespace CompanyHQ.Services.Moderation.Contracts.Models;
+namespace CompanyHQ.Moderation.Contracts.Models;
 
 /// <summary>One directional block record; consumers apply its effect in both directions.</summary>
 public sealed class UserBlock : BaseModel

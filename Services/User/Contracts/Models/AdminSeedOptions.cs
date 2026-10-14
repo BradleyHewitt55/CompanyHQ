@@ -1,4 +1,4 @@
-namespace CompanyHQ.Services.Users.Contracts.Models;
+namespace CompanyHQ.Users.Contracts.Models;
 
 /// <summary>
 /// Credentials for the seeded administrator, from the <see cref="SectionName"/> configuration

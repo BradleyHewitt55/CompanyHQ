@@ -1,4 +1,4 @@
-namespace CompanyHQ.Services.Geo.Contracts.Dtos;
+namespace CompanyHQ.Geo.Contracts.Dtos;
 
 /// <summary>The answer to one viewport request: the pins, and which tiles are actually accounted for.</summary>
 /// <remarks>

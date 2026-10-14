@@ -1,8 +1,8 @@
-using CompanyHQ.Services.Media.Contracts.Dtos;
-using CompanyHQ.Services.Media.Contracts.Forms;
-using CompanyHQ.Services.Postgres.Contracts.Enums;
+using CompanyHQ.Media.Contracts.Dtos;
+using CompanyHQ.Media.Contracts.Forms;
+using CompanyHQ.Postgres.Contracts.Enums;
 
-namespace CompanyHQ.Services.Media.Services;
+namespace CompanyHQ.Media.Services;
 
 /// <summary>Direct-upload lifecycle, policy-gated reads, and media deletion.</summary>
 public interface IMediaService

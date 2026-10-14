@@ -1,11 +1,11 @@
 using Microsoft.Extensions.Logging;
 
-using CompanyHQ.Services.Contact.Contracts.Dtos;
-using CompanyHQ.Services.Contact.Contracts.Enums;
-using CompanyHQ.Services.Contact.Contracts.Forms;
-using CompanyHQ.Services.Contact.Contracts.Ports;
+using CompanyHQ.Contact.Contracts.Dtos;
+using CompanyHQ.Contact.Contracts.Enums;
+using CompanyHQ.Contact.Contracts.Forms;
+using CompanyHQ.Contact.Contracts.Ports;
 
-namespace CompanyHQ.Services.Contact.Services;
+namespace CompanyHQ.Contact.Services;
 
 /// <inheritdoc cref="IContactService"/>
 public sealed class ContactService(

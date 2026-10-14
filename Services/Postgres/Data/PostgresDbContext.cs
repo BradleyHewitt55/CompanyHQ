@@ -1,8 +1,8 @@
 using Microsoft.EntityFrameworkCore.ChangeTracking;
 using Microsoft.EntityFrameworkCore;
-using CompanyHQ.Services.Postgres.Contracts.Models;
+using CompanyHQ.Postgres.Contracts.Models;
 
-namespace CompanyHQ.Services.Postgres.Data;
+namespace CompanyHQ.Postgres.Data;
 
 /// <summary>
 /// The single context over every <see cref="BaseModel"/> in the application. Services do not define

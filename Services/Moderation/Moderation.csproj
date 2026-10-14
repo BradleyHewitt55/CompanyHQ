@@ -4,8 +4,8 @@
     <TargetFramework>net10.0</TargetFramework>
     <Nullable>enable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
-    <AssemblyName>CompanyHQ.Services.Moderation</AssemblyName>
-    <RootNamespace>CompanyHQ.Services.Moderation</RootNamespace>
+    <AssemblyName>CompanyHQ.Moderation</AssemblyName>
+    <RootNamespace>CompanyHQ.Moderation</RootNamespace>
   </PropertyGroup>
 
   <ItemGroup>

@@ -1,10 +1,10 @@
-using CompanyHQ.Services.Blogs.Contracts.Dtos;
-using CompanyHQ.Services.Blogs.Contracts.Forms;
-using CompanyHQ.Services.Postgres.Contracts.Dtos;
-using CompanyHQ.Services.Postgres.Contracts.Forms;
-using CompanyHQ.Services.Postgres.Contracts.Enums;
+using CompanyHQ.Blogs.Contracts.Dtos;
+using CompanyHQ.Blogs.Contracts.Forms;
+using CompanyHQ.Postgres.Contracts.Dtos;
+using CompanyHQ.Postgres.Contracts.Forms;
+using CompanyHQ.Postgres.Contracts.Enums;
 
-namespace CompanyHQ.Services.Blogs.Services;
+namespace CompanyHQ.Blogs.Services;
 
 public interface IBlogService
 {

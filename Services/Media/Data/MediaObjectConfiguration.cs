@@ -1,10 +1,10 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
-using CompanyHQ.Services.Media.Contracts.Models;
-using CompanyHQ.Services.Users.Contracts.Models;
+using CompanyHQ.Media.Contracts.Models;
+using CompanyHQ.Users.Contracts.Models;
 
-namespace CompanyHQ.Services.Media.Data;
+namespace CompanyHQ.Media.Data;
 
 internal sealed class MediaObjectConfiguration : IEntityTypeConfiguration<MediaObject>
 {

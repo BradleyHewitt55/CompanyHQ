@@ -1,4 +1,4 @@
-namespace CompanyHQ.Services.Messages.Contracts.Ports;
+namespace CompanyHQ.Messages.Contracts.Ports;
 
 /// <summary>
 /// Queues a push notification about a conversation. Optional: with no adapter plugged in, nothing is

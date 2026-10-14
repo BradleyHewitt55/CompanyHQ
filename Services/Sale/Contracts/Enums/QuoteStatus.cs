@@ -1,7 +1,7 @@
 using System.Text.Json.Serialization;
-using CompanyHQ.Services.Postgres.Contracts.Serialization;
+using CompanyHQ.Postgres.Contracts.Serialization;
 
-namespace CompanyHQ.Services.Sales.Contracts.Enums;
+namespace CompanyHQ.Sales.Contracts.Enums;
 
 [JsonConverter(typeof(StrictStringEnumConverter<QuoteStatus>))]
 public enum QuoteStatus

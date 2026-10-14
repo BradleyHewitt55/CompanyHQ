@@ -1,6 +1,6 @@
 using System.ComponentModel.DataAnnotations;
 
-namespace CompanyHQ.Services.GitHub.Contracts.Forms;
+namespace CompanyHQ.GitHub.Contracts.Forms;
 
 /// <summary>Body for <c>POST /api/github/issues/{number}/comments</c>.</summary>
 public sealed record CommentGitHubIssueRequest(

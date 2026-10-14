@@ -1,14 +1,14 @@
-using CompanyHQ.Services.Persistence.Services;
-using CompanyHQ.Services.Sales.Contracts.Dtos;
-using CompanyHQ.Services.Sales.Contracts.Forms;
-using CompanyHQ.Services.Sales.Contracts.Ports;
-using CompanyHQ.Services.Sales.Services;
-using CompanyHQ.Services.Shipping.Contracts.Dtos;
-using CompanyHQ.Services.Shipping.Contracts.Forms;
-using CompanyHQ.Services.Shipping.Contracts.Ports;
-using CompanyHQ.Services.Shipping.Services;
-using CompanyHQ.Services.Users.Contracts.Models;
-using CompanyHQ.Services.Geo.Services;
+using CompanyHQ.Persistence.Services;
+using CompanyHQ.Sales.Contracts.Dtos;
+using CompanyHQ.Sales.Contracts.Forms;
+using CompanyHQ.Sales.Contracts.Ports;
+using CompanyHQ.Sales.Services;
+using CompanyHQ.Shipping.Contracts.Dtos;
+using CompanyHQ.Shipping.Contracts.Forms;
+using CompanyHQ.Shipping.Contracts.Ports;
+using CompanyHQ.Shipping.Services;
+using CompanyHQ.Users.Contracts.Models;
+using CompanyHQ.Geo.Services;
 namespace Api.Integrations;
 
 internal sealed class SalesShippingBridge(IShippingService shipping) : ISalesShipping
@@ -63,7 +63,7 @@ internal sealed class ShippingAddressDirectoryBridge(IGeoService geo) : IShippin
         if(parts.Length!=3 || parts[0]!="area" || !double.TryParse(parts[1],System.Globalization.NumberStyles.Float,System.Globalization.CultureInfo.InvariantCulture,out var lat) || !double.TryParse(parts[2],System.Globalization.NumberStyles.Float,System.Globalization.CultureInfo.InvariantCulture,out var lon) || !double.IsFinite(lat) || !double.IsFinite(lon) || lat is <-90 or >90 || lon is <-180 or >180)throw new ArgumentException("Invalid area reference.");
         var area=await geo.DescribeAreaAsync(lat,lon,cancellationToken);return area is null?null:Map(area);
     }
-    private static ShippingAddressCandidateDto Map(CompanyHQ.Services.Geo.Contracts.Dtos.AreaDto area)=>
+    private static ShippingAddressCandidateDto Map(CompanyHQ.Geo.Contracts.Dtos.AreaDto area)=>
         new(FormattableString.Invariant($"area:{area.Latitude:R}:{area.Longitude:R}"),area.DisplayName,area.Precision.ToString(),new(City:area.Locality,Province:area.Region,Country:area.CountryCode,Latitude:area.Latitude,Longitude:area.Longitude));
 }
 

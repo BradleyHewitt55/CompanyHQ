@@ -1,4 +1,4 @@
-namespace CompanyHQ.Services.Faqs.Services;
+namespace CompanyHQ.Faqs.Services;
 
 public sealed class FaqKeyConflictException : Exception
 {

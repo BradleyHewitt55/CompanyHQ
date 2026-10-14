@@ -3,17 +3,17 @@ using System.Text;
 
 using Microsoft.AspNetCore.WebUtilities;
 
-using CompanyHQ.Services.Mcp.Contracts.Dtos;
-using CompanyHQ.Services.Mcp.Contracts.Enums;
-using CompanyHQ.Services.Mcp.Contracts.Forms;
-using CompanyHQ.Services.Mcp.Contracts.Models;
-using CompanyHQ.Services.Postgres.Contracts;
-using CompanyHQ.Services.Postgres.Contracts.Dtos;
-using CompanyHQ.Services.Postgres.Contracts.Forms;
-using CompanyHQ.Services.Persistence.Services;
-using CompanyHQ.Services.Users.Contracts.Models;
+using CompanyHQ.Mcp.Contracts.Dtos;
+using CompanyHQ.Mcp.Contracts.Enums;
+using CompanyHQ.Mcp.Contracts.Forms;
+using CompanyHQ.Mcp.Contracts.Models;
+using CompanyHQ.Postgres.Contracts;
+using CompanyHQ.Postgres.Contracts.Dtos;
+using CompanyHQ.Postgres.Contracts.Forms;
+using CompanyHQ.Persistence.Services;
+using CompanyHQ.Users.Contracts.Models;
 
-namespace CompanyHQ.Services.Mcp.Services;
+namespace CompanyHQ.Mcp.Services;
 
 /// <inheritdoc cref="IAgentKeyService"/>
 public sealed class AgentKeyService(
@@ -46,7 +46,7 @@ public sealed class AgentKeyService(
                 .Select(role => role.Permissions)
                 .FirstOrDefaultAsync(cancellationToken);
             var ownerPermissions = owner.AccessRoleId is null
-                ? owner.Role == CompanyHQ.Services.Users.Contracts.Enums.UserRole.Admin ? AccessPermissions.All : AccessPermissions.Client
+                ? owner.Role == CompanyHQ.Users.Contracts.Enums.UserRole.Admin ? AccessPermissions.All : AccessPermissions.Client
                 : owner.Permissions ?? [];
             if (assigned is null) throw new ArgumentException("The connection role does not exist.");
             if (assigned.Except(ownerPermissions, StringComparer.Ordinal).Any())
@@ -182,7 +182,7 @@ public sealed class AgentKeyService(
                 .Where(role => role.Id == roleId).Select(role => role.Permissions)
                 .FirstOrDefaultAsync(cancellationToken);
             var ceiling = owner.AccessRoleId is null
-                ? owner.Role == CompanyHQ.Services.Users.Contracts.Enums.UserRole.Admin ? AccessPermissions.All : AccessPermissions.Client
+                ? owner.Role == CompanyHQ.Users.Contracts.Enums.UserRole.Admin ? AccessPermissions.All : AccessPermissions.Client
                 : owner.Permissions ?? [];
             if (permissions is null) throw new ArgumentException("The connection role does not exist.");
             if (permissions.Except(ceiling, StringComparer.Ordinal).Any())

@@ -13,7 +13,7 @@ namespace Api.OpenApi;
 /// </summary>
 internal static class ServiceOpenApiDocuments
 {
-    private const string ServicePrefix = "CompanyHQ.Services.";
+    private const string ServicePrefix = "CompanyHQ.";
 
     /// <summary>Call after every <c>Add{Service}()</c>, so every controller assembly is registered.</summary>
     public static void AddTo(IServiceCollection services, ApplicationPartManager parts)
@@ -42,7 +42,7 @@ internal static class ServiceOpenApiDocuments
     }
 
     // The template ships a singular folder under a plural assembly when the service owns an entity of
-    // the same name (Services/User → CompanyHQ.Services.Users), so the plural 's' is dropped.
+    // the same name (Services/User → CompanyHQ.Users), so the plural 's' is dropped.
     private static string DocumentName(Assembly assembly)
     {
         var service = assembly.GetName().Name![ServicePrefix.Length..].ToLowerInvariant();

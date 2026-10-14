@@ -1,9 +1,9 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
-using CompanyHQ.Services.Appointments.Contracts.Models;
+using CompanyHQ.Appointments.Contracts.Models;
 
-namespace CompanyHQ.Services.Appointments.Data;
+namespace CompanyHQ.Appointments.Data;
 
 internal sealed class AppointmentConfiguration : IEntityTypeConfiguration<Appointment>
 {

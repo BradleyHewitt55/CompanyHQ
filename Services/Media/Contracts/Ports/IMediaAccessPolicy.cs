@@ -1,6 +1,6 @@
-using CompanyHQ.Services.Media.Contracts.Enums;
+using CompanyHQ.Media.Contracts.Enums;
 
-namespace CompanyHQ.Services.Media.Contracts.Ports;
+namespace CompanyHQ.Media.Contracts.Ports;
 
 /// <summary>
 /// Consumer-owned read authorization for one private media scope. The consuming service implements

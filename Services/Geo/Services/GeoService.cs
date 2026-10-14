@@ -1,12 +1,12 @@
 using System.Globalization;
 
-using CompanyHQ.Services.Cache.Services;
-using CompanyHQ.Services.Geo.Contracts.Dtos;
-using CompanyHQ.Services.Geo.Contracts.Enums;
-using CompanyHQ.Services.Geo.Contracts.Models;
-using CompanyHQ.Services.Geo.Contracts.Ports;
+using CompanyHQ.Cache.Services;
+using CompanyHQ.Geo.Contracts.Dtos;
+using CompanyHQ.Geo.Contracts.Enums;
+using CompanyHQ.Geo.Contracts.Models;
+using CompanyHQ.Geo.Contracts.Ports;
 
-namespace CompanyHQ.Services.Geo.Services;
+namespace CompanyHQ.Geo.Services;
 
 /// <summary>
 /// Rounding, caching, and mapping around the composed <see cref="IGeoProvider"/>.

@@ -1,4 +1,4 @@
-namespace CompanyHQ.Services.GitHub.Contracts.Models;
+namespace CompanyHQ.GitHub.Contracts.Models;
 
 /// <summary>Optional. Without a key the host still starts and connecting a repository is refused.</summary>
 public sealed class GitHubOptions

@@ -2,9 +2,9 @@ using System.Collections.Immutable;
 using System.Reflection;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyModel;
-using CompanyHQ.Services.Postgres.Contracts.Models;
+using CompanyHQ.Postgres.Contracts.Models;
 
-namespace CompanyHQ.Services.Postgres.Data;
+namespace CompanyHQ.Postgres.Data;
 
 /// <summary>
 /// The set of <see cref="BaseModel"/> types the shared <see cref="PostgresDbContext"/> maps.

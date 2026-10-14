@@ -1,4 +1,4 @@
-namespace CompanyHQ.Services.Auth.Contracts.Identity;
+namespace CompanyHQ.Auth.Contracts.Identity;
 
 /// <summary>
 /// The claim names CompanyHQ tokens carry. Short, unmapped names — <c>MapInboundClaims</c> is off, so

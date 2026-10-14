@@ -1,6 +1,6 @@
 using System.ComponentModel.DataAnnotations;
 using System.Reflection;
-namespace CompanyHQ.Services.Shipping.Contracts.Forms;
+namespace CompanyHQ.Shipping.Contracts.Forms;
 /// <summary>Validates record constructor attributes for direct service callers.</summary>
 public static class ShippingValidation
 {

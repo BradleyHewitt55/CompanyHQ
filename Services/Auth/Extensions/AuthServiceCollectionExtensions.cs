@@ -7,14 +7,14 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.IdentityModel.JsonWebTokens;
 using Microsoft.IdentityModel.Tokens;
 
-using CompanyHQ.Services.Auth.Contracts.Models;
-using CompanyHQ.Services.Auth.Services;
-using CompanyHQ.Services.Persistence.Services;
-using CompanyHQ.Services.Postgres.Contracts;
-using CompanyHQ.Services.Users.Contracts.Models;
-using CompanyHQ.Services.Auth.Contracts.Identity;
+using CompanyHQ.Auth.Contracts.Models;
+using CompanyHQ.Auth.Services;
+using CompanyHQ.Persistence.Services;
+using CompanyHQ.Postgres.Contracts;
+using CompanyHQ.Users.Contracts.Models;
+using CompanyHQ.Auth.Contracts.Identity;
 
-namespace CompanyHQ.Services.Auth.Extensions;
+namespace CompanyHQ.Auth.Extensions;
 
 public static class AuthServiceCollectionExtensions
 {
@@ -141,10 +141,10 @@ public static class AuthServiceCollectionExtensions
 
                         ReplaceClaim(identity, AuthClaims.Role,
                             user.AccessRoleId is null ? user.Role.ToString()
-                            : user.Role == CompanyHQ.Services.Users.Contracts.Enums.UserRole.Admin && user.RoleName == "Admin" ? "Admin" : "Client");
+                            : user.Role == CompanyHQ.Users.Contracts.Enums.UserRole.Admin && user.RoleName == "Admin" ? "Admin" : "Client");
                         foreach (var claim in identity.FindAll(AuthClaims.Permission).ToArray()) identity.RemoveClaim(claim);
                         var permissions = user.AccessRoleId is null
-                            ? user.Role == CompanyHQ.Services.Users.Contracts.Enums.UserRole.Admin ? AccessPermissions.All : AccessPermissions.Client
+                            ? user.Role == CompanyHQ.Users.Contracts.Enums.UserRole.Admin ? AccessPermissions.All : AccessPermissions.Client
                             : user.RolePermissions ?? [];
                         identity.AddClaims(permissions.Select(permission => new Claim(AuthClaims.Permission, permission)));
                         ReplaceClaim(identity, AuthClaims.Email, user.Email);

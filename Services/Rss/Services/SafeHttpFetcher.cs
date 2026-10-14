@@ -1,11 +1,11 @@
 using System.IO.Compression;
 using System.Net;
 using System.Net.Sockets;
-using CompanyHQ.Services.Rss.Contracts.Dtos;
-using CompanyHQ.Services.Rss.Contracts.Enums;
-using CompanyHQ.Services.Rss.Contracts.Models;
+using CompanyHQ.Rss.Contracts.Dtos;
+using CompanyHQ.Rss.Contracts.Enums;
+using CompanyHQ.Rss.Contracts.Models;
 
-namespace CompanyHQ.Services.Rss.Services;
+namespace CompanyHQ.Rss.Services;
 
 /// <summary>What one guarded download produced: an error, a "not modified", or a bounded body.</summary>
 internal sealed record FetchedDocument(

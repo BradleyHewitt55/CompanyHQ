@@ -1,4 +1,4 @@
-namespace CompanyHQ.Services.Users.Contracts.Ports;
+namespace CompanyHQ.Users.Contracts.Ports;
 
 /// <summary>
 /// Retires a managed profile image once the profile stops referencing it. Optional: supplied by

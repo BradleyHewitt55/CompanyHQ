@@ -1,7 +1,7 @@
-using CompanyHQ.Services.Persistence.Contracts.Models;
-using CompanyHQ.Services.Shipping.Contracts.Enums;
+using CompanyHQ.Persistence.Contracts.Models;
+using CompanyHQ.Shipping.Contracts.Enums;
 
-namespace CompanyHQ.Services.Shipping.Contracts.Models;
+namespace CompanyHQ.Shipping.Contracts.Models;
 
 /// <summary>One way of getting an order to a customer, at one flat cost per origin it leaves from.</summary>
 public sealed class ShippingMethod : BaseModel

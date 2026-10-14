@@ -1,7 +1,7 @@
 using System.Linq.Expressions;
-using CompanyHQ.Services.Postgres.Contracts.Models;
+using CompanyHQ.Postgres.Contracts.Models;
 
-namespace CompanyHQ.Services.Persistence.Services;
+namespace CompanyHQ.Persistence.Services;
 
 /// <summary>
 /// Persistence for one model. Write methods save immediately; use <see cref="IPersistence"/> when

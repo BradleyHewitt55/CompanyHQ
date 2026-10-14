@@ -2,9 +2,9 @@ using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Routing;
 using ModelContextProtocol.AspNetCore;
 
-using CompanyHQ.Services.Mcp.Contracts.Models;
+using CompanyHQ.Mcp.Contracts.Models;
 
-namespace CompanyHQ.Services.Mcp.Extensions;
+namespace CompanyHQ.Mcp.Extensions;
 
 public static class McpEndpointRouteBuilderExtensions
 {

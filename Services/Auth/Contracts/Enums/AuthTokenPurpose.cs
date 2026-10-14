@@ -1,4 +1,4 @@
-namespace CompanyHQ.Services.Auth.Contracts.Enums;
+namespace CompanyHQ.Auth.Contracts.Enums;
 
 /// <summary>
 /// What a single-use <c>AuthToken</c> is for.

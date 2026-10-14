@@ -1,4 +1,4 @@
-namespace CompanyHQ.Services.Messages.Contracts.Models;
+namespace CompanyHQ.Messages.Contracts.Models;
 
 /// <summary>Cache-counter thresholds for automated message-spam flagging.</summary>
 public sealed class MessageSpamOptions

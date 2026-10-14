@@ -1,4 +1,4 @@
-namespace CompanyHQ.Services.Shipping.Contracts.Dtos;
+namespace CompanyHQ.Shipping.Contracts.Dtos;
 
 /// <summary>A place goods leave from. Staff only: it is a warehouse or supplier address.</summary>
 public sealed record AdminFulfillmentOriginDto(

@@ -1,9 +1,9 @@
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
-using CompanyHQ.Services.Auth.Contracts.Models;
+using CompanyHQ.Auth.Contracts.Models;
 
-namespace CompanyHQ.Services.Auth.Services;
+namespace CompanyHQ.Auth.Services;
 
 /// <summary>Runs one <see cref="RefreshTokenCleanupProcessor"/> batch per scope on every interval tick.</summary>
 public sealed class RefreshTokenCleanupWorker(

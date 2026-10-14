@@ -1,10 +1,10 @@
-using CompanyHQ.Services.Messages.Contracts;
-using CompanyHQ.Services.Messages.Contracts.Dtos;
-using CompanyHQ.Services.Messages.Contracts.Forms;
-using CompanyHQ.Services.Postgres.Contracts.Dtos;
-using CompanyHQ.Services.Postgres.Contracts.Forms;
+using CompanyHQ.Messages.Contracts;
+using CompanyHQ.Messages.Contracts.Dtos;
+using CompanyHQ.Messages.Contracts.Forms;
+using CompanyHQ.Postgres.Contracts.Dtos;
+using CompanyHQ.Postgres.Contracts.Forms;
 
-namespace CompanyHQ.Services.Messages.Services;
+namespace CompanyHQ.Messages.Services;
 
 public interface IMessageService
 {

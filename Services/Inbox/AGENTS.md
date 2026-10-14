@@ -1,6 +1,6 @@
 # Inbox service
 
-`Services/Inbox` (`CompanyHQ.Services.Inbox`) is the staff inbox: one set of routes over every
+`Services/Inbox` (`CompanyHQ.Inbox`) is the staff inbox: one set of routes over every
 channel a deployment plugs in, and the store for conversations opened by a visitor who has no
 account. It does not own the public form that collects those conversations (that is `Widget`),
 member-to-member conversations (that is `Message`), or issues (that is `GitHub`).

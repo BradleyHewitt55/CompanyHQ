@@ -1,6 +1,6 @@
-using CompanyHQ.Services.Widget.Contracts.Enums;
+using CompanyHQ.Widget.Contracts.Enums;
 
-namespace CompanyHQ.Services.Widget.Contracts.Ports;
+namespace CompanyHQ.Widget.Contracts.Ports;
 
 /// <summary>A report to file, with the source already checked against the allowed list.</summary>
 public sealed record WidgetIssue(

@@ -1,10 +1,10 @@
 using Microsoft.AspNetCore.SignalR;
 using Microsoft.Extensions.Logging;
 
-using CompanyHQ.Services.Messages.Contracts.Dtos;
-using CompanyHQ.Services.Messages.Services;
+using CompanyHQ.Messages.Contracts.Dtos;
+using CompanyHQ.Messages.Services;
 
-namespace CompanyHQ.Services.Messages.Hubs;
+namespace CompanyHQ.Messages.Hubs;
 
 /// <summary>Best-effort SignalR delivery after the database transaction has committed.</summary>
 public sealed class SignalRMessageBroadcaster(

@@ -1,4 +1,4 @@
-namespace CompanyHQ.Services.Postgres.Contracts.Enums;
+namespace CompanyHQ.Postgres.Contracts.Enums;
 
 /// <summary>
 /// Which view of a resource a caller gets back.

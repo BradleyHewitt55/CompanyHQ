@@ -1,15 +1,15 @@
 using System.Data;
 using System.Security.Cryptography;
 using System.Text;
-using CompanyHQ.Services.Persistence.Services;
-using CompanyHQ.Services.Postgres.Contracts.Dtos;
-using CompanyHQ.Services.Postgres.Contracts.Forms;
-using CompanyHQ.Services.Sales.Contracts.Dtos;
-using CompanyHQ.Services.Sales.Contracts.Enums;
-using CompanyHQ.Services.Sales.Contracts.Forms;
-using CompanyHQ.Services.Sales.Contracts.Models;
-using CompanyHQ.Services.Sales.Contracts.Ports;
-namespace CompanyHQ.Services.Sales.Services;
+using CompanyHQ.Persistence.Services;
+using CompanyHQ.Postgres.Contracts.Dtos;
+using CompanyHQ.Postgres.Contracts.Forms;
+using CompanyHQ.Sales.Contracts.Dtos;
+using CompanyHQ.Sales.Contracts.Enums;
+using CompanyHQ.Sales.Contracts.Forms;
+using CompanyHQ.Sales.Contracts.Models;
+using CompanyHQ.Sales.Contracts.Ports;
+namespace CompanyHQ.Sales.Services;
 
 /// <summary>Atomic unpaid checkout, immutable pricing history, ownership and replay-protected upsells.</summary>
 public sealed partial class SalesOrderService(IPersistence db,SalesCatalogService catalog,SalesCheckoutService checkout,

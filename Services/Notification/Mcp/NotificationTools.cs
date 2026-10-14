@@ -4,11 +4,11 @@ using Microsoft.AspNetCore.Http;
 
 using ModelContextProtocol.Server;
 
-using CompanyHQ.Services.Notifications.Contracts.Dtos;
-using CompanyHQ.Services.Notifications.Services;
-using CompanyHQ.Services.Auth.Contracts.Identity;
+using CompanyHQ.Notifications.Contracts.Dtos;
+using CompanyHQ.Notifications.Services;
+using CompanyHQ.Auth.Contracts.Identity;
 
-namespace CompanyHQ.Services.Notifications.Mcp;
+namespace CompanyHQ.Notifications.Mcp;
 
 [McpServerToolType]
 public sealed class NotificationTools(INotificationAccountService notifications, IHttpContextAccessor httpContextAccessor)

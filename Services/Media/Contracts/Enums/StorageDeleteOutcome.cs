@@ -1,4 +1,4 @@
-namespace CompanyHQ.Services.Media.Contracts.Enums;
+namespace CompanyHQ.Media.Contracts.Enums;
 
 /// <summary>Storage-owned classification of an object deletion attempt.</summary>
 public enum StorageDeleteOutcome

@@ -1,9 +1,9 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
-using CompanyHQ.Services.Shipping.Contracts.Models;
+using CompanyHQ.Shipping.Contracts.Models;
 
-namespace CompanyHQ.Services.Shipping.Data;
+namespace CompanyHQ.Shipping.Data;
 
 internal sealed class ShippingMethodConfiguration : IEntityTypeConfiguration<ShippingMethod>
 {

@@ -1,4 +1,4 @@
-namespace CompanyHQ.Services.Postgres.Contracts.Models;
+namespace CompanyHQ.Postgres.Contracts.Models;
 
 /// <summary>Provider-neutral persistence identity. The historic namespace is retained for consumers.</summary>
 public abstract class BaseModel

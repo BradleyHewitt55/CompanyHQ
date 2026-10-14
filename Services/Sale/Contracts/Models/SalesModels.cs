@@ -1,6 +1,6 @@
-using CompanyHQ.Services.Postgres.Contracts.Models;
-using CompanyHQ.Services.Sales.Contracts.Enums;
-namespace CompanyHQ.Services.Sales.Contracts.Models;
+using CompanyHQ.Postgres.Contracts.Models;
+using CompanyHQ.Sales.Contracts.Enums;
+namespace CompanyHQ.Sales.Contracts.Models;
 public sealed class Product : BaseModel
 {
     public string Name { get; set; } = "";

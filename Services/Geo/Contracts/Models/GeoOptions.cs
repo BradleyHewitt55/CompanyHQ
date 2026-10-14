@@ -1,4 +1,4 @@
-namespace CompanyHQ.Services.Geo.Contracts.Models;
+namespace CompanyHQ.Geo.Contracts.Models;
 
 /// <summary>
 /// Configuration for Geo's own policy — rounding granularity, cache lifetimes, which places count

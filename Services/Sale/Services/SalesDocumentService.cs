@@ -1,8 +1,8 @@
-using CompanyHQ.Services.Sales.Contracts.Dtos;
-using CompanyHQ.Services.Sales.Contracts.Forms;
-using CompanyHQ.Services.Sales.Contracts.Ports;
+using CompanyHQ.Sales.Contracts.Dtos;
+using CompanyHQ.Sales.Contracts.Forms;
+using CompanyHQ.Sales.Contracts.Ports;
 
-namespace CompanyHQ.Services.Sales.Services;
+namespace CompanyHQ.Sales.Services;
 
 /// <summary>Authorizes customer-safe delivery; provider calls run outside database transactions.</summary>
 public sealed class SalesDocumentService(SalesCatalogService catalog, SalesOrderService orders,

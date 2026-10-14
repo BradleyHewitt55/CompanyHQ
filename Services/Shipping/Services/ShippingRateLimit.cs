@@ -3,7 +3,7 @@ using System.Threading.RateLimiting;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.RateLimiting;
 
-namespace CompanyHQ.Services.Shipping.Services;
+namespace CompanyHQ.Shipping.Services;
 
 /// <summary>
 /// The budget for the anonymous quote. A quote reads every active method and may geocode, so the

@@ -1,4 +1,4 @@
-namespace CompanyHQ.Services.Mcp.Contracts.Models;
+namespace CompanyHQ.Mcp.Contracts.Models;
 
 /// <summary>Authorization policies <c>AddMcp</c> registers.</summary>
 public static class McpPolicies

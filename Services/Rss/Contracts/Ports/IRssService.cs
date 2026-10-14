@@ -1,7 +1,7 @@
-using CompanyHQ.Services.Rss.Contracts.Dtos;
-using CompanyHQ.Services.Rss.Contracts.Forms;
+using CompanyHQ.Rss.Contracts.Dtos;
+using CompanyHQ.Rss.Contracts.Forms;
 
-namespace CompanyHQ.Services.Rss.Contracts.Ports;
+namespace CompanyHQ.Rss.Contracts.Ports;
 
 /// <summary>
 /// Finds, downloads and reads RSS and Atom feeds from the public internet on a caller's behalf.

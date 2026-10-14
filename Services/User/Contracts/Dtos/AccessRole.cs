@@ -1,3 +1,3 @@
-namespace CompanyHQ.Services.Users.Contracts.Dtos;
+namespace CompanyHQ.Users.Contracts.Dtos;
 
 public sealed record AdminAccessRoleDto(Guid Id, string Name, IReadOnlyList<string> Permissions);

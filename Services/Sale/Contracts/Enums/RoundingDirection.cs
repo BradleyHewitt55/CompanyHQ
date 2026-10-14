@@ -1,7 +1,7 @@
 using System.Text.Json.Serialization;
-using CompanyHQ.Services.Postgres.Contracts.Serialization;
+using CompanyHQ.Postgres.Contracts.Serialization;
 
-namespace CompanyHQ.Services.Sales.Contracts.Enums;
+namespace CompanyHQ.Sales.Contracts.Enums;
 
 /// <summary>Which way a price moves to reach its rounding target.</summary>
 [JsonConverter(typeof(StrictStringEnumConverter<RoundingDirection>))]

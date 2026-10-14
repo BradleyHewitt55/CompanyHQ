@@ -1,8 +1,8 @@
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 using Microsoft.EntityFrameworkCore;
-using CompanyHQ.Services.Users.Contracts.Models;
+using CompanyHQ.Users.Contracts.Models;
 
-namespace CompanyHQ.Services.Users.Data;
+namespace CompanyHQ.Users.Data;
 
 internal sealed class UserConfiguration : IEntityTypeConfiguration<User>
 {

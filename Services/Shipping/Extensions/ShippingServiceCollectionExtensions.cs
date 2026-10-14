@@ -1,9 +1,9 @@
 using Microsoft.AspNetCore.Builder;
 using Microsoft.Extensions.DependencyInjection;
 
-using CompanyHQ.Services.Shipping.Services;
+using CompanyHQ.Shipping.Services;
 
-namespace CompanyHQ.Services.Shipping.Extensions;
+namespace CompanyHQ.Shipping.Extensions;
 
 /// <summary>Registers the Shipping service and its controller assembly.</summary>
 public static class ShippingServiceCollectionExtensions

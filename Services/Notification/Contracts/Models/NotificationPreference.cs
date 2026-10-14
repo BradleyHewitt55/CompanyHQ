@@ -1,6 +1,6 @@
-using CompanyHQ.Services.Persistence.Contracts.Models;
+using CompanyHQ.Persistence.Contracts.Models;
 
-namespace CompanyHQ.Services.Notifications.Contracts.Models;
+namespace CompanyHQ.Notifications.Contracts.Models;
 
 /// <summary>Opt-out preferences for one user. Missing rows mean both channels are enabled.</summary>
 public sealed class NotificationPreference : BaseModel

@@ -1,6 +1,6 @@
-using CompanyHQ.Services.Notifications.Contracts.Enums;
+using CompanyHQ.Notifications.Contracts.Enums;
 
-namespace CompanyHQ.Services.Notifications.Contracts.Dtos;
+namespace CompanyHQ.Notifications.Contracts.Dtos;
 
 /// <summary>A device summary safe to show to an administrator; it deliberately has no token.</summary>
 public sealed record NotificationDeviceDto(

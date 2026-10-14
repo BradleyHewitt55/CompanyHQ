@@ -1,4 +1,4 @@
-namespace CompanyHQ.Services.Notifications.Contracts.Forms;
+namespace CompanyHQ.Notifications.Contracts.Forms;
 
 /// <summary>Replaces the two channel opt-out switches for the authenticated account.</summary>
 public sealed record UpdateNotificationPreferencesRequest(

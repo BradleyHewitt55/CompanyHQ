@@ -1,21 +1,21 @@
 using System.Data;
 using System.ComponentModel.DataAnnotations;
-using CompanyHQ.Services.Messages.Contracts.Enums;
+using CompanyHQ.Messages.Contracts.Enums;
 
 
-using CompanyHQ.Services.Messages.Contracts;
-using CompanyHQ.Services.Messages.Contracts.Dtos;
-using CompanyHQ.Services.Messages.Contracts.Forms;
-using CompanyHQ.Services.Messages.Contracts.Models;
-using CompanyHQ.Services.Messages.Contracts.Ports;
-using CompanyHQ.Services.Postgres.Contracts;
-using CompanyHQ.Services.Postgres.Contracts.Dtos;
-using CompanyHQ.Services.Postgres.Contracts.Forms;
-using CompanyHQ.Services.Persistence.Services;
-using CompanyHQ.Services.Users.Contracts.Models;
-using CompanyHQ.Services.Users.Services;
+using CompanyHQ.Messages.Contracts;
+using CompanyHQ.Messages.Contracts.Dtos;
+using CompanyHQ.Messages.Contracts.Forms;
+using CompanyHQ.Messages.Contracts.Models;
+using CompanyHQ.Messages.Contracts.Ports;
+using CompanyHQ.Postgres.Contracts;
+using CompanyHQ.Postgres.Contracts.Dtos;
+using CompanyHQ.Postgres.Contracts.Forms;
+using CompanyHQ.Persistence.Services;
+using CompanyHQ.Users.Contracts.Models;
+using CompanyHQ.Users.Services;
 
-namespace CompanyHQ.Services.Messages.Services;
+namespace CompanyHQ.Messages.Services;
 
 /// <summary>Persistence and authorization boundary for participant-owned conversations.</summary>
 /// <remarks>

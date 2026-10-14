@@ -1,10 +1,10 @@
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
-using CompanyHQ.Services.Rss.Contracts.Models;
-using CompanyHQ.Services.Rss.Contracts.Ports;
-using CompanyHQ.Services.Rss.Services;
+using CompanyHQ.Rss.Contracts.Models;
+using CompanyHQ.Rss.Contracts.Ports;
+using CompanyHQ.Rss.Services;
 
-namespace CompanyHQ.Services.Rss.Extensions;
+namespace CompanyHQ.Rss.Extensions;
 
 /// <summary>
 /// Single registration entry point for the CompanyHQ RSS service.

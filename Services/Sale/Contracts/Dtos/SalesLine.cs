@@ -1,9 +1,9 @@
 using System.ComponentModel.DataAnnotations;
 using System.Text.Json.Serialization;
 
-using CompanyHQ.Services.Sales.Contracts.Enums;
+using CompanyHQ.Sales.Contracts.Enums;
 
-namespace CompanyHQ.Services.Sales.Contracts.Dtos;
+namespace CompanyHQ.Sales.Contracts.Dtos;
 
 /// <summary>
 /// A street address on an order or quote. It is both what a caller sends and what they read back;

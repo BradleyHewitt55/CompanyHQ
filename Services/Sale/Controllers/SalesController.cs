@@ -2,16 +2,16 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.RateLimiting;
-using CompanyHQ.Services.Auth.Contracts.Identity;
-using CompanyHQ.Services.Persistence.Services;
-using CompanyHQ.Services.Postgres.Contracts;
-using CompanyHQ.Services.Postgres.Contracts.Dtos;
-using CompanyHQ.Services.Postgres.Contracts.Forms;
-using CompanyHQ.Services.Sales.Contracts.Dtos;
-using CompanyHQ.Services.Sales.Contracts.Forms;
-using CompanyHQ.Services.Sales.Services;
-using CompanyHQ.Services.Users.Extensions;
-namespace CompanyHQ.Services.Sales.Controllers;
+using CompanyHQ.Auth.Contracts.Identity;
+using CompanyHQ.Persistence.Services;
+using CompanyHQ.Postgres.Contracts;
+using CompanyHQ.Postgres.Contracts.Dtos;
+using CompanyHQ.Postgres.Contracts.Forms;
+using CompanyHQ.Sales.Contracts.Dtos;
+using CompanyHQ.Sales.Contracts.Forms;
+using CompanyHQ.Sales.Services;
+using CompanyHQ.Users.Extensions;
+namespace CompanyHQ.Sales.Controllers;
 
 [ApiController,Route("api/sales"),Produces("application/json")]
 [ProducesResponseType<ProblemDetails>(StatusCodes.Status400BadRequest)]
@@ -230,11 +230,11 @@ public sealed class SalesController(SalesCatalogService catalog,SalesPromotionSe
     public Task<ActionResult<NumberAvailabilityDto>> InvoiceAvailability([FromQuery] int number,[FromQuery] Guid? excludeOrderId,CancellationToken ct)=>Run<NumberAvailabilityDto>(async()=>await orders.InvoiceAvailabilityAsync(number,excludeOrderId,Actor,ct));
 
     [HttpPost("orders/{id:guid}/invoice/send"),Authorize(Policy=AccessPermissions.ManageSales)]
-    [ProducesResponseType<CompanyHQ.Services.Sales.Contracts.Ports.SalesDocumentDeliveryResult>(StatusCodes.Status200OK)]
-    public Task<ActionResult<CompanyHQ.Services.Sales.Contracts.Ports.SalesDocumentDeliveryResult>> SendInvoice(Guid id,SendSalesDocumentRequest request,CancellationToken ct)=>Run(()=>documents.SendInvoiceAsync(id,request,Actor,ct));
+    [ProducesResponseType<CompanyHQ.Sales.Contracts.Ports.SalesDocumentDeliveryResult>(StatusCodes.Status200OK)]
+    public Task<ActionResult<CompanyHQ.Sales.Contracts.Ports.SalesDocumentDeliveryResult>> SendInvoice(Guid id,SendSalesDocumentRequest request,CancellationToken ct)=>Run(()=>documents.SendInvoiceAsync(id,request,Actor,ct));
     [HttpPost("quotes/{id:guid}/send"),Authorize(Policy=AccessPermissions.ManageSales)]
-    [ProducesResponseType<CompanyHQ.Services.Sales.Contracts.Ports.SalesDocumentDeliveryResult>(StatusCodes.Status200OK)]
-    public Task<ActionResult<CompanyHQ.Services.Sales.Contracts.Ports.SalesDocumentDeliveryResult>> SendQuote(Guid id,SendSalesDocumentRequest request,CancellationToken ct)=>Run(()=>documents.SendQuoteAsync(id,request,Actor,ct));
+    [ProducesResponseType<CompanyHQ.Sales.Contracts.Ports.SalesDocumentDeliveryResult>(StatusCodes.Status200OK)]
+    public Task<ActionResult<CompanyHQ.Sales.Contracts.Ports.SalesDocumentDeliveryResult>> SendQuote(Guid id,SendSalesDocumentRequest request,CancellationToken ct)=>Run(()=>documents.SendQuoteAsync(id,request,Actor,ct));
 
     [HttpGet("products/{id:guid}/reviews"),AllowAnonymous]
     [ProducesResponseType<PagedResult<ClientProductReviewDto>>(StatusCodes.Status200OK)]

@@ -5,18 +5,18 @@ using System.Text;
 using Octokit;
 using Octokit.Internal;
 
-using CompanyHQ.Services.GitHub.Contracts.Dtos;
-using CompanyHQ.Services.GitHub.Contracts.Enums;
-using CompanyHQ.Services.GitHub.Contracts.Forms;
-using CompanyHQ.Services.GitHub.Contracts.Models;
-using CompanyHQ.Services.Postgres.Contracts;
-using CompanyHQ.Services.Postgres.Contracts.Dtos;
-using CompanyHQ.Services.Postgres.Contracts.Enums;
-using CompanyHQ.Services.Postgres.Contracts.Forms;
-using CompanyHQ.Services.Persistence.Services;
-using CompanyHQ.Services.Users.Services;
+using CompanyHQ.GitHub.Contracts.Dtos;
+using CompanyHQ.GitHub.Contracts.Enums;
+using CompanyHQ.GitHub.Contracts.Forms;
+using CompanyHQ.GitHub.Contracts.Models;
+using CompanyHQ.Postgres.Contracts;
+using CompanyHQ.Postgres.Contracts.Dtos;
+using CompanyHQ.Postgres.Contracts.Enums;
+using CompanyHQ.Postgres.Contracts.Forms;
+using CompanyHQ.Persistence.Services;
+using CompanyHQ.Users.Services;
 
-namespace CompanyHQ.Services.GitHub.Services;
+namespace CompanyHQ.GitHub.Services;
 
 public sealed class GitHubService(
     IRepository<GitHubConnection> connections,

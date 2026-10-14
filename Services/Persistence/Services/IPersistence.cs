@@ -1,7 +1,7 @@
 using System.Data;
-using CompanyHQ.Services.Postgres.Contracts.Models;
+using CompanyHQ.Postgres.Contracts.Models;
 
-namespace CompanyHQ.Services.Persistence.Services;
+namespace CompanyHQ.Persistence.Services;
 
 /// <summary>
 /// One unit of work over every persisted model: reads, staged writes that commit together, and

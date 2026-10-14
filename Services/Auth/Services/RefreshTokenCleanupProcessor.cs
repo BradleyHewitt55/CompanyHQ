@@ -1,8 +1,8 @@
 using Microsoft.Extensions.Logging;
-using CompanyHQ.Services.Auth.Contracts.Models;
-using CompanyHQ.Services.Persistence.Services;
+using CompanyHQ.Auth.Contracts.Models;
+using CompanyHQ.Persistence.Services;
 
-namespace CompanyHQ.Services.Auth.Services;
+namespace CompanyHQ.Auth.Services;
 
 /// <summary>
 /// Removes one small batch of old refresh-token rows, so session storage cannot grow without bound

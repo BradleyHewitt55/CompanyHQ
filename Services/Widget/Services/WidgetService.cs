@@ -1,10 +1,10 @@
-using CompanyHQ.Services.Widget.Contracts.Dtos;
-using CompanyHQ.Services.Widget.Contracts.Enums;
-using CompanyHQ.Services.Widget.Contracts.Forms;
-using CompanyHQ.Services.Widget.Contracts.Models;
-using CompanyHQ.Services.Widget.Contracts.Ports;
+using CompanyHQ.Widget.Contracts.Dtos;
+using CompanyHQ.Widget.Contracts.Enums;
+using CompanyHQ.Widget.Contracts.Forms;
+using CompanyHQ.Widget.Contracts.Models;
+using CompanyHQ.Widget.Contracts.Ports;
 
-namespace CompanyHQ.Services.Widget.Services;
+namespace CompanyHQ.Widget.Services;
 
 /// <inheritdoc cref="IWidgetService" />
 internal sealed class WidgetService(

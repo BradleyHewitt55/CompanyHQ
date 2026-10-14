@@ -1,8 +1,8 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
-using CompanyHQ.Services.Users.Contracts.Models;
+using CompanyHQ.Users.Contracts.Models;
 
-namespace CompanyHQ.Services.Users.Data;
+namespace CompanyHQ.Users.Data;
 
 internal sealed class UserFavoritePlaceConfiguration : IEntityTypeConfiguration<UserFavoritePlace>
 {

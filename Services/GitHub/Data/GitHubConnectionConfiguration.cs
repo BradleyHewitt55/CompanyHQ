@@ -1,8 +1,8 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
-using CompanyHQ.Services.GitHub.Contracts.Models;
+using CompanyHQ.GitHub.Contracts.Models;
 
-namespace CompanyHQ.Services.GitHub.Data;
+namespace CompanyHQ.GitHub.Data;
 
 internal sealed class GitHubConnectionConfiguration : IEntityTypeConfiguration<GitHubConnection>
 {

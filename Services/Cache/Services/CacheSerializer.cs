@@ -1,7 +1,7 @@
 using System.Text.Json;
 using System.Text.Json.Serialization;
 
-namespace CompanyHQ.Services.Cache.Services;
+namespace CompanyHQ.Cache.Services;
 
 /// <summary>
 /// Turns cached values into JSON. Registered as a singleton so every writer and reader in the

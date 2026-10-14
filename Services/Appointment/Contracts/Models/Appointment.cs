@@ -1,7 +1,7 @@
-using CompanyHQ.Services.Persistence.Contracts.Models;
-using CompanyHQ.Services.Users.Contracts.Models;
+using CompanyHQ.Persistence.Contracts.Models;
+using CompanyHQ.Users.Contracts.Models;
 
-namespace CompanyHQ.Services.Appointments.Contracts.Models;
+namespace CompanyHQ.Appointments.Contracts.Models;
 
 /// <summary>One entry in a member's appointment diary.</summary>
 public sealed class Appointment : BaseModel

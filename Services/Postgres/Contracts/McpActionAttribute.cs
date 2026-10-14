@@ -1,4 +1,4 @@
-namespace CompanyHQ.Services.Postgres.Contracts;
+namespace CompanyHQ.Postgres.Contracts;
 
 /// <summary>Marks an HTTP action as an MCP operation with a stable name and required permission.</summary>
 [AttributeUsage(AttributeTargets.Method, AllowMultiple = false)]

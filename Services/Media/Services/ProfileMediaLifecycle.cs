@@ -1,13 +1,13 @@
-using CompanyHQ.Services.Media.Contracts.Ports;
+using CompanyHQ.Media.Contracts.Ports;
 using Microsoft.Extensions.Logging;
 
-using CompanyHQ.Services.Media.Contracts.Enums;
-using CompanyHQ.Services.Media.Contracts.Models;
-using CompanyHQ.Services.Persistence.Services;
-using CompanyHQ.Services.Users.Contracts.Ports;
-using CompanyHQ.Services.Users.Services;
+using CompanyHQ.Media.Contracts.Enums;
+using CompanyHQ.Media.Contracts.Models;
+using CompanyHQ.Persistence.Services;
+using CompanyHQ.Users.Contracts.Ports;
+using CompanyHQ.Users.Services;
 
-namespace CompanyHQ.Services.Media.Services;
+namespace CompanyHQ.Media.Services;
 
 /// <summary>Retires owner-bound profile uploads while ignoring external and shared image URLs.</summary>
 public sealed class ProfileMediaLifecycle(

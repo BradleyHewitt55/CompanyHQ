@@ -1,10 +1,10 @@
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 
-using CompanyHQ.Services.GitHub.Contracts.Models;
-using CompanyHQ.Services.GitHub.Services;
+using CompanyHQ.GitHub.Contracts.Models;
+using CompanyHQ.GitHub.Services;
 
-namespace CompanyHQ.Services.GitHub.Extensions;
+namespace CompanyHQ.GitHub.Extensions;
 
 /// <summary>Registers the GitHub repository connection, its issues, and the controller assembly.</summary>
 public static class GitHubServiceCollectionExtensions

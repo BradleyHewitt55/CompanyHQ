@@ -1,9 +1,9 @@
-using CompanyHQ.Services.Persistence.Services;
-using CompanyHQ.Services.Users.Contracts.Dtos;
-using CompanyHQ.Services.Users.Contracts.Forms;
-using CompanyHQ.Services.Users.Contracts.Models;
+using CompanyHQ.Persistence.Services;
+using CompanyHQ.Users.Contracts.Dtos;
+using CompanyHQ.Users.Contracts.Forms;
+using CompanyHQ.Users.Contracts.Models;
 
-namespace CompanyHQ.Services.Users.Services;
+namespace CompanyHQ.Users.Services;
 
 public sealed class UserFavoritePlaceService(IRepository<UserFavoritePlace> places) : IUserFavoritePlaceService
 {

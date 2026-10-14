@@ -1,4 +1,4 @@
-namespace CompanyHQ.Services.Inbox.Contracts.Dtos;
+namespace CompanyHQ.Inbox.Contracts.Dtos;
 
 /// <summary>One source of threads the caller's role may open, and whether it can be read right now.</summary>
 public sealed record AdminInboxChannelDto(string Key, string Name, bool Available);

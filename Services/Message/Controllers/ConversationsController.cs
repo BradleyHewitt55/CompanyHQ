@@ -3,17 +3,17 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.RateLimiting;
 
-using CompanyHQ.Services.Messages.Contracts;
-using CompanyHQ.Services.Messages.Contracts.Dtos;
-using CompanyHQ.Services.Messages.Contracts.Forms;
-using CompanyHQ.Services.Messages.Extensions;
-using CompanyHQ.Services.Messages.Services;
-using CompanyHQ.Services.Postgres.Contracts;
-using CompanyHQ.Services.Postgres.Contracts.Dtos;
-using CompanyHQ.Services.Postgres.Contracts.Forms;
-using CompanyHQ.Services.Auth.Contracts.Identity;
+using CompanyHQ.Messages.Contracts;
+using CompanyHQ.Messages.Contracts.Dtos;
+using CompanyHQ.Messages.Contracts.Forms;
+using CompanyHQ.Messages.Extensions;
+using CompanyHQ.Messages.Services;
+using CompanyHQ.Postgres.Contracts;
+using CompanyHQ.Postgres.Contracts.Dtos;
+using CompanyHQ.Postgres.Contracts.Forms;
+using CompanyHQ.Auth.Contracts.Identity;
 
-namespace CompanyHQ.Services.Messages.Controllers;
+namespace CompanyHQ.Messages.Controllers;
 
 [ApiController]
 [Authorize]

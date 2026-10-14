@@ -1,6 +1,6 @@
 # Auth service
 
-`Services/Auth` (`CompanyHQ.Services.Auth`) issues and validates the tokens every other service
+`Services/Auth` (`CompanyHQ.Auth`) issues and validates the tokens every other service
 trusts, and owns every entity that makes a credential revocable or single-use: `RefreshToken` and
 `AuthToken`.
 

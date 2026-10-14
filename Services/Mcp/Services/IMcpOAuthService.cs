@@ -1,7 +1,7 @@
-using CompanyHQ.Services.Mcp.Contracts.Dtos;
-using CompanyHQ.Services.Mcp.Contracts.Forms;
+using CompanyHQ.Mcp.Contracts.Dtos;
+using CompanyHQ.Mcp.Contracts.Forms;
 
-namespace CompanyHQ.Services.Mcp.Services;
+namespace CompanyHQ.Mcp.Services;
 
 public interface IMcpOAuthService
 {

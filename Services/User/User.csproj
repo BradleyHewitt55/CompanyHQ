@@ -4,8 +4,8 @@
     <TargetFramework>net10.0</TargetFramework>
     <Nullable>enable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
-    <AssemblyName>CompanyHQ.Services.Users</AssemblyName>
-    <RootNamespace>CompanyHQ.Services.Users</RootNamespace>
+    <AssemblyName>CompanyHQ.Users</AssemblyName>
+    <RootNamespace>CompanyHQ.Users</RootNamespace>
   </PropertyGroup>
 
   <ItemGroup>

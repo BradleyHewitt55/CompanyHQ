@@ -1,4 +1,4 @@
-namespace CompanyHQ.Services.Mcp.Contracts.Dtos;
+namespace CompanyHQ.Mcp.Contracts.Dtos;
 
 public readonly record struct McpOAuthTokenResult(McpOAuthTokenDto? Token, string? Error)
 {

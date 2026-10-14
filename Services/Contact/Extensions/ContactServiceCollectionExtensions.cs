@@ -2,9 +2,9 @@ using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.RateLimiting;
 using Microsoft.Extensions.DependencyInjection;
 
-using CompanyHQ.Services.Contact.Services;
+using CompanyHQ.Contact.Services;
 
-namespace CompanyHQ.Services.Contact.Extensions;
+namespace CompanyHQ.Contact.Extensions;
 
 /// <summary>Registration entry point for the Contact service and its controller.</summary>
 public static class ContactServiceCollectionExtensions

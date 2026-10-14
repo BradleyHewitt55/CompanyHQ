@@ -3,9 +3,9 @@ using System.Collections.Concurrent;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 
-using CompanyHQ.Services.Geo.Contracts.Models;
+using CompanyHQ.Geo.Contracts.Models;
 
-namespace CompanyHQ.Services.Geo.Services;
+namespace CompanyHQ.Geo.Services;
 
 /// <summary>Refreshes cached tiles that are past their soft TTL, out of band.</summary>
 /// <remarks>

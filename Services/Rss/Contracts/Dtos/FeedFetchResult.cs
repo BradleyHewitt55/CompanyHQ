@@ -1,6 +1,6 @@
-using CompanyHQ.Services.Rss.Contracts.Enums;
+using CompanyHQ.Rss.Contracts.Enums;
 
-namespace CompanyHQ.Services.Rss.Contracts.Dtos;
+namespace CompanyHQ.Rss.Contracts.Dtos;
 
 /// <summary>The outcome of one feed download. Exactly one of the three statuses applies.</summary>
 /// <remarks>

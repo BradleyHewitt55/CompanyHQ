@@ -1,10 +1,10 @@
 using System.Linq.Expressions;
 using Microsoft.EntityFrameworkCore;
-using CompanyHQ.Services.Postgres.Contracts.Dtos;
-using CompanyHQ.Services.Postgres.Contracts.Forms;
-using CompanyHQ.Services.Postgres.Contracts.Models;
+using CompanyHQ.Postgres.Contracts.Dtos;
+using CompanyHQ.Postgres.Contracts.Forms;
+using CompanyHQ.Postgres.Contracts.Models;
 
-namespace CompanyHQ.Services.Postgres.Extensions;
+namespace CompanyHQ.Postgres.Extensions;
 
 /// <summary>
 /// Paging over any <see cref="BaseModel"/> query, so controllers do not re-implement

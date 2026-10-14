@@ -1,6 +1,6 @@
 using System.Text.Json.Serialization;
 
-namespace CompanyHQ.Services.Rss.Contracts.Enums;
+namespace CompanyHQ.Rss.Contracts.Enums;
 
 /// <summary>What role a file attached to an entry plays.</summary>
 [JsonConverter(typeof(JsonStringEnumConverter<FeedMediaKind>))]

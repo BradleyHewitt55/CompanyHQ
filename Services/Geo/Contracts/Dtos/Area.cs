@@ -1,6 +1,6 @@
-using CompanyHQ.Services.Geo.Contracts.Enums;
+using CompanyHQ.Geo.Contracts.Enums;
 
-namespace CompanyHQ.Services.Geo.Contracts.Dtos;
+namespace CompanyHQ.Geo.Contracts.Dtos;
 
 /// <summary>
 /// A named place. The coordinates are the rounded ones the lookup actually used, echoed back so a

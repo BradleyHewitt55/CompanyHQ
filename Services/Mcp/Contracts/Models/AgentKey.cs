@@ -1,7 +1,7 @@
-using CompanyHQ.Services.Mcp.Contracts.Enums;
-using CompanyHQ.Services.Persistence.Contracts.Models;
+using CompanyHQ.Mcp.Contracts.Enums;
+using CompanyHQ.Persistence.Contracts.Models;
 
-namespace CompanyHQ.Services.Mcp.Contracts.Models;
+namespace CompanyHQ.Mcp.Contracts.Models;
 
 /// <summary>
 /// A long-lived credential that authenticates at <c>/mcp</c> and nowhere else. The linked user's role

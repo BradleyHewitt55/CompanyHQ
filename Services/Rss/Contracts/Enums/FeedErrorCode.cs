@@ -1,6 +1,6 @@
 using System.Text.Json.Serialization;
 
-namespace CompanyHQ.Services.Rss.Contracts.Enums;
+namespace CompanyHQ.Rss.Contracts.Enums;
 
 /// <summary>Every way a fetch or a discovery can fail. A caller can branch on these; the list only grows.</summary>
 [JsonConverter(typeof(JsonStringEnumConverter<FeedErrorCode>))]

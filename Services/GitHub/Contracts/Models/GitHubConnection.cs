@@ -1,6 +1,6 @@
-using CompanyHQ.Services.Persistence.Contracts.Models;
+using CompanyHQ.Persistence.Contracts.Models;
 
-namespace CompanyHQ.Services.GitHub.Contracts.Models;
+namespace CompanyHQ.GitHub.Contracts.Models;
 
 /// <summary>The one repository this deployment files issues in, with its access token encrypted.</summary>
 public sealed class GitHubConnection : BaseModel

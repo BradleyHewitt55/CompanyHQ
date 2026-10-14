@@ -11,7 +11,7 @@ const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 async function latestRelease() {
   let response;
   try {
-    response = await fetch('https://api.nuget.org/v3-flatcontainer/companyhq.services.rss/index.json', {
+    response = await fetch('https://api.nuget.org/v3-flatcontainer/companyhq.rss/index.json', {
       signal: AbortSignal.timeout(30000),
     });
   } catch { throw new Error('Could not read the CompanyHQ package feed.'); }

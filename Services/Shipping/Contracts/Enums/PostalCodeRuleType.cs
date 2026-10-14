@@ -1,7 +1,7 @@
 using System.Text.Json.Serialization;
-using CompanyHQ.Services.Postgres.Contracts.Serialization;
+using CompanyHQ.Postgres.Contracts.Serialization;
 
-namespace CompanyHQ.Services.Shipping.Contracts.Enums;
+namespace CompanyHQ.Shipping.Contracts.Enums;
 
 /// <summary>How a delivery zone rule reads its pattern.</summary>
 [JsonConverter(typeof(StrictStringEnumConverter<PostalCodeRuleType>))]

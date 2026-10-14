@@ -5,13 +5,13 @@ using Microsoft.AspNetCore.RateLimiting;
 using Microsoft.AspNetCore.WebUtilities;
 using Microsoft.Extensions.Primitives;
 
-using CompanyHQ.Services.Mcp.Contracts.Dtos;
-using CompanyHQ.Services.Mcp.Contracts.Forms;
-using CompanyHQ.Services.Mcp.Contracts.Models;
-using CompanyHQ.Services.Mcp.Services;
-using CompanyHQ.Services.Auth.Contracts.Identity;
+using CompanyHQ.Mcp.Contracts.Dtos;
+using CompanyHQ.Mcp.Contracts.Forms;
+using CompanyHQ.Mcp.Contracts.Models;
+using CompanyHQ.Mcp.Services;
+using CompanyHQ.Auth.Contracts.Identity;
 
-namespace CompanyHQ.Services.Mcp.Controllers;
+namespace CompanyHQ.Mcp.Controllers;
 
 /// <summary>OAuth 2.1 endpoints for the protected CompanyHQ MCP resource.</summary>
 [ApiController]

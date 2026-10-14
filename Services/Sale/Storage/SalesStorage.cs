@@ -1,10 +1,10 @@
 using System.Text.Json;
 using System.Text.Json.Serialization;
-using CompanyHQ.Services.Sales.Contracts.Dtos;
-using CompanyHQ.Services.Sales.Contracts.Forms;
-using CompanyHQ.Services.Sales.Contracts.Ports;
-using CompanyHQ.Services.Sales.Services;
-namespace CompanyHQ.Services.Sales.Storage;
+using CompanyHQ.Sales.Contracts.Dtos;
+using CompanyHQ.Sales.Contracts.Forms;
+using CompanyHQ.Sales.Contracts.Ports;
+using CompanyHQ.Sales.Services;
+namespace CompanyHQ.Sales.Storage;
 
 /// <summary>Versioned persistence boundary. HTTP types are converted into independent frozen storage schemas.</summary>
 internal static class SalesStorage

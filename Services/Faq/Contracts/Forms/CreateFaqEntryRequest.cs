@@ -1,6 +1,6 @@
 using System.ComponentModel.DataAnnotations;
 
-namespace CompanyHQ.Services.Faqs.Contracts.Forms;
+namespace CompanyHQ.Faqs.Contracts.Forms;
 
 /// <summary>Administrator body for creating a FAQ entry.</summary>
 public sealed record CreateFaqEntryRequest(

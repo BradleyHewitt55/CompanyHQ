@@ -1,8 +1,8 @@
 using System.Text.Json.Serialization;
 
-using CompanyHQ.Services.Postgres.Contracts.Serialization;
+using CompanyHQ.Postgres.Contracts.Serialization;
 
-namespace CompanyHQ.Services.Users.Contracts.Enums;
+namespace CompanyHQ.Users.Contracts.Enums;
 
 /// <summary>
 /// Serialised as text on the wire as well as in the column — an ordinal on the wire silently

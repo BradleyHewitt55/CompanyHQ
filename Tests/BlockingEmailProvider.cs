@@ -1,5 +1,5 @@
 using System.Collections.Concurrent;
-using CompanyHQ.Services.Email.Contracts.Ports;
+using CompanyHQ.Email.Contracts.Ports;
 
 namespace CompanyHQ.Tests;
 

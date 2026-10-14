@@ -1,4 +1,4 @@
-namespace CompanyHQ.Services.Blogs.Services;
+namespace CompanyHQ.Blogs.Services;
 
 public sealed class BlogSlugConflictException : Exception
 {

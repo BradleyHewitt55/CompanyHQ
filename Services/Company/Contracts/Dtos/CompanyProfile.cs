@@ -1,4 +1,4 @@
-namespace CompanyHQ.Services.Company.Contracts.Dtos;
+namespace CompanyHQ.Company.Contracts.Dtos;
 
 /// <summary>
 /// The company profile as everyone sees it. There is no admin variant: the row holds published

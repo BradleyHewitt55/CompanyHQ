@@ -1,4 +1,4 @@
-namespace CompanyHQ.Services.Users.Contracts.Dtos;
+namespace CompanyHQ.Users.Contracts.Dtos;
 
 public sealed record OwnerUserFavoritePlaceDto(
     Guid Id,

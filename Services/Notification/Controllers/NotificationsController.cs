@@ -2,12 +2,12 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 
-using CompanyHQ.Services.Notifications.Contracts.Dtos;
-using CompanyHQ.Services.Notifications.Contracts.Forms;
-using CompanyHQ.Services.Notifications.Services;
-using CompanyHQ.Services.Auth.Contracts.Identity;
+using CompanyHQ.Notifications.Contracts.Dtos;
+using CompanyHQ.Notifications.Contracts.Forms;
+using CompanyHQ.Notifications.Services;
+using CompanyHQ.Auth.Contracts.Identity;
 
-namespace CompanyHQ.Services.Notifications.Controllers;
+namespace CompanyHQ.Notifications.Controllers;
 
 /// <summary>Authenticated device registration and notification opt-out routes.</summary>
 [ApiController]
@@ -57,9 +57,9 @@ public sealed class NotificationsController(
     }
 
     [HttpGet("preferences")]
-    [CompanyHQ.Services.Postgres.Contracts.McpAction(
-        CompanyHQ.Services.Postgres.Contracts.McpCapabilityCatalog.GetMyNotificationPreferences,
-        CompanyHQ.Services.Postgres.Contracts.McpCapabilityCatalog.GetMyNotificationPreferences,
+    [CompanyHQ.Postgres.Contracts.McpAction(
+        CompanyHQ.Postgres.Contracts.McpCapabilityCatalog.GetMyNotificationPreferences,
+        CompanyHQ.Postgres.Contracts.McpCapabilityCatalog.GetMyNotificationPreferences,
         "Read the authenticated account's notification preferences and opt-out settings. This never reads another account.")]
     [ProducesResponseType<NotificationPreferencesDto>(StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status401Unauthorized)]

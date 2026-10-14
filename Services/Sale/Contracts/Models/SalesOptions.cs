@@ -1,4 +1,4 @@
-namespace CompanyHQ.Services.Sales.Contracts.Models;
+namespace CompanyHQ.Sales.Contracts.Models;
 /// <summary>Company policy without provider credentials.</summary>
 public sealed class SalesOptions
 {

@@ -1,6 +1,6 @@
 using System.ComponentModel.DataAnnotations;
 
-namespace CompanyHQ.Services.Postgres.Contracts.Forms;
+namespace CompanyHQ.Postgres.Contracts.Forms;
 
 /// <summary>
 /// Keyword filter for a list endpoint. Bindable straight from the query string

@@ -1,8 +1,8 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
-using CompanyHQ.Services.Faqs.Contracts.Models;
+using CompanyHQ.Faqs.Contracts.Models;
 
-namespace CompanyHQ.Services.Faqs.Data;
+namespace CompanyHQ.Faqs.Data;
 
 internal sealed class FaqEntryConfiguration : IEntityTypeConfiguration<FaqEntry>
 {

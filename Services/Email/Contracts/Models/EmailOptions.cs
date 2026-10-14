@@ -1,4 +1,4 @@
-namespace CompanyHQ.Services.Email.Contracts.Models;
+namespace CompanyHQ.Email.Contracts.Models;
 
 public sealed class EmailOptions
 {

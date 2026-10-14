@@ -1,4 +1,4 @@
-namespace CompanyHQ.Services.Email.Contracts.Ports;
+namespace CompanyHQ.Email.Contracts.Ports;
 
 /// <summary>The controlled template catalog. A caller can only send one of these.</summary>
 public static class EmailTemplateKeys

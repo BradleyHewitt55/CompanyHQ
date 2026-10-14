@@ -3,9 +3,9 @@ using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
-using CompanyHQ.Services.Sales.Contracts.Models;
-using CompanyHQ.Services.Sales.Services;
-namespace CompanyHQ.Services.Sales.Extensions;
+using CompanyHQ.Sales.Contracts.Models;
+using CompanyHQ.Sales.Services;
+namespace CompanyHQ.Sales.Extensions;
 /// <summary>Registers generic catalog, server pricing and pending unpaid checkout.</summary>
 public static class SalesServiceCollectionExtensions
 {

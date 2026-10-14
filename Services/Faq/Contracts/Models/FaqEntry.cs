@@ -1,6 +1,6 @@
-using CompanyHQ.Services.Persistence.Contracts.Models;
+using CompanyHQ.Persistence.Contracts.Models;
 
-namespace CompanyHQ.Services.Faqs.Contracts.Models;
+namespace CompanyHQ.Faqs.Contracts.Models;
 
 /// <summary>A stable, categorised answer to one frequently asked question.</summary>
 public sealed class FaqEntry : BaseModel

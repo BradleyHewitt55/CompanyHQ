@@ -1,4 +1,4 @@
-namespace CompanyHQ.Services.GitHub.Contracts.Dtos;
+namespace CompanyHQ.GitHub.Contracts.Dtos;
 
 /// <summary>One issue in the connected repository, as a manager sees it.</summary>
 public sealed record AdminGitHubIssueDto(

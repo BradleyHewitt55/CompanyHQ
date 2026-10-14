@@ -11,7 +11,7 @@ $root = Split-Path $PSScriptRoot -Parent
 
 # Every CompanyHQ package shares one version, and the generic Rss package is published after the other
 # generic packages, so its feed marks the releases that are complete. CompanyHQ.Api is not consulted.
-$published = @((Invoke-RestMethod 'https://api.nuget.org/v3-flatcontainer/companyhq.services.rss/index.json').versions |
+$published = @((Invoke-RestMethod 'https://api.nuget.org/v3-flatcontainer/companyhq.rss/index.json').versions |
     Where-Object { $_ -match '^\d+(\.\d+){1,3}$' } | Sort-Object { [version]$_ })
 if (-not $published) { throw 'No released CompanyHQ version is published.' }
 

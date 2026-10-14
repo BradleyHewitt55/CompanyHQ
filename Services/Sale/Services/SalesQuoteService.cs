@@ -1,11 +1,11 @@
-using CompanyHQ.Services.Persistence.Services;
-using CompanyHQ.Services.Postgres.Contracts.Dtos;
-using CompanyHQ.Services.Postgres.Contracts.Forms;
-using CompanyHQ.Services.Sales.Contracts.Dtos;
-using CompanyHQ.Services.Sales.Contracts.Enums;
-using CompanyHQ.Services.Sales.Contracts.Forms;
-using CompanyHQ.Services.Sales.Contracts.Models;
-namespace CompanyHQ.Services.Sales.Services;
+using CompanyHQ.Persistence.Services;
+using CompanyHQ.Postgres.Contracts.Dtos;
+using CompanyHQ.Postgres.Contracts.Forms;
+using CompanyHQ.Sales.Contracts.Dtos;
+using CompanyHQ.Sales.Contracts.Enums;
+using CompanyHQ.Sales.Contracts.Forms;
+using CompanyHQ.Sales.Contracts.Models;
+namespace CompanyHQ.Sales.Services;
 /// <summary>Staff quotation lifecycle and atomic conversion of the immutable accepted snapshot.</summary>
 public sealed class SalesQuoteService(IPersistence db,SalesCatalogService catalog,SalesOrderService orders,TimeProvider clock,SalesOptions options) : ISalesQuoteService
 {

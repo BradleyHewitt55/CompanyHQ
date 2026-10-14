@@ -1,9 +1,9 @@
 using System.Net;
 using System.Globalization;
-using CompanyHQ.Services.Email.Services;
-using CompanyHQ.Services.Email.Contracts.Ports;
-using CompanyHQ.Services.Email.Contracts.Enums;
-using CompanyHQ.Services.Sales.Contracts.Ports;
+using CompanyHQ.Email.Services;
+using CompanyHQ.Email.Contracts.Ports;
+using CompanyHQ.Email.Contracts.Enums;
+using CompanyHQ.Sales.Contracts.Ports;
 namespace Api.Integrations;
 internal sealed class SalesDocumentDelivery(IEmailService email,IEmailDeliveryQuery deliveries) : ISalesDocumentDelivery
 {

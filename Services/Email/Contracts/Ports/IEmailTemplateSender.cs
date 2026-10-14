@@ -1,4 +1,4 @@
-namespace CompanyHQ.Services.Email.Contracts.Ports;
+namespace CompanyHQ.Email.Contracts.Ports;
 
 /// <summary>
 /// What another service calls to email someone: a controlled template key and structured values,

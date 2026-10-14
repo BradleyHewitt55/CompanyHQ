@@ -4,13 +4,13 @@ using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.RateLimiting;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
-using CompanyHQ.Services.Messages.Hubs;
-using CompanyHQ.Services.Messages.Services;
-using CompanyHQ.Services.Messages.Contracts.Models;
-using CompanyHQ.Services.Auth.Contracts.Identity;
-using CompanyHQ.Services.Users.Contracts.Ports;
+using CompanyHQ.Messages.Hubs;
+using CompanyHQ.Messages.Services;
+using CompanyHQ.Messages.Contracts.Models;
+using CompanyHQ.Auth.Contracts.Identity;
+using CompanyHQ.Users.Contracts.Ports;
 
-namespace CompanyHQ.Services.Messages.Extensions;
+namespace CompanyHQ.Messages.Extensions;
 
 /// <summary>Registers the message service and the controller assembly.</summary>
 public static class MessageServiceCollectionExtensions

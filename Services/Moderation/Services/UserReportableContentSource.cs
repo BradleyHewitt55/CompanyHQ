@@ -1,11 +1,11 @@
 
-using CompanyHQ.Services.Moderation.Contracts.Ports;
-using CompanyHQ.Services.Moderation.Contracts.Captures;
-using CompanyHQ.Services.Moderation.Contracts.Enums;
-using CompanyHQ.Services.Persistence.Services;
-using CompanyHQ.Services.Users.Contracts.Models;
+using CompanyHQ.Moderation.Contracts.Ports;
+using CompanyHQ.Moderation.Contracts.Captures;
+using CompanyHQ.Moderation.Contracts.Enums;
+using CompanyHQ.Persistence.Services;
+using CompanyHQ.Users.Contracts.Models;
 
-namespace CompanyHQ.Services.Moderation.Services;
+namespace CompanyHQ.Moderation.Services;
 
 /// <summary>Resolves accounts and captures only public, operator-safe profile evidence.</summary>
 public sealed class UserReportableContentSource(

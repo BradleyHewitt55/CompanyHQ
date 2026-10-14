@@ -1,12 +1,12 @@
 using System.Reflection;
-using CompanyHQ.Services.Postgres.Contracts;
+using CompanyHQ.Postgres.Contracts;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.ApplicationParts;
 using Microsoft.AspNetCore.Mvc.Controllers;
 using Microsoft.Extensions.DependencyInjection;
 using ModelContextProtocol.Server;
 
-namespace CompanyHQ.Services.Mcp.Services;
+namespace CompanyHQ.Mcp.Services;
 
 /// <summary>Discovers marked API actions and binds the MCP adapters their owning services ship.</summary>
 public static class McpActionRegistry

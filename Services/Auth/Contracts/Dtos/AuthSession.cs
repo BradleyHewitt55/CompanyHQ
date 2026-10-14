@@ -1,4 +1,4 @@
-namespace CompanyHQ.Services.Auth.Contracts.Dtos;
+namespace CompanyHQ.Auth.Contracts.Dtos;
 
 /// <summary>
 /// Everything a client needs to hold a session: the bearer token, the token that renews it, and
