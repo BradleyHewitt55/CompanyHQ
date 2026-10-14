@@ -1,4 +1,10 @@
+using System.Security.Claims;
 using System.Text.Json;
+using Microsoft.AspNetCore.Http;
+using ModelContextProtocol;
+using CompanyHQ.Services.Auth.Contracts.Identity;
+using CompanyHQ.Services.Postgres.Contracts;
+using CompanyHQ.Services.Sales.Mcp;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.Extensions.Configuration;
@@ -691,6 +697,36 @@ public sealed class SalesShippingTests(SalesShippingFixture fixture) : IClassFix
         await using(var scope=fixture.Services.CreateAsyncScope()){var p=await scope.ServiceProvider.GetRequiredService<SalesCatalogService>().SaveAsync(null,Definition("Concurrent"),fixture.Admin);product=p.Id;variant=p.Variants[0].Id;}
         var receipts=await Task.WhenAll(Enumerable.Range(0,4).Select(async _=>{await using var scope=fixture.Services.CreateAsyncScope();return await scope.ServiceProvider.GetRequiredService<SalesOrderService>().PlaceAsync(new(new([new(Guid.NewGuid(),product,variant)]),"Guest","Buyer","guest@example.test"),null);}));
         Assert.Equal(4,receipts.Select(x=>x.InvoiceNumber).Distinct().Count());Assert.Equal(4,receipts.Select(x=>x.OrderId).Distinct().Count());
+    }
+    [Fact]
+    public async Task McpProducts_ShowCostsOnlyToConnectionsThatManageSales()
+    {
+        await using var scope=fixture.Services.CreateAsyncScope();var catalog=scope.ServiceProvider.GetRequiredService<SalesCatalogService>();
+        var name="Mcp cost "+Guid.NewGuid().ToString("N");
+        var visible=await catalog.SaveAsync(null,Definition(name,cost:1234.56m,profit:40),fixture.Admin);
+        var hidden=await catalog.SaveAsync(null,Definition(name+" hidden",cost:777,profit:40) with {IsVisible=false},fixture.Admin);
+        // Serialized as the MCP SDK returns tool results, so the JSON is what an agent receives.
+        async Task<(string List,string Get,string Hidden)> Call(Guid user,params string[] permissions)
+        {
+            var claims=new List<Claim>{new(AuthClaims.Subject,user.ToString())};claims.AddRange(permissions.Select(p=>new Claim(AuthClaims.Permission,p)));
+            var tools=new SalesTools(catalog,new HttpContextAccessor{HttpContext=new DefaultHttpContext{User=new(new ClaimsIdentity(claims,"agent-key"))}});
+            string Json<T>(T value)=>JsonSerializer.Serialize(value,McpJsonUtilities.DefaultOptions);
+            return (Json(await tools.ListProducts(keyword:name,pageSize:100)),Json(await tools.GetProduct(visible.Slug)),Json(await tools.GetProduct(hidden.Slug)));
+        }
+        var staff=await Call(fixture.Admin,[..AccessPermissions.Client,AccessPermissions.ManageSales]);
+        Assert.Contains("\"cost\":1234.56",staff.Get);Assert.Contains("\"profitPercentage\":40",staff.Get);
+        Assert.Contains("\"cost\":1234.56",staff.List);Assert.Contains(hidden.Slug,staff.List);Assert.Contains("\"cost\":777",staff.Hidden);
+        // A client, a staff key narrowed to the client role, and a forged claim on a client account
+        // all get the customer shape: selling price only, and no hidden products.
+        foreach(var (user,permissions) in new[]{(fixture.Other,AccessPermissions.Client.ToArray()),(fixture.Admin,AccessPermissions.Client.ToArray()),
+            (fixture.Other,[..AccessPermissions.Client,AccessPermissions.ManageSales])})
+        {
+            var client=await Call(user,permissions);
+            Assert.Contains(visible.Slug,client.List);Assert.Contains("\"effectivePrice\":1728.38",client.Get);
+            foreach(var json in new[]{client.List,client.Get}){Assert.DoesNotContain("\"cost\"",json);Assert.DoesNotContain("profitPercentage",json);Assert.DoesNotContain("1234.56",json);}
+            Assert.DoesNotContain(hidden.Slug,client.List);Assert.Equal("null",client.Hidden);
+        }
+        Assert.Contains(McpCapabilityCatalog.ListProducts,AccessPermissions.Client);Assert.Contains(McpCapabilityCatalog.GetProduct,AccessPermissions.Client);
     }
 }
 public sealed class SalesShippingFixture : IAsyncLifetime

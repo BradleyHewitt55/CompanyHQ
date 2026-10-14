@@ -61,7 +61,7 @@ export const permissionGroups: readonly {
   {
     title: 'Member basics',
     description: 'What every signed-in member needs. New roles start with these.',
-    permissions: pick('search_area', 'get_my_notification_preferences'),
+    permissions: pick('search_area', 'get_my_notification_preferences', 'list_products', 'get_product'),
   },
 ];
 

@@ -23,6 +23,11 @@ const capabilityGroups: readonly {
     capabilities: ['get_my_notification_preferences', 'search_area'],
   },
   {
+    title: 'Catalog',
+    description: 'Products and selling prices. Costs and hidden products also need sales.manage on the saved role.',
+    capabilities: ['list_products', 'get_product'],
+  },
+  {
     title: 'Published content',
     description: 'Blog and FAQ draft review and authoring, when the saved role grants each action.',
     capabilities: ['list_blog_posts', 'get_blog_post', 'create_blog_post', 'update_blog_post', 'delete_blog_post', 'list_faq_entries', 'get_faq_entry', 'create_faq_entry', 'update_faq_entry', 'delete_faq_entry'],

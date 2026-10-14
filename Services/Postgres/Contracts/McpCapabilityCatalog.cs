@@ -20,13 +20,15 @@ public static class McpCapabilityCatalog
     public const string PreviewEmailTemplate = "preview_email_template";
     public const string ResetEmailTemplate = "reset_email_template";
     public const string GetMyNotificationPreferences = "get_my_notification_preferences";
+    public const string ListProducts = "list_products";
+    public const string GetProduct = "get_product";
 
     public static IReadOnlyList<string> All { get; } =
     [
         SearchArea, ListBlogPosts, GetBlogPost, CreateBlogPost, UpdateBlogPost, DeleteBlogPost,
         ListFaqEntries, GetFaqEntry, CreateFaqEntry, UpdateFaqEntry, DeleteFaqEntry,
         ListEmailTemplates, GetEmailTemplate, UpdateEmailTemplate, PreviewEmailTemplate,
-        ResetEmailTemplate, GetMyNotificationPreferences
+        ResetEmailTemplate, GetMyNotificationPreferences, ListProducts, GetProduct
     ];
 
     public static IReadOnlySet<string> Write { get; } = new HashSet<string>(

@@ -15,8 +15,8 @@ permission, and agent-facing description through `McpActionAttribute`.
   Keep `tools/list` filtering and `tools/call` authorization together.
 - Tool descriptions come from the marked API action. Parameter descriptions belong on the adapter.
   A description must tell an agent the operation, scope, and relevant paging or side effect.
-- Only Blog, FAQ, email templates, area search, and own notification preference actions are currently
-  marked. `WhoAmI`, user search, message, moderation, inbox, widget, GitHub, appointments and company
+- Only Blog, FAQ, email templates, area search, own notification preference and Sales product read
+  actions are currently marked. `WhoAmI`, user search, message, moderation, inbox, widget, GitHub, appointments and company
   have no adapters.
 
 ## Decisions

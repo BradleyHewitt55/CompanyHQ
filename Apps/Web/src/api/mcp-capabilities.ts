@@ -2,6 +2,8 @@
 export const allMcpCapabilities = [
   'search_area',
   'get_my_notification_preferences',
+  'list_products',
+  'get_product',
   'list_blog_posts',
   'get_blog_post',
   'create_blog_post',
@@ -24,6 +26,8 @@ export type McpCapability = (typeof allMcpCapabilities)[number];
 export const mcpCapabilityLabels: Record<McpCapability, string> = {
   search_area: 'Search named areas',
   get_my_notification_preferences: 'Read my notification preferences',
+  list_products: 'List catalog products',
+  get_product: 'Read a catalog product',
   list_blog_posts: 'List blog posts and drafts',
   get_blog_post: 'Read a blog post or draft',
   create_blog_post: 'Create a blog post',

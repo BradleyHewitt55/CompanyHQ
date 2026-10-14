@@ -56,10 +56,14 @@ public sealed class SalesController(SalesCatalogService catalog,SalesPromotionSe
 
     /// <summary>Visible catalog. All selected option filters must match one variant. Managers may read inactive catalog and costs.</summary>
     [HttpGet("products"),AllowAnonymous]
+    [McpAction(McpCapabilityCatalog.ListProducts,McpCapabilityCatalog.ListProducts,
+        "List catalog products with their selling prices. A connection whose role grants sales.manage also gets hidden products and each variant's cost and markup; anyone else sees visible products only, with no cost data. Match a keyword against one named field, or every text field when none is named; page with page and pageSize.")]
     [ProducesResponseType<PagedResult<ClientProductDto>>(StatusCodes.Status200OK)]
     public Task<ActionResult<PagedResult<ClientProductDto>>> Products([FromQuery] PageRequest paging,[FromQuery] SearchRequest search,[FromQuery] ProductFilterRequest filter,CancellationToken ct)=>
         Run<PagedResult<ClientProductDto>>(async()=>await catalog.ListAsync(paging,search,filter,User.Audience(AccessPermissions.ManageSales),Actor,ct));
     [HttpGet("products/{slug}"),AllowAnonymous]
+    [McpAction(McpCapabilityCatalog.GetProduct,McpCapabilityCatalog.GetProduct,
+        "Get one catalog product by stable slug, with its variants and selling prices. A connection whose role grants sales.manage also gets hidden products and each variant's cost and markup; anyone else gets a visible product with no cost data, or nothing.")]
     [ProducesResponseType<ClientProductDto>(StatusCodes.Status200OK)]
     public Task<ActionResult<ClientProductDto>> Product(string slug,CancellationToken ct)=>Run(()=>catalog.GetAsync(slug,User.Audience(AccessPermissions.ManageSales),Actor,ct));
     [HttpPost("products"),Authorize(Policy=AccessPermissions.ManageSales)]

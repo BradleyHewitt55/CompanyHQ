@@ -17,7 +17,8 @@ public static class AccessPermissions
     public const string ManageShipping = "shipping.manage";
 
     public static IReadOnlyList<string> Client { get; } =
-        [McpCapabilityCatalog.SearchArea, McpCapabilityCatalog.GetMyNotificationPreferences];
+        [McpCapabilityCatalog.SearchArea, McpCapabilityCatalog.GetMyNotificationPreferences,
+            McpCapabilityCatalog.ListProducts, McpCapabilityCatalog.GetProduct];
 
     public static IReadOnlyList<string> All { get; } =
     [

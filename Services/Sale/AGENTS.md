@@ -48,6 +48,11 @@ capabilities; Sales never references another feature or its Contracts.
   options in the same product. Public relations include visible summaries only, without recursion
   or costs. Price ranges describe the positive cheapest effective product price; option filters
   require one matching variant and affect variant-based price ordering.
+- MCP `list_products`/`get_product` are client permissions. Costs, markup and hidden products need
+  `sales.manage` on the connection itself (owner role intersected with the key's role), and the
+  catalog rechecks it against the owner's current role. A staff key narrowed to a client role
+  therefore gets the customer shape. Custom roles saved before these permissions existed gain them
+  only when re-saved; the built-in roles are updated at startup.
 
 ## Decisions
 

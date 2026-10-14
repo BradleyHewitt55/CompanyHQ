@@ -99,6 +99,19 @@ Accept: application/json, text/event-stream
   "params": { "name": "get_my_notification_preferences", "arguments": {} }
 }
 
+### List catalog products (requires list_products; costs only with sales.manage on the connection)
+POST {{Mcp_HostAddress}}/mcp
+Authorization: Bearer {{agentKey}}
+Content-Type: application/json
+Accept: application/json, text/event-stream
+
+{
+  "jsonrpc": "2.0",
+  "id": 5,
+  "method": "tools/call",
+  "params": { "name": "list_products", "arguments": { "keyword": "sofa", "pageSize": 10 } }
+}
+
 ### Search an area with arguments (requires search_area)
 POST {{Mcp_HostAddress}}/mcp
 Authorization: Bearer {{agentKey}}
