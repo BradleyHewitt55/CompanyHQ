@@ -130,6 +130,9 @@ and service folder; there is no manual document registration.
   bridges and workers together. Disabled features are absent with 404; an enabled operation needing
   unconfigured infrastructure or an unavailable optional target returns 503. MCP retains current role
   intersection, read-only restrictions and deny lists in addition to ownership checks.
+- Integrity hooks that core flows call into a feature (account-deletion guards and similar checks
+  on data the feature still holds) are never admission-gated: a disabled service keeps its rows, so
+  its checks keep running, and switching a feature off must never block a core operation.
 - Worker pauses retain pending data and do not consume attempts or quarantine it. Recheck before each
   provider admission, use bounded host cancellation for detached work, and persist outcomes of work
   already accepted externally. A switch cannot recall an accepted email, SDK request or signed URL.

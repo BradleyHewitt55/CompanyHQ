@@ -82,6 +82,23 @@ public sealed class ServiceCatalogTests(ServiceCatalogFixture fixture) : IClassF
     { Converters = { new JsonStringEnumConverter() } };
 
     [Fact]
+    public async Task AccountDeletionGuardsStillRunWhileTheirServiceIsDisabled()
+    {
+        var admin = await fixture.ResetAsync();
+        var member = await fixture.UserAsync([]);
+        await using var scope = fixture.App.Services.CreateAsyncScope();
+        var catalog = scope.ServiceProvider.GetRequiredService<ICompanyServiceCatalog>();
+        Assert.Equal(ServiceChangeError.None, (await catalog.ChangeAsync("messages", new(false), admin.Id)).Error);
+        Assert.Equal(ServiceChangeError.None, (await catalog.ChangeAsync("moderation", new(false), admin.Id)).Error);
+        // The Messages guard is a data check, not a Messages operation: switching Messages off must not
+        // make every account undeletable (it used to surface as a 404 from the catalog middleware).
+        using var client = fixture.Client(admin);
+        Assert.Equal(HttpStatusCode.NoContent, (await client.DeleteAsync($"/api/users/{member.Id}")).StatusCode);
+        await catalog.ChangeAsync("moderation", new(true), admin.Id);
+        await catalog.ChangeAsync("messages", new(true), admin.Id);
+    }
+
+    [Fact]
     public async Task SelectionsPersistBeforeProfileAndReadOnlyCommittedState()
     {
         var admin = await fixture.ResetAsync();
