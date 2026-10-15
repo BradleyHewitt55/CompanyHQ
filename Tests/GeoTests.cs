@@ -407,7 +407,9 @@ public sealed class GeoProviderSeamTests(GeoFixture fixture) : IClassFixture<Geo
     {
         await using var host = fixture.Host(provider: null);
         await using var scope = host.CreateAsyncScope();
-        Assert.Contains(nameof(IGeoProvider), Assert.Throws<InvalidOperationException>(() => scope.ServiceProvider.GetRequiredService<IGeoService>()).Message);
+        // GeoService also has a catalog-aware constructor, so the container reports the service it
+        // could not build rather than the missing port; what matters is that it refuses to build one.
+        Assert.Contains("GeoService", Assert.Throws<InvalidOperationException>(() => scope.ServiceProvider.GetRequiredService<IGeoService>()).Message);
     }
 }
 

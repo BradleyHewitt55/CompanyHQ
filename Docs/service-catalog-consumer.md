@@ -1,6 +1,6 @@
 # Runtime service catalog consumer handoff
 
-This is source for the candidate additive 3.1.0 release, not a published release. Every package in a
+The runtime catalog ships in 3.1.1; the v3.1.0 tag failed its tests and published no packages. Every package in a
 company remains pinned to one exact published tag version; do not change, move or republish 3.0.0.
 New companies reference the generic implementation and Contracts packages they use directly,
 including CompanyHQ.ServiceCatalog and CompanyHQ.ServiceCatalog.Contracts. They do not inherit
