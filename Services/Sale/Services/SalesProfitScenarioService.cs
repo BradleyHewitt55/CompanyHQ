@@ -1,3 +1,4 @@
+using CompanyHQ.ServiceCatalog.Contracts;
 using CompanyHQ.Persistence.Services;
 using CompanyHQ.Sales.Contracts.Dtos;
 using CompanyHQ.Sales.Contracts.Enums;
@@ -6,10 +7,14 @@ using CompanyHQ.Sales.Contracts.Models;
 using CompanyHQ.Sales.Contracts.Ports;
 namespace CompanyHQ.Sales.Services;
 /// <summary>Bounded hypothetical profit combinations. Radius, shipping eligibility and minimum purchases still need a real checkout quote.</summary>
-public sealed class SalesProfitScenarioService(IPersistence db,SalesCatalogService catalog,SalesOptions policy,ISalesProfitShipping? shipping=null)
+public sealed class SalesProfitScenarioService(IServiceAvailability? availability, IPersistence db,SalesCatalogService catalog,SalesOptions policy,ISalesProfitShipping? shipping=null)
 {
+    /// <summary>Retains the original strict constructor for existing consumers.</summary>
+    public SalesProfitScenarioService(IPersistence db,SalesCatalogService catalog,SalesOptions policy,ISalesProfitShipping? shipping=null) : this(null, db, catalog, policy, shipping) { }
+
     public async Task<IReadOnlyList<AdminProductProfitScenarioDto>> CalculateAsync(Guid productId,Guid? actor,CancellationToken ct=default)
     {
+        await (availability?.RequireAsync("sales", false, ct) ?? Task.CompletedTask);
         await catalog.RequireManager(actor,ct);
         var parents=await db.Query<BundleLink>().Where(x=>x.ComponentProductId==productId).Select(x=>x.ProductId).Distinct().Take(101).ToArrayAsync(ct);
         if(parents.Length>100)throw new ArgumentException("Profit scenario bundle limit exceeded.");

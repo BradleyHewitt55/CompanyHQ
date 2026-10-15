@@ -1,3 +1,4 @@
+using CompanyHQ.ServiceCatalog.Contracts;
 using System.Globalization;
 using CompanyHQ.Cache.Services;
 using CompanyHQ.Geo.Contracts.Dtos;
@@ -13,10 +14,15 @@ namespace CompanyHQ.Geo.Services;
 /// It is a separate class from <see cref="GeoService"/> because the background refresh runs in its
 /// own DI scope after the request has finished, and needs exactly this and nothing else.
 /// </remarks>
-public sealed class NearbyTileStore(IGeoProvider provider, ICacheService cache, GeoOptions options)
+public sealed class NearbyTileStore(IServiceAvailability? availability, IGeoProvider provider, ICacheService cache, GeoOptions options)
 {
-    public Task<NearbyTileDto?> ReadAsync(MapTile tile, CancellationToken cancellationToken) =>
-        cache.GetAsync<NearbyTileDto>(CacheKey(tile), cancellationToken);
+    /// <summary>Retains the original strict constructor for existing consumers.</summary>
+    public NearbyTileStore(IGeoProvider provider, ICacheService cache, GeoOptions options) : this(null, provider, cache, options) { }
+
+    public Task<NearbyTileDto?> ReadAsync(MapTile tile, CancellationToken cancellationToken) {
+        availability?.RequireAsync("geo", true, cancellationToken).GetAwaiter().GetResult();
+        return cache.GetAsync<NearbyTileDto>(CacheKey(tile), cancellationToken);
+    }
 
     /// <summary>
     /// Fetches every given tile with a single bounding-box query and caches each tile separately.
@@ -26,6 +32,7 @@ public sealed class NearbyTileStore(IGeoProvider provider, ICacheService cache, 
         IReadOnlyCollection<MapTile> tiles,
         CancellationToken cancellationToken)
     {
+        await (availability?.RequireAsync("geo", true, cancellationToken) ?? Task.CompletedTask);
         if (tiles.Count == 0)
         {
             return new Dictionary<MapTile, NearbyTileDto>();

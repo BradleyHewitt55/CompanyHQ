@@ -1,3 +1,4 @@
+using CompanyHQ.ServiceCatalog.Contracts;
 using CompanyHQ.Notifications.Contracts.Enums;
 using CompanyHQ.Notifications.Contracts.Models;
 using CompanyHQ.Persistence.Services;
@@ -12,7 +13,8 @@ namespace CompanyHQ.Notifications.Services;
 internal sealed class NotificationQueueProcessor(
     IPersistence context,
     INotificationDeliveryService delivery,
-    TimeProvider timeProvider)
+    TimeProvider timeProvider,
+    IServiceAvailability? availability = null)
 {
     private const int BatchSize = 50;
     private const int MaxAttempts = 5;
@@ -20,6 +22,8 @@ internal sealed class NotificationQueueProcessor(
 
     public async Task<int> ProcessBatchAsync(CancellationToken cancellationToken)
     {
+        if (availability is not null && (await availability.GetAsync("notifications", cancellationToken))?.Status != ServiceStatus.EnabledReady)
+            return 0;
         var now = timeProvider.GetUtcNow();
 
         // The claim is one transaction. Rows another worker has already locked are skipped rather
@@ -47,9 +51,21 @@ internal sealed class NotificationQueueProcessor(
 
         foreach (var notification in notifications)
         {
-            var result = await delivery.DeliverAsync(notification, cancellationToken);
+            NotificationDeliveryResult result;
+            try
+            {
+                if (availability is not null) await availability.RequireAsync("notifications", true, cancellationToken);
+                result = await delivery.DeliverAsync(notification, cancellationToken);
+            }
+            catch (ServiceUnavailableException)
+            {
+                result = new(NotificationDeliveryDisposition.Deferred);
+            }
             switch (result.Disposition)
             {
+                case NotificationDeliveryDisposition.Deferred:
+                    notification.NextAttemptAt = timeProvider.GetUtcNow().AddSeconds(1);
+                    break;
                 case NotificationDeliveryDisposition.Sent:
                     notification.Status = QueuedNotificationStatus.Sent;
                     notification.LastError = null;

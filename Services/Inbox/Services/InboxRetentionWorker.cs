@@ -1,3 +1,4 @@
+using CompanyHQ.ServiceCatalog.Contracts;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
@@ -19,6 +20,8 @@ internal sealed class InboxRetentionWorker(
             try
             {
                 await using var scope = scopeFactory.CreateAsyncScope();
+                var availability = scope.ServiceProvider.GetService<IServiceAvailability>();
+                if (availability is not null && (await availability.GetAsync("inbox", stoppingToken))?.Status != ServiceStatus.EnabledReady) continue;
                 await scope.ServiceProvider.GetRequiredService<IVisitorConversationService>()
                     .PurgeExpiredAsync(stoppingToken);
             }
@@ -26,6 +29,7 @@ internal sealed class InboxRetentionWorker(
             {
                 return;
             }
+            catch (ServiceUnavailableException) { /* Switch changed between admission and purge. */ }
             catch (Exception exception)
             {
                 // Maintenance must never take the host down. The next tick retries it.

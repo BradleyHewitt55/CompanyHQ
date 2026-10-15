@@ -62,3 +62,7 @@ and account deletion. Auth owns tokens and sign-in; MCP owns connection credenti
 - The `AccessRole` entity and `User` entity are discovered because the API references this project. The role migration must preserve tables for services no longer present in the host.
 - Named account writes resolve or create the role inside the same serializable transaction that
   rechecks the operator's current `users.manage` permission.
+
+## Runtime catalog constraints
+
+Users remain protected core so current-role authorization and service administration continue working while optional features are disabled. Safe catalog navigation consults these persisted permissions rather than trusting a previously issued token or a seeded admin label.

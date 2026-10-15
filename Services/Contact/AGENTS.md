@@ -41,3 +41,7 @@ the marketing site's TypeScript as `number`.
 Both ports are required. `Apps/Api/Integrations/ContactIntegration.cs` fills them from Company and
 Email; without those lines startup fails naming the missing port. The database must contain the
 singleton company profile before a contact message can be queued.
+
+## Runtime catalog constraints
+
+Contact declares Company and Email dependencies in the opt-in catalog. Disabled admission is absent; missing delivery configuration never fabricates acceptance or invokes a live provider from the request.

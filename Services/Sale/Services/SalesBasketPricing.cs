@@ -1,3 +1,4 @@
+using CompanyHQ.ServiceCatalog.Contracts;
 using CompanyHQ.Persistence.Services;
 using CompanyHQ.Sales.Contracts.Dtos;
 using CompanyHQ.Sales.Contracts.Enums;
@@ -7,11 +8,15 @@ using CompanyHQ.Sales.Contracts.Ports;
 namespace CompanyHQ.Sales.Services;
 
 /// <summary>Prices browser cart selections and promotions without invoking shipping or payment.</summary>
-public sealed class SalesBasketPricing(IPersistence db,SalesCatalogService catalog) : ISalesBasketPricing
+public sealed class SalesBasketPricing(IServiceAvailability? availability, IPersistence db,SalesCatalogService catalog) : ISalesBasketPricing
 {
+    /// <summary>Retains the original strict constructor for existing consumers.</summary>
+    public SalesBasketPricing(IPersistence db,SalesCatalogService catalog) : this(null, db, catalog) { }
+
     public CartDto NormalizeCart(IReadOnlyList<SalesLineRequest> lines)=>SalesRules.NormalizeCart(lines);
     internal async Task<PricedBasket> CalculateAsync(PriceSaleRequest request,CancellationToken ct,bool staff=false)
     {
+        await (availability?.RequireAsync("sales", false, ct) ?? Task.CompletedTask);
         SalesRules.Validate(request);if(request.ShippingAddress is not null) SalesRules.Validate(request.ShippingAddress);
         var initial=SalesRules.NormalizeCart(request.Lines);
         var graph=await catalog.Graph(initial.Lines.Select(x=>x.ProductId),ct);
@@ -100,6 +105,7 @@ public sealed class SalesBasketPricing(IPersistence db,SalesCatalogService catal
     /// <summary>Server-evaluated shipping coupon selection, used by a narrow host adapter.</summary>
     public async Task<SalesShippingDiscount> ShippingDiscountAsync(SalesShippingDiscountRequest request,CancellationToken ct=default)
     {
+        await (availability?.RequireAsync("sales", false, ct) ?? Task.CompletedTask);
         if(request.BaseCost<=0)return new(0,[]);
         var basket=await CalculateAsync(new(request.Lines),ct);var graph=await catalog.Graph(basket.Cart.Lines.Select(x=>x.ProductId),ct);
         var codes=request.CouponCodes.Select(SalesRules.Normalize).ToHashSet();

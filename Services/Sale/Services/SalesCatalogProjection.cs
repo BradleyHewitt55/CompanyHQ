@@ -1,3 +1,4 @@
+using CompanyHQ.ServiceCatalog.Contracts;
 using System.Security.Cryptography;
 using System.Text;
 using CompanyHQ.Persistence.Services;
@@ -18,6 +19,7 @@ public sealed partial class SalesCatalogService
 
     internal async Task EnsurePriceStateAsync(CancellationToken ct)
     {
+        await (availability?.RequireAsync("sales", false, ct) ?? Task.CompletedTask);
         if (await db.Query<CatalogPriceProjection>().AnyAsync(x => x.Id == ProjectionId, ct)) return;
         try
         {
@@ -33,6 +35,7 @@ public sealed partial class SalesCatalogService
 
     internal async Task MarkPricesDirtyAsync(CancellationToken ct)
     {
+        await (availability?.RequireAsync("sales", false, ct) ?? Task.CompletedTask);
         var state = await db.Locked<CatalogPriceProjection>().Where(x => x.Id == ProjectionId).FirstAsync(ct);
         state.Dirty = true;
         state.LastProductId = null;
@@ -41,6 +44,7 @@ public sealed partial class SalesCatalogService
 
     internal async Task EnsurePricesAsync(IQuery<Product> candidates, CancellationToken ct)
     {
+        await (availability?.RequireAsync("sales", false, ct) ?? Task.CompletedTask);
         await EnsurePriceStateAsync(ct);
         // A request warms one batch of eligible products. The worker handles larger invalidations;
         // incomplete price queries fail explicitly instead of filtering/sorting on stale values.
@@ -56,6 +60,7 @@ public sealed partial class SalesCatalogService
     // lock over at most one batch, with no catalog-wide materialization or row-count ceiling.
     internal async Task<bool> RefreshPriceBatchAsync(CancellationToken ct, IQuery<Product>? candidates = null)
     {
+        await (availability?.RequireAsync("sales", false, ct) ?? Task.CompletedTask);
         var key = PricePolicyKey;
         var date = Today;
         var state = await db.Query<CatalogPriceProjection>().FirstOrDefaultAsync(x => x.Id == ProjectionId, ct);
@@ -111,12 +116,14 @@ public sealed partial class SalesCatalogService
 
     public async Task<PagedResult<ClientProductReviewDto>> ReviewsAsync(Guid productId,PageRequest page,CancellationToken ct=default)
     {
+        await (availability?.RequireAsync("sales", false, ct) ?? Task.CompletedTask);
         if(!await db.Query<Product>().AnyAsync(x=>x.Id==productId && x.IsVisible,ct))throw new KeyNotFoundException();
         var result=await db.Query<ProductReview>().Where(x=>x.ProductId==productId).OrderByDescending(x=>x.CreatedAt).ThenBy(x=>x.Id).ToPageAsync(page.Skip,page.PageSize,ct);
         return new(result.Items.Select(ReviewDto).ToArray(),page.Page,page.PageSize,result.Total);
     }
     public async Task<ClientProductReviewDto> SaveReviewAsync(Guid productId,Guid? reviewId,SaveProductReviewRequest request,Guid? actor,CancellationToken ct=default)
     {
+        await (availability?.RequireAsync("sales", false, ct) ?? Task.CompletedTask);
         await RequireManager(actor,ct);SalesRules.Validate(request);return await db.InTransactionAsync(async token=>
         {
             var product=await db.Locked<Product>().FirstOrDefaultAsync(x=>x.Id==productId,token) ?? throw new KeyNotFoundException();
@@ -129,6 +136,7 @@ public sealed partial class SalesCatalogService
     }
     public async Task<bool> DeleteReviewAsync(Guid productId,Guid reviewId,Guid? actor,CancellationToken ct=default)
     {
+        await (availability?.RequireAsync("sales", false, ct) ?? Task.CompletedTask);
         await RequireManager(actor,ct);return await db.InTransactionAsync(async token=>
         {var product=await db.Locked<Product>().FirstOrDefaultAsync(x=>x.Id==productId,token);if(product is null)return false;var row=await db.Tracked<ProductReview>().FirstOrDefaultAsync(x=>x.Id==reviewId && x.ProductId==productId,token);if(row is null)return false;product.ReviewCount--;product.RatingTotal-=row.Rating;product.AverageRating=product.ReviewCount>0?SalesRules.Money((decimal)product.RatingTotal/product.ReviewCount):0;db.Remove(row);await db.SaveChangesAsync(token);return true;},cancellationToken:ct);
     }

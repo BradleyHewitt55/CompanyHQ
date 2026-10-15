@@ -11,6 +11,19 @@ namespace CompanyHQ.Mcp.Services;
 /// <summary>Discovers marked API actions and binds the MCP adapters their owning services ship.</summary>
 public static class McpActionRegistry
 {
+    /// <summary>Additive ownership metadata; the published discovery API and tool names remain unchanged.</summary>
+    public static IReadOnlyDictionary<string, string> DiscoverOwners(ApplicationPartManager parts,
+        IEnumerable<CompanyHQ.ServiceCatalog.ServiceRegistration> registrations)
+    {
+        var feature = new ControllerFeature();
+        parts.PopulateFeature(feature);
+        var owners = registrations.ToArray();
+        return feature.Controllers.SelectMany(type => type.GetMethods(BindingFlags.Instance | BindingFlags.Public)
+            .Select(method => (Action: method.GetCustomAttribute<McpActionAttribute>(), Assembly: type.Assembly)))
+            .Where(item => item.Action is not null && owners.Any(owner => owner.Assembly == item.Assembly))
+            .ToDictionary(item => item.Action!.Name, item => owners.Single(owner => owner.Assembly == item.Assembly).Descriptor.Key,
+                StringComparer.Ordinal);
+    }
     public static IReadOnlyDictionary<string, McpActionAttribute> Discover(ApplicationPartManager parts)
     {
         var feature = new ControllerFeature();

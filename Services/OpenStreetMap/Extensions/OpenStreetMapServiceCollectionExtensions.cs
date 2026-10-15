@@ -30,6 +30,7 @@ public static class OpenStreetMapServiceCollectionExtensions
 
         services.AddSingleton<NominatimRateLimiter>();
         services.AddSingleton<OverpassRateLimiter>();
+        services.AddTransient<GeoAdmissionHandler>();
 
         services.AddHttpClient<NominatimClient>(http =>
         {
@@ -39,7 +40,7 @@ public static class OpenStreetMapServiceCollectionExtensions
             // Nominatim occasionally stalls under load; a lookup that outlives the page it feeds is
             // worse than no area at all.
             http.Timeout = TimeSpan.FromSeconds(10);
-        });
+        }).AddHttpMessageHandler<GeoAdmissionHandler>();
 
         services.AddHttpClient<OverpassClient>(http =>
         {
@@ -49,7 +50,7 @@ public static class OpenStreetMapServiceCollectionExtensions
             // Above the query's own budget, so Overpass gets to answer 504 itself instead of the
             // request being cancelled here with no idea whether it was slow or broken.
             http.Timeout = TimeSpan.FromSeconds(OverpassClient.QueryTimeoutSeconds + 10);
-        });
+        }).AddHttpMessageHandler<GeoAdmissionHandler>();
 
         services.AddScoped<IGeoProvider, OpenStreetMapGeoProvider>();
 

@@ -7,12 +7,15 @@ using CompanyHQ.Postgres.Contracts.Enums;
 using CompanyHQ.Widget.Contracts.Dtos;
 using CompanyHQ.Widget.Contracts.Enums;
 using CompanyHQ.Widget.Contracts.Ports;
+using CompanyHQ.ServiceCatalog.Contracts;
 
 namespace Api.Integrations;
 
 /// <summary>Keeps the widget's visitor conversations in Inbox, where staff answer them.</summary>
-internal sealed class InboxWidgetConversations(IVisitorConversationService conversations) : IWidgetConversations
+internal sealed class InboxWidgetConversations(IVisitorConversationService conversations, IServiceAvailability? availability = null) : IWidgetConversations
 {
+    public async Task<bool> IsAvailableAsync(CancellationToken cancellationToken = default) =>
+        availability is null || (await availability.GetAsync("inbox", cancellationToken))?.Status == ServiceStatus.EnabledReady;
     public async Task<ClientWidgetConversationAccessDto> StartAsync(
         WidgetConversationStart start,
         CancellationToken cancellationToken = default)
@@ -54,10 +57,11 @@ internal sealed class InboxWidgetConversations(IVisitorConversationService conve
 }
 
 /// <summary>Files the widget's bug reports as issues in the connected GitHub repository.</summary>
-internal sealed class GitHubWidgetIssueTracker(IGitHubService github) : IWidgetIssueTracker
+internal sealed class GitHubWidgetIssueTracker(IGitHubService github, IServiceAvailability? availability = null) : IWidgetIssueTracker
 {
     public async Task<bool> IsAvailableAsync(CancellationToken cancellationToken = default) =>
-        (await github.GetAsync(ResponseAudience.Client, cancellationToken)).IssuesEnabled;
+        (availability is null || (await availability.GetAsync("github", cancellationToken))?.Status == ServiceStatus.EnabledReady)
+            && (await github.GetAsync(ResponseAudience.Client, cancellationToken)).IssuesEnabled;
 
     public async Task<WidgetError> SubmitAsync(WidgetIssue issue, CancellationToken cancellationToken = default) =>
         await github.SubmitIssueAsync(

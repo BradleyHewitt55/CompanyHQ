@@ -1,3 +1,4 @@
+using CompanyHQ.ServiceCatalog.Contracts;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
@@ -17,6 +18,8 @@ internal sealed class SalesCatalogPriceWorker(IServiceScopeFactory scopes, ILogg
                 do
                 {
                     await using var scope = scopes.CreateAsyncScope();
+                    var availability = scope.ServiceProvider.GetService<IServiceAvailability>();
+                    if (availability is not null && (await availability.GetAsync("sales", stoppingToken))?.Status != ServiceStatus.EnabledReady) break;
                     var catalog = scope.ServiceProvider.GetRequiredService<SalesCatalogService>();
                     await catalog.EnsurePriceStateAsync(stoppingToken);
                     more = await catalog.RefreshPriceBatchAsync(stoppingToken);

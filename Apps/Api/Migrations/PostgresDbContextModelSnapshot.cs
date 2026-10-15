@@ -351,6 +351,31 @@ namespace Api.Migrations
                     b.ToTable("company_profile", (string)null);
                 });
 
+            modelBuilder.Entity("CompanyHQ.Company.Contracts.Models.CompanyServiceState", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .HasColumnType("uuid")
+                        .HasColumnName("id");
+
+                    b.Property<DateTimeOffset>("CreatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("created_at");
+
+                    b.Property<string>("SelectionsJson")
+                        .IsRequired()
+                        .HasColumnType("jsonb")
+                        .HasColumnName("selections_json");
+
+                    b.Property<DateTimeOffset>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("updated_at");
+
+                    b.HasKey("Id")
+                        .HasName("pk_company_service_state");
+
+                    b.ToTable("company_service_state", (string)null);
+                });
+
             modelBuilder.Entity("CompanyHQ.Email.Contracts.Models.EmailTemplate", b =>
                 {
                     b.Property<Guid>("Id")

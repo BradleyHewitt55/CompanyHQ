@@ -149,3 +149,7 @@ or closing a conversation does not remove that history or satisfy the guard.
 Closed conversations also appear in the staff inbox as the `conversations` channel. That bridge is
 the host's (`Apps/Api/Integrations/InboxIntegration.cs`) and calls the same closed-history and
 delete methods; nothing here knows about Inbox. Text filters on these routes are `?keyword=`.
+
+## Runtime catalog constraints
+
+The opt-in catalog declares Moderation as a required feature, so safety checks cannot silently disappear when switching services. HTTP, new SignalR connections and direct domain operations are gated; registered guards continue protecting historical account references. Existing role, participant, suppression and read-policy rules remain authoritative.

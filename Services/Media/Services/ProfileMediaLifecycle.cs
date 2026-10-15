@@ -1,3 +1,4 @@
+using CompanyHQ.ServiceCatalog.Contracts;
 using CompanyHQ.Media.Contracts.Ports;
 using Microsoft.Extensions.Logging;
 
@@ -10,18 +11,27 @@ using CompanyHQ.Users.Services;
 namespace CompanyHQ.Media.Services;
 
 /// <summary>Retires owner-bound profile uploads while ignoring external and shared image URLs.</summary>
-public sealed class ProfileMediaLifecycle(
+public sealed class ProfileMediaLifecycle(IServiceAvailability? availability,
     IRepository<MediaObject> mediaObjects,
     MediaOptions options,
     IMediaObjectLifecycleStore lifecycle,
     ILogger<ProfileMediaLifecycle> logger) : IProfileMediaLifecycle
 {
+    /// <summary>Retains the original strict constructor for existing consumers.</summary>
+    public ProfileMediaLifecycle(
+    IRepository<MediaObject> mediaObjects,
+    MediaOptions options,
+    IMediaObjectLifecycleStore lifecycle,
+    ILogger<ProfileMediaLifecycle> logger) : this(null, mediaObjects, options, lifecycle, logger) { }
+
     public Task ReleaseUserProfileImageAsync(
         Guid ownerUserId,
         string? previousUrl,
         string? currentUrl,
-        CancellationToken cancellationToken = default) =>
-        ReleaseAsync([ownerUserId], MediaScope.User, previousUrl, currentUrl, cancellationToken);
+        CancellationToken cancellationToken = default) {
+        availability?.RequireAsync("media", true, cancellationToken).GetAwaiter().GetResult();
+        return ReleaseAsync([ownerUserId], MediaScope.User, previousUrl, currentUrl, cancellationToken);
+    }
 
     private async Task ReleaseAsync(
         IReadOnlyCollection<Guid> ownerUserIds,

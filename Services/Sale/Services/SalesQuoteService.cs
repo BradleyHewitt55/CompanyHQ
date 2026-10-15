@@ -1,3 +1,4 @@
+using CompanyHQ.ServiceCatalog.Contracts;
 using CompanyHQ.Persistence.Services;
 using CompanyHQ.Postgres.Contracts.Dtos;
 using CompanyHQ.Postgres.Contracts.Forms;
@@ -7,11 +8,15 @@ using CompanyHQ.Sales.Contracts.Forms;
 using CompanyHQ.Sales.Contracts.Models;
 namespace CompanyHQ.Sales.Services;
 /// <summary>Staff quotation lifecycle and atomic conversion of the immutable accepted snapshot.</summary>
-public sealed class SalesQuoteService(IPersistence db,SalesCatalogService catalog,SalesOrderService orders,TimeProvider clock,SalesOptions options) : ISalesQuoteService
+public sealed class SalesQuoteService(IServiceAvailability? availability, IPersistence db,SalesCatalogService catalog,SalesOrderService orders,TimeProvider clock,SalesOptions options) : ISalesQuoteService
 {
+    /// <summary>Retains the original strict constructor for existing consumers.</summary>
+    public SalesQuoteService(IPersistence db,SalesCatalogService catalog,SalesOrderService orders,TimeProvider clock,SalesOptions options) : this(null, db, catalog, orders, clock, options) { }
+
     private static readonly Guid CounterId=Guid.Parse("7147ed7e-2a68-4c22-8a2c-c68bad4a370c");
     public async Task<PagedResult<AdminQuoteSummaryDto>> ListAsync(PageRequest page,SearchRequest search,Guid? actor,CancellationToken ct=default)
     {
+        await (availability?.RequireAsync("sales", false, ct) ?? Task.CompletedTask);
         await catalog.RequireManager(actor,ct);var result=await db.Query<SalesQuote>().Search(search.Field,search.Keyword,typeof(AdminQuoteSummaryDto)).OrderByDescending(x=>x.CreatedAt).ThenBy(x=>x.Id).ToPageAsync(page.Skip,page.PageSize,ct);
         return new(result.Items.Select(x=>new AdminQuoteSummaryDto(x.Id,x.Number,x.CreatedAt,x.ValidUntil,EffectiveStatus(x),x.CustomerFirstName,x.CustomerLastName,x.CustomerEmail,x.Currency,x.TotalAmount,x.ItemCount)).ToArray(),page.Page,page.PageSize,result.Total);
     }
@@ -22,6 +27,7 @@ public sealed class SalesQuoteService(IPersistence db,SalesCatalogService catalo
     internal async Task<(AdminQuoteDto Quote, Guid RequestId)?> ReserveDeliveryAsync(
         Guid id, Guid requestId, Guid? actor, CancellationToken ct)
     {
+        await (availability?.RequireAsync("sales", false, ct) ?? Task.CompletedTask);
         await catalog.RequireManager(actor, ct);
         return await db.InTransactionAsync<(AdminQuoteDto, Guid)?>(async token =>
         {
@@ -41,6 +47,7 @@ public sealed class SalesQuoteService(IPersistence db,SalesCatalogService catalo
 
     internal async Task CompleteDeliveryAsync(Guid id, Guid requestId, CancellationToken ct)
     {
+        await (availability?.RequireAsync("sales", false, ct) ?? Task.CompletedTask);
         await db.InTransactionAsync(async token =>
         {
             var quote = await db.Locked<SalesQuote>().Where(x => x.Id == id).FirstAsync(token);
@@ -51,9 +58,11 @@ public sealed class SalesQuoteService(IPersistence db,SalesCatalogService catalo
         }, cancellationToken: ct);
     }
     public async Task<AdminQuoteDto?> GetAsync(Guid id,Guid? actor,CancellationToken ct=default)
-    {await catalog.RequireManager(actor,ct);var q=await db.Query<SalesQuote>().FirstOrDefaultAsync(x=>x.Id==id,ct);return q is null?null:ToDto(q);}
+    {
+        await (availability?.RequireAsync("sales", false, ct) ?? Task.CompletedTask);await catalog.RequireManager(actor,ct);var q=await db.Query<SalesQuote>().FirstOrDefaultAsync(x=>x.Id==id,ct);return q is null?null:ToDto(q);}
     public async Task<AdminQuoteDto> SaveAsync(Guid? id,SaveQuoteRequest request,Guid? actor,CancellationToken ct=default)
     {
+        await (availability?.RequireAsync("sales", false, ct) ?? Task.CompletedTask);
         await catalog.RequireManager(actor,ct);SalesRules.Validate(request);
         if(request.ValidUntil<=clock.GetUtcNow() || request.ValidUntil>clock.GetUtcNow().AddDays(365))throw new ArgumentException("Quote validity must be within the next year.");
         var prepared=await orders.PrepareStaffAsync(request.Order,request.UserId,request.Pricing,ct);
@@ -72,11 +81,13 @@ public sealed class SalesQuoteService(IPersistence db,SalesCatalogService catalo
     }
     public async Task<bool> DeleteAsync(Guid id,Guid? actor,CancellationToken ct=default)
     {
+        await (availability?.RequireAsync("sales", false, ct) ?? Task.CompletedTask);
         await catalog.RequireManager(actor,ct);return await db.InTransactionAsync(async token=>
         {var q=await db.Locked<SalesQuote>().FirstOrDefaultAsync(x=>x.Id==id,token);if(q is null)return false;if(q.Status!=QuoteStatus.Draft)throw new SalesConflictException("Issued quotes are retained.");db.Remove(q);await db.SaveChangesAsync(token);return true;},cancellationToken:ct);
     }
     public async Task<AdminQuoteDto?> ChangeStatusAsync(Guid id,ChangeQuoteStatusRequest request,Guid? actor,CancellationToken ct=default)
     {
+        await (availability?.RequireAsync("sales", false, ct) ?? Task.CompletedTask);
         await catalog.RequireManager(actor,ct);return await db.InTransactionAsync(async token=>
         {
             var q=await db.Locked<SalesQuote>().FirstOrDefaultAsync(x=>x.Id==id,token);if(q is null)return null;
@@ -86,6 +97,7 @@ public sealed class SalesQuoteService(IPersistence db,SalesCatalogService catalo
     }
     public async Task<OrderReceiptDto?> ConvertAsync(Guid id,Guid? actor,CancellationToken ct=default)
     {
+        await (availability?.RequireAsync("sales", false, ct) ?? Task.CompletedTask);
         await catalog.RequireManager(actor,ct);var quote=await db.Query<SalesQuote>().FirstOrDefaultAsync(x=>x.Id==id,ct);if(quote is null)return null;
         if(quote.Status!=QuoteStatus.Accepted || quote.ValidUntil<clock.GetUtcNow())throw new SalesConflictException("Only valid accepted quotes can convert once.");
         var prepared=SalesRules.Read<PreparedOrder>(quote.PreparedJson);

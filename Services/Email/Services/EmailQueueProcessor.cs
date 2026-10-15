@@ -1,3 +1,4 @@
+using CompanyHQ.ServiceCatalog.Contracts;
 using Microsoft.Extensions.Logging;
 using CompanyHQ.Email.Contracts.Enums;
 using CompanyHQ.Email.Contracts.Models;
@@ -16,7 +17,8 @@ internal sealed class EmailQueueProcessor(
     IPersistence context,
     IEmailProvider provider,
     TimeProvider timeProvider,
-    ILogger<EmailQueueProcessor> logger)
+    ILogger<EmailQueueProcessor> logger,
+    IServiceAvailability? availability = null)
 {
     // About one second of sends at the provider's default pace, so a priority email that arrives
     // while a batch is in flight waits at most that long before the next claim picks it first.
@@ -30,6 +32,8 @@ internal sealed class EmailQueueProcessor(
     /// <summary>Claims and sends one small due batch.</summary>
     public async Task<int> ProcessBatchAsync(CancellationToken cancellationToken)
     {
+        if (availability is not null && (await availability.GetAsync("email", cancellationToken))?.Status != ServiceStatus.EnabledReady)
+            return 0;
         var now = timeProvider.GetUtcNow();
 
         // Same shape as NotificationWorker: the claim is one transaction, and rows another worker
@@ -54,9 +58,22 @@ internal sealed class EmailQueueProcessor(
             return claimed;
         }, cancellationToken: cancellationToken);
 
-        foreach (var email in emails)
+        for (var index = 0; index < emails.Count; index++)
         {
-            Apply(email, await SendAsync(email, cancellationToken), timeProvider.GetUtcNow());
+            var email = emails[index];
+            try
+            {
+                if (availability is not null) await availability.RequireAsync("email", true, cancellationToken);
+                Apply(email, await SendAsync(email, cancellationToken), timeProvider.GetUtcNow());
+            }
+            catch (ServiceUnavailableException)
+            {
+                // Release unfinished claims without changing attempt counts or message bodies.
+                foreach (var pending in emails.Skip(index).Where(item => item.Status == QueuedEmailStatus.Pending))
+                    pending.NextAttemptAt = timeProvider.GetUtcNow();
+                await context.SaveChangesAsync(cancellationToken);
+                break;
+            }
 
             // Saved per email so a crash mid-batch re-sends only the unfinished rows.
             await context.SaveChangesAsync(cancellationToken);
@@ -100,6 +117,7 @@ internal sealed class EmailQueueProcessor(
                 new EmailMessage(email.To, email.Subject, email.Html, email.Text, email.IdempotencyKey, email.IsPriority),
                 cancellationToken);
         }
+        catch (ServiceUnavailableException) { throw; }
         catch (Exception exception) when (exception is not OperationCanceledException || !cancellationToken.IsCancellationRequested)
         {
             logger.LogWarning("Email {EmailId} send threw {ExceptionType}.", email.Id, exception.GetType().Name);

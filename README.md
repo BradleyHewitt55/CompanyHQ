@@ -51,6 +51,9 @@ C# clients reference the Contracts packages; a company that wants TypeScript typ
 API. Any company website, including an existing Blazor one, is the company's own and calls its API.
 See [the consumer guide](Templates/Company/README.md) for packages, adding modules and the scripts.
 
+From 3.1.0 a company can reference every allowed generic service and switch each on or off at runtime
+from its admin, with provider readiness reported separately; see [the service catalog consumer guide](Docs/service-catalog-consumer.md).
+
 Provider boundary upgrades and unavoidable major-version source/binary changes are documented in
 [the upgrade guide](Docs/provider-upgrade.md). The bounded two-language architecture proof, including
 its repeatable disposable-database verification and real measurements, is in

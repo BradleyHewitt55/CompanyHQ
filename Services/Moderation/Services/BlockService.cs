@@ -1,3 +1,4 @@
+using CompanyHQ.ServiceCatalog.Contracts;
 
 using CompanyHQ.Cache.Services;
 using CompanyHQ.Moderation.Contracts.Dtos;
@@ -12,16 +13,24 @@ using CompanyHQ.Users.Contracts.Models;
 namespace CompanyHQ.Moderation.Services;
 
 /// <inheritdoc cref="IBlockService" />
-public sealed class BlockService(
+public sealed class BlockService(IServiceAvailability? availability,
     IRepository<UserBlock> blocks,
     IRepository<User> users,
     ICacheService cache,
     IContentHider hider) : IBlockService
 {
+    /// <summary>Retains the original strict constructor for existing consumers.</summary>
+    public BlockService(
+    IRepository<UserBlock> blocks,
+    IRepository<User> users,
+    ICacheService cache,
+    IContentHider hider) : this(null, blocks, users, cache, hider) { }
+
     private static readonly TimeSpan BlockCacheTtl = TimeSpan.FromMinutes(5);
 
     public async Task<bool> IsBlockedBetweenAsync(Guid a, Guid b, CancellationToken ct = default)
     {
+        await (availability?.RequireAsync("moderation", false, ct) ?? Task.CompletedTask);
         if (a == Guid.Empty || b == Guid.Empty || a == b)
         {
             return false;
@@ -32,6 +41,7 @@ public sealed class BlockService(
 
     public async Task<IReadOnlySet<Guid>> BlockedForAsync(Guid userId, CancellationToken ct = default)
     {
+        await (availability?.RequireAsync("moderation", false, ct) ?? Task.CompletedTask);
         EnsureUserId(userId, nameof(userId));
 
         return await cache.GetOrSetAsync<HashSet<Guid>>(
@@ -56,6 +66,7 @@ public sealed class BlockService(
         BlockUserRequest request,
         CancellationToken ct = default)
     {
+        await (availability?.RequireAsync("moderation", false, ct) ?? Task.CompletedTask);
         EnsureUserId(blockerUserId, nameof(blockerUserId));
         ArgumentNullException.ThrowIfNull(request);
 
@@ -108,6 +119,7 @@ public sealed class BlockService(
         Guid blockedUserId,
         CancellationToken ct = default)
     {
+        await (availability?.RequireAsync("moderation", false, ct) ?? Task.CompletedTask);
         EnsureUserId(blockerUserId, nameof(blockerUserId));
         EnsureUserId(blockedUserId, nameof(blockedUserId));
 
@@ -138,6 +150,7 @@ public sealed class BlockService(
         PageRequest paging,
         CancellationToken ct = default)
     {
+        await (availability?.RequireAsync("moderation", false, ct) ?? Task.CompletedTask);
         EnsureUserId(blockerUserId, nameof(blockerUserId));
 
         var query = blocks.Query()

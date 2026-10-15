@@ -38,3 +38,8 @@ user %, _ and backslash literally. Set-based updates need explicit timestamp set
 refresh tracked rows. Nested transactions join the outer transaction, including its isolation and
 retry. Seeders are idempotent and must save staged work before returning. Companies own their whole
 migration set: HQ migrations are not a consumer's deployment migration set.
+
+The catalog selection singleton is independent of CompanyProfile and its migration only adds a new
+table. Generate schema from the full host graph even when features are runtime-disabled; do not drop
+feature tables based on enablement. New named management permissions are seeded through the existing
+role mechanism, without changing custom-role grants.

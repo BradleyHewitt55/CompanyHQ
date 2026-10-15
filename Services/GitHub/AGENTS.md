@@ -56,3 +56,7 @@ OAuth flow that obtains a token, or anything about the company profile.
   settings, not this service's.
 - The folder is `GitHub` but the generated document is `github.json`; `Scripts/openapi.mjs` matches
   the folder without case for that reason.
+
+## Runtime catalog constraints
+
+Catalog enablement is separate from encryption/repository readiness. Unconfigured enabled metadata remains readable, while existing typed errors prevent unsupported provider operations. Disabled operations revoke every domain/HTTP path. Supplied malformed active encryption keys still reject startup; no token ever enters a descriptor.

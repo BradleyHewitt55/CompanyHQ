@@ -1,3 +1,4 @@
+using CompanyHQ.ServiceCatalog.Contracts;
 using CompanyHQ.Persistence.Services;
 using CompanyHQ.Postgres.Contracts;
 using CompanyHQ.Postgres.Contracts.Dtos;
@@ -13,13 +14,21 @@ using CompanyHQ.Users.Services;
 namespace CompanyHQ.Shipping.Services;
 
 /// <inheritdoc cref="IShippingService" />
-public sealed class ShippingService(
+public sealed class ShippingService(IServiceAvailability? availability,
     IPersistence persistence,
     IUserAuthorizationService authorization,
     IShippingCatalog? catalog = null,
     IShippingGeocoder? geocoder = null,
     IShippingDiscountPolicy? discounts = null) : IShippingService
 {
+    /// <summary>Retains the original strict constructor for existing consumers.</summary>
+    public ShippingService(
+    IPersistence persistence,
+    IUserAuthorizationService authorization,
+    IShippingCatalog? catalog = null,
+    IShippingGeocoder? geocoder = null,
+    IShippingDiscountPolicy? discounts = null) : this(null, persistence, authorization, catalog, geocoder, discounts) { }
+
     public async Task<PagedResult<ClientShippingMethodDto>> ListMethodsAsync(
         PageRequest page,
         SearchRequest? search = null,
@@ -27,6 +36,7 @@ public sealed class ShippingService(
         Guid? actingUserId = null,
         CancellationToken cancellationToken = default)
     {
+        await (availability?.RequireAsync("shipping", false, cancellationToken) ?? Task.CompletedTask);
         var manager = audience is ResponseAudience.Admin && await IsManagerAsync(actingUserId, cancellationToken);
         var query = persistence.Query<ShippingMethod>();
         if (!manager)
@@ -54,6 +64,7 @@ public sealed class ShippingService(
         Guid? actingUserId = null,
         CancellationToken cancellationToken = default)
     {
+        await (availability?.RequireAsync("shipping", false, cancellationToken) ?? Task.CompletedTask);
         var manager = audience is ResponseAudience.Admin && await IsManagerAsync(actingUserId, cancellationToken);
         var method = await persistence.Query<ShippingMethod>()
             .FirstOrDefaultAsync(candidate => candidate.Id == methodId && (manager || candidate.IsActive), cancellationToken);
@@ -70,6 +81,7 @@ public sealed class ShippingService(
         Guid? actingUserId,
         CancellationToken cancellationToken = default)
     {
+        await (availability?.RequireAsync("shipping", false, cancellationToken) ?? Task.CompletedTask);
         await EnsureManagerAsync(actingUserId, cancellationToken);
         await ValidateAsync(request, cancellationToken);
 
@@ -88,6 +100,7 @@ public sealed class ShippingService(
         Guid? actingUserId,
         CancellationToken cancellationToken = default)
     {
+        await (availability?.RequireAsync("shipping", false, cancellationToken) ?? Task.CompletedTask);
         await EnsureManagerAsync(actingUserId, cancellationToken);
         await ValidateAsync(request, cancellationToken);
 
@@ -114,6 +127,7 @@ public sealed class ShippingService(
 
     public async Task<bool> DeleteMethodAsync(Guid methodId, Guid? actingUserId, CancellationToken cancellationToken = default)
     {
+        await (availability?.RequireAsync("shipping", false, cancellationToken) ?? Task.CompletedTask);
         await EnsureManagerAsync(actingUserId, cancellationToken);
 
         return await persistence.Query<ShippingMethod>().Where(method => method.Id == methodId).DeleteAsync(cancellationToken) > 0;
@@ -125,6 +139,7 @@ public sealed class ShippingService(
         Guid? actingUserId,
         CancellationToken cancellationToken = default)
     {
+        await (availability?.RequireAsync("shipping", false, cancellationToken) ?? Task.CompletedTask);
         await EnsureManagerAsync(actingUserId, cancellationToken);
 
         var result = await persistence.Query<FulfillmentOrigin>()
@@ -138,6 +153,7 @@ public sealed class ShippingService(
 
     public async Task<AdminFulfillmentOriginDto?> GetOriginAsync(Guid originId, Guid? actingUserId, CancellationToken cancellationToken = default)
     {
+        await (availability?.RequireAsync("shipping", false, cancellationToken) ?? Task.CompletedTask);
         await EnsureManagerAsync(actingUserId, cancellationToken);
 
         return await persistence.Query<FulfillmentOrigin>().FirstOrDefaultAsync(origin => origin.Id == originId, cancellationToken) is { } origin
@@ -150,6 +166,7 @@ public sealed class ShippingService(
         Guid? actingUserId,
         CancellationToken cancellationToken = default)
     {
+        await (availability?.RequireAsync("shipping", false, cancellationToken) ?? Task.CompletedTask);
         await EnsureManagerAsync(actingUserId, cancellationToken);
         Validate(request);
 
@@ -167,6 +184,7 @@ public sealed class ShippingService(
         Guid? actingUserId,
         CancellationToken cancellationToken = default)
     {
+        await (availability?.RequireAsync("shipping", false, cancellationToken) ?? Task.CompletedTask);
         await EnsureManagerAsync(actingUserId, cancellationToken);
         Validate(request);
 
@@ -184,6 +202,7 @@ public sealed class ShippingService(
 
     public async Task<bool> DeleteOriginAsync(Guid originId, Guid? actingUserId, CancellationToken cancellationToken = default)
     {
+        await (availability?.RequireAsync("shipping", false, cancellationToken) ?? Task.CompletedTask);
         await EnsureManagerAsync(actingUserId, cancellationToken);
 
         return await persistence.Query<FulfillmentOrigin>().Where(origin => origin.Id == originId).DeleteAsync(cancellationToken) > 0;
@@ -191,6 +210,7 @@ public sealed class ShippingService(
 
     public async Task<ShippingQuoteDto> QuoteAsync(ShippingQuoteRequest request, CancellationToken cancellationToken = default)
     {
+        await (availability?.RequireAsync("shipping", false, cancellationToken) ?? Task.CompletedTask);
         ArgumentNullException.ThrowIfNull(request);
         ShippingValidation.ThrowIfInvalid(request);
         ShippingValidation.ThrowIfInvalid(request.Address);

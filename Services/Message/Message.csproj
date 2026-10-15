@@ -36,4 +36,5 @@
     <PackageReference Include="Microsoft.EntityFrameworkCore.Relational" Version="10.0.10" />
   </ItemGroup>
 
+  <ItemGroup><ProjectReference Include="..\ServiceCatalog\ServiceCatalog.csproj" /></ItemGroup>
 </Project>

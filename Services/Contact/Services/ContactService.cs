@@ -1,3 +1,4 @@
+using CompanyHQ.ServiceCatalog.Contracts;
 using Microsoft.Extensions.Logging;
 
 using CompanyHQ.Contact.Contracts.Dtos;
@@ -8,16 +9,24 @@ using CompanyHQ.Contact.Contracts.Ports;
 namespace CompanyHQ.Contact.Services;
 
 /// <inheritdoc cref="IContactService"/>
-public sealed class ContactService(
+public sealed class ContactService(IServiceAvailability? availability,
     IContactMailer mailer,
     IContactAddressBook addressBook,
     TimeProvider clock,
     ILogger<ContactService> logger) : IContactService
 {
+    /// <summary>Retains the original strict constructor for existing consumers.</summary>
+    public ContactService(
+    IContactMailer mailer,
+    IContactAddressBook addressBook,
+    TimeProvider clock,
+    ILogger<ContactService> logger) : this(null, mailer, addressBook, clock, logger) { }
+
     public async Task<ClientContactReceiptDto?> SubmitAsync(
         ContactRequest request,
         CancellationToken cancellationToken = default)
     {
+        await (availability?.RequireAsync("contact", false, cancellationToken) ?? Task.CompletedTask);
         ArgumentNullException.ThrowIfNull(request);
 
         var addresses = await addressBook.GetAsync(cancellationToken);

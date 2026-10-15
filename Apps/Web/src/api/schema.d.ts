@@ -1462,6 +1462,236 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/company/services": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "text/plain": components["schemas"]["ServiceCatalogDto"][];
+                        "application/json": components["schemas"]["ServiceCatalogDto"][];
+                        "text/json": components["schemas"]["ServiceCatalogDto"][];
+                    };
+                };
+                /** @description Forbidden */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "text/plain": components["schemas"]["ProblemDetails"];
+                        "application/json": components["schemas"]["ProblemDetails"];
+                        "text/json": components["schemas"]["ProblemDetails"];
+                    };
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/company/services/{key}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    key: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "text/plain": components["schemas"]["ServiceCatalogDto"];
+                        "application/json": components["schemas"]["ServiceCatalogDto"];
+                        "text/json": components["schemas"]["ServiceCatalogDto"];
+                    };
+                };
+                /** @description Forbidden */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "text/plain": components["schemas"]["ProblemDetails"];
+                        "application/json": components["schemas"]["ProblemDetails"];
+                        "text/json": components["schemas"]["ProblemDetails"];
+                    };
+                };
+                /** @description Not Found */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "text/plain": components["schemas"]["ProblemDetails"];
+                        "application/json": components["schemas"]["ProblemDetails"];
+                        "text/json": components["schemas"]["ProblemDetails"];
+                    };
+                };
+            };
+        };
+        put: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    key: string;
+                };
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": components["schemas"]["ChangeServiceRequest"];
+                    "text/json": components["schemas"]["ChangeServiceRequest"];
+                    "application/*+json": components["schemas"]["ChangeServiceRequest"];
+                };
+            };
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "text/plain": components["schemas"]["ServiceChangeResult"];
+                        "application/json": components["schemas"]["ServiceChangeResult"];
+                        "text/json": components["schemas"]["ServiceChangeResult"];
+                    };
+                };
+                /** @description Bad Request */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "text/plain": components["schemas"]["ValidationProblemDetails"];
+                        "application/json": components["schemas"]["ValidationProblemDetails"];
+                        "text/json": components["schemas"]["ValidationProblemDetails"];
+                    };
+                };
+                /** @description Forbidden */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "text/plain": components["schemas"]["ProblemDetails"];
+                        "application/json": components["schemas"]["ProblemDetails"];
+                        "text/json": components["schemas"]["ProblemDetails"];
+                    };
+                };
+                /** @description Not Found */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "text/plain": components["schemas"]["ProblemDetails"];
+                        "application/json": components["schemas"]["ProblemDetails"];
+                        "text/json": components["schemas"]["ProblemDetails"];
+                    };
+                };
+                /** @description Conflict */
+                409: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "text/plain": components["schemas"]["ServiceChangeResult"];
+                        "application/json": components["schemas"]["ServiceChangeResult"];
+                        "text/json": components["schemas"]["ServiceChangeResult"];
+                    };
+                };
+            };
+        };
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/company/navigation": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "text/plain": components["schemas"]["ServiceNavigationDto"][];
+                        "application/json": components["schemas"]["ServiceNavigationDto"][];
+                        "text/json": components["schemas"]["ServiceNavigationDto"][];
+                    };
+                };
+                /** @description Unauthorized */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "text/plain": components["schemas"]["ProblemDetails"];
+                        "application/json": components["schemas"]["ProblemDetails"];
+                        "text/json": components["schemas"]["ProblemDetails"];
+                    };
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/contact": {
         parameters: {
             query?: never;
@@ -11355,6 +11585,10 @@ export interface components {
             /** Format: uuid */
             coverMediaObjectId?: null | string;
         };
+        ChangeServiceRequest: {
+            enabled: boolean;
+            selectedProvider?: null | string;
+        };
         ClientCompanyEmailDto: {
             title: string;
             address: string;
@@ -11374,6 +11608,81 @@ export interface components {
             whatsAppNumber: null | string;
             publicEmails?: null | components["schemas"]["ClientCompanyEmailDto"][];
         };
+        ServiceCapabilityDescriptor: {
+            key: string;
+            description: string;
+            dependencies: string[];
+        };
+        ServiceCapabilityDto: {
+            key: string;
+            description: string;
+            available: boolean;
+        };
+        ServiceCatalogDto: {
+            descriptor: components["schemas"]["ServiceDescriptor"];
+            enabled: boolean;
+            selectedProvider: null | string;
+            status: components["schemas"]["ServiceStatus"];
+            unavailableReason: null | string;
+            restartRequired: boolean;
+            menuVisible: boolean;
+            capabilities: components["schemas"]["ServiceCapabilityDto"][];
+        };
+        /** @default 0 */
+        ServiceChangeError: number;
+        ServiceChangeResult: {
+            service: null | components["schemas"]["ServiceCatalogDto"];
+            error?: components["schemas"]["ServiceChangeError"];
+            detail?: null | string;
+        };
+        ServiceConfigurationKey: {
+            key: string;
+            description: string;
+            /** @default false */
+            secret: boolean;
+            /** @default true */
+            required: boolean;
+            /** @default true */
+            restartRequired: boolean;
+            /** @default false */
+            readOnly: boolean;
+            protectionReason?: null | string;
+        };
+        ServiceDescriptor: {
+            key: string;
+            name: string;
+            description: string;
+            details: string;
+            /** @default false */
+            core: boolean;
+            /** @default generic */
+            owner: string;
+            /** @default true */
+            defaultEnabled: boolean;
+            dependencies?: null | string[];
+            providers?: null | components["schemas"]["ServiceProviderDescriptor"][];
+            defaultProvider?: null | string;
+            menuPath?: null | string;
+            capabilities?: null | components["schemas"]["ServiceCapabilityDescriptor"][];
+            readPermission?: null | string;
+            additionalReadPermissions?: null | string[];
+            configurationKeys?: null | components["schemas"]["ServiceConfigurationKey"][];
+            /** @default false */
+            providerChangeRequiresMigration: boolean;
+        };
+        ServiceNavigationDto: {
+            key: string;
+            name: string;
+            destination: string;
+            status: components["schemas"]["ServiceStatus"];
+        };
+        ServiceProviderDescriptor: {
+            key: string;
+            name: string;
+            description: string;
+            configurationKeys: components["schemas"]["ServiceConfigurationKey"][];
+        };
+        ServiceStatus: number;
         UpdateCompanyProfileRequest: {
             name: string;
             website: string;

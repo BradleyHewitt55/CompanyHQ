@@ -253,3 +253,7 @@ seeded Client role row. A role edit therefore takes effect on the next authentic
 in every issued session. A client uses them to show only what the account may do; they authorize
 nothing. The `role` claim and `AuthUserDto.Role` are the legacy two-value label and are `Client` for
 every custom role.
+
+## Runtime catalog constraints
+
+Authentication is protected core in the runtime catalog. Missing optional delivery configuration must not remove login or service administration. The named blogs.manage aggregate authorizes HTTP blog authoring; MCP still requires its individual action grants and all existing narrowing checks.

@@ -15,6 +15,7 @@ using CompanyHQ.Postgres.Contracts.Enums;
 using CompanyHQ.Postgres.Contracts.Forms;
 using CompanyHQ.Persistence.Services;
 using CompanyHQ.Users.Contracts.Models;
+using CompanyHQ.ServiceCatalog.Contracts;
 
 namespace Api.Integrations;
 
@@ -45,7 +46,7 @@ internal sealed class InboxReplyMailer(
 }
 
 /// <summary>Puts the connected repository's issues in the staff inbox: reply comments, resolve closes.</summary>
-internal sealed class GitHubInboxChannel(IGitHubService github) : IInboxChannel
+internal sealed class GitHubInboxChannel(IGitHubService github, IServiceAvailability? availability = null) : IInboxChannel
 {
     public string Key => "github";
 
@@ -54,7 +55,8 @@ internal sealed class GitHubInboxChannel(IGitHubService github) : IInboxChannel
     public string Permission => AccessPermissions.ManageGitHub;
 
     public async Task<bool> IsAvailableAsync(CancellationToken cancellationToken = default) =>
-        (await github.GetAsync(ResponseAudience.Client, cancellationToken)).IssuesEnabled;
+        (availability is null || (await availability.GetAsync("github", cancellationToken))?.Status == ServiceStatus.EnabledReady)
+            && (await github.GetAsync(ResponseAudience.Client, cancellationToken)).IssuesEnabled;
 
     public async Task<(InboxError Error, PagedResult<AdminInboxItemDto>? Items)> ListAsync(
         Guid actingUserId,
@@ -155,7 +157,7 @@ internal sealed class GitHubInboxChannel(IGitHubService github) : IInboxChannel
 /// </summary>
 internal sealed class ConversationInboxChannel(
     IMessageService messages,
-    IRepository<User> users) : IInboxChannel
+    IRepository<User> users, IServiceAvailability? availability = null) : IInboxChannel
 {
     /// <summary>Message pages are ten rows; this bounds how much of a long thread one read loads.</summary>
     private const int MaxPages = 20;
@@ -166,7 +168,8 @@ internal sealed class ConversationInboxChannel(
 
     public string Permission => AccessPermissions.ManageConversations;
 
-    public Task<bool> IsAvailableAsync(CancellationToken cancellationToken = default) => Task.FromResult(true);
+    public async Task<bool> IsAvailableAsync(CancellationToken cancellationToken = default) =>
+        availability is null || (await availability.GetAsync("messages", cancellationToken))?.Status == ServiceStatus.EnabledReady;
 
     public async Task<(InboxError Error, PagedResult<AdminInboxItemDto>? Items)> ListAsync(
         Guid actingUserId,

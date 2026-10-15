@@ -12,7 +12,7 @@ public static class MessageEndpointRouteBuilderExtensions
     {
         ArgumentNullException.ThrowIfNull(endpoints);
 
-        endpoints.MapHub<MessageHub>(MessageHub.Path);
+        endpoints.MapHub<MessageHub>(MessageHub.Path).WithMetadata(new CompanyHQ.ServiceCatalog.ServiceOwnerAttribute("messages"));
 
         return endpoints;
     }

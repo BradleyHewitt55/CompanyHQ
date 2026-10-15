@@ -1,3 +1,4 @@
+using CompanyHQ.ServiceCatalog.Contracts;
 
 using CompanyHQ.Messages.Contracts.Models;
 using CompanyHQ.Messages.Contracts.Ports;
@@ -9,8 +10,11 @@ namespace CompanyHQ.Messages.Services;
 /// Reads one message with a bounded window of its neighbours. Message uses it for spam-flag evidence;
 /// the host hands it to whichever reporting service is plugged in.
 /// </summary>
-public sealed class MessageContextReader(IRepository<Message> messages)
+public sealed class MessageContextReader(IServiceAvailability? availability, IRepository<Message> messages)
 {
+    /// <summary>Retains the original strict constructor for existing consumers.</summary>
+    public MessageContextReader(IRepository<Message> messages) : this(null, messages) { }
+
     private const int ContextMessageCount = 2;
 
     /// <summary>Returns null when the message does not exist.</summary>
@@ -18,6 +22,7 @@ public sealed class MessageContextReader(IRepository<Message> messages)
         Guid messageId,
         CancellationToken cancellationToken = default)
     {
+        await (availability?.RequireAsync("messages", false, cancellationToken) ?? Task.CompletedTask);
         var target = await messages.Query()
             .SingleOrDefaultAsync(message => message.Id == messageId, cancellationToken);
 

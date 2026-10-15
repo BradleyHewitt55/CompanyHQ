@@ -1,3 +1,4 @@
+using CompanyHQ.ServiceCatalog.Contracts;
 using CompanyHQ.Media.Contracts.Ports;
 using System.Linq.Expressions;
 
@@ -11,13 +12,21 @@ using CompanyHQ.Persistence.Services;
 namespace CompanyHQ.Media.Services;
 
 /// <inheritdoc cref="IMediaService" />
-public sealed class MediaService(
+public sealed class MediaService(IServiceAvailability? availability,
     IRepository<MediaObject> mediaObjects,
     IMediaObjectStorageProvider storage,
     MediaOptions options,
     IMediaAccessPolicyResolver accessPolicies,
     IMediaObjectLifecycleStore lifecycle) : IMediaService
 {
+    /// <summary>Retains the original strict constructor for existing consumers.</summary>
+    public MediaService(
+    IRepository<MediaObject> mediaObjects,
+    IMediaObjectStorageProvider storage,
+    MediaOptions options,
+    IMediaAccessPolicyResolver accessPolicies,
+    IMediaObjectLifecycleStore lifecycle) : this(null, mediaObjects, storage, options, accessPolicies, lifecycle) { }
+
     private static readonly IReadOnlyDictionary<string, string> Extensions = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase)
     {
         ["image/jpeg"] = "jpg",
@@ -34,6 +43,7 @@ public sealed class MediaService(
         Guid ownerUserId,
         CancellationToken cancellationToken = default)
     {
+        await (availability?.RequireAsync("media", true, cancellationToken) ?? Task.CompletedTask);
         ArgumentNullException.ThrowIfNull(request);
         if (ownerUserId == Guid.Empty) throw new ArgumentException("An upload owner is required.", nameof(ownerUserId));
         var scope = request.Scope ?? throw new ArgumentException("A media scope is required.", nameof(request));
@@ -67,6 +77,7 @@ public sealed class MediaService(
         long? contentLength,
         CancellationToken cancellationToken = default)
     {
+        await (availability?.RequireAsync("media", true, cancellationToken) ?? Task.CompletedTask);
         ArgumentNullException.ThrowIfNull(content);
         if (uploaderUserId == Guid.Empty) return new(MediaOperationError.Forbidden);
         var media = await mediaObjects.GetAsync(mediaObjectId, cancellationToken);
@@ -94,6 +105,7 @@ public sealed class MediaService(
         Guid uploaderUserId,
         CancellationToken cancellationToken = default)
     {
+        await (availability?.RequireAsync("media", true, cancellationToken) ?? Task.CompletedTask);
         if (uploaderUserId == Guid.Empty) return new(MediaOperationError.Forbidden);
         var media = await mediaObjects.GetAsync(mediaObjectId, cancellationToken);
         if (media is null) return new(MediaOperationError.NotFound);
@@ -124,6 +136,7 @@ public sealed class MediaService(
         ResponseAudience audience = ResponseAudience.Client,
         CancellationToken cancellationToken = default)
     {
+        await (availability?.RequireAsync("media", true, cancellationToken) ?? Task.CompletedTask);
         if (viewerUserId == Guid.Empty) return null;
         var projected = await mediaObjects.Query()
             .Where(media => media.Id == mediaObjectId && media.Status == MediaStatus.Ready)
@@ -149,6 +162,7 @@ public sealed class MediaService(
     /// </summary>
     public async Task<Uri?> GetPublicContentUrlAsync(Guid mediaObjectId, CancellationToken cancellationToken = default)
     {
+        await (availability?.RequireAsync("media", true, cancellationToken) ?? Task.CompletedTask);
         var media = await mediaObjects.GetAsync(mediaObjectId, cancellationToken);
         if (media is not { Status: MediaStatus.Ready } || !IsPublicScope(media.Scope)) return null;
 
@@ -166,6 +180,7 @@ public sealed class MediaService(
         bool administrator = false,
         CancellationToken cancellationToken = default)
     {
+        await (availability?.RequireAsync("media", true, cancellationToken) ?? Task.CompletedTask);
         if (actingUserId == Guid.Empty) return new(MediaOperationError.Forbidden);
         var media = await mediaObjects.GetAsync(mediaObjectId, cancellationToken);
         if (media is null) return new(MediaOperationError.NotFound);

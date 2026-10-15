@@ -24,4 +24,5 @@
     <ProjectReference Include="Contracts/Rss.Contracts.csproj" />
   </ItemGroup>
 
+  <ItemGroup><ProjectReference Include="..\ServiceCatalog\ServiceCatalog.csproj" /></ItemGroup>
 </Project>

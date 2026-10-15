@@ -1,3 +1,5 @@
+using CompanyHQ.ServiceCatalog.Contracts;
+using Microsoft.Extensions.Hosting;
 using System.Collections.Concurrent;
 
 using Microsoft.Extensions.DependencyInjection;
@@ -34,14 +36,13 @@ public sealed class NearbyTileRefresher(IServiceScopeFactory scopes, ILogger<Nea
         {
             try
             {
-                // Its own scope, and CancellationToken.None: the request that noticed the staleness
-                // has already been answered from cache, so its token is about to be cancelled and
-                // would abort every refresh before it started.
                 using var scope = scopes.CreateScope();
-
-                await scope.ServiceProvider
-                    .GetRequiredService<NearbyTileStore>()
-                    .FetchAsync(claimed, CancellationToken.None);
+                var stopping = scope.ServiceProvider.GetService<IHostApplicationLifetime>()?.ApplicationStopping ?? default;
+                using var lifetime = CancellationTokenSource.CreateLinkedTokenSource(stopping);
+                lifetime.CancelAfter(TimeSpan.FromSeconds(60));
+                var availability = scope.ServiceProvider.GetService<IServiceAvailability>();
+                if (availability is not null) await availability.RequireAsync("geo", true, lifetime.Token);
+                await scope.ServiceProvider.GetRequiredService<NearbyTileStore>().FetchAsync(claimed, lifetime.Token);
             }
             catch (Exception exception)
             {

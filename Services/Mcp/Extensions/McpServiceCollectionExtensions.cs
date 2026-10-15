@@ -8,6 +8,9 @@ using Microsoft.Extensions.DependencyInjection;
 using CompanyHQ.Mcp.Authentication;
 using CompanyHQ.Mcp.Contracts.Models;
 using CompanyHQ.Mcp.Services;
+using CompanyHQ.ServiceCatalog;
+using CompanyHQ.ServiceCatalog.Contracts;
+using ModelContextProtocol;
 
 namespace CompanyHQ.Mcp.Extensions;
 
@@ -65,6 +68,9 @@ public static class McpServiceCollectionExtensions
         // Stateless: a session-stateful endpoint needs sticky routing the moment the API runs more
         // than one instance, and discovering that in production is worse than not having sessions.
         var actions = McpActionRegistry.Discover(mvc.PartManager);
+        var owners = McpActionRegistry.DiscoverOwners(mvc.PartManager, services
+            .Where(item => item.ServiceType == typeof(ServiceRegistration))
+            .Select(item => (ServiceRegistration)item.ImplementationInstance!));
         McpAccess.Configure(actions);
         services.AddMcpServer(options => options.ServerInfo = new()
         {
@@ -77,11 +83,32 @@ public static class McpServiceCollectionExtensions
             {
                 var result = await next(context, cancellationToken);
 
-                result.Tools = [.. result.Tools.Where(tool => McpAccess.IsAllowed(context.User, tool.Name))];
+                var availability = context.Services?.GetService<IServiceAvailability>();
+                var visible = new List<ModelContextProtocol.Protocol.Tool>();
+                foreach (var tool in result.Tools)
+                {
+                    if (!McpAccess.IsAllowed(context.User, tool.Name)) continue;
+                    if (availability is not null)
+                    {
+                        if (!owners.TryGetValue(tool.Name, out var owner)) continue;
+                        try { await availability.RequireAsync(owner, cancellationToken: cancellationToken); }
+                        catch (ServiceUnavailableException) { continue; }
+                    }
+                    visible.Add(tool);
+                }
+                result.Tools = visible;
                 return result;
             }).AddCallToolFilter(next => async (context, cancellationToken) =>
             {
                 McpAccess.RequireCapability(context.User, context.Params.Name);
+                if (context.Services?.GetService<IServiceAvailability>() is { } availability)
+                {
+                    if (!owners.TryGetValue(context.Params.Name, out var owner))
+                        throw new McpProtocolException("Unknown service tool.", McpErrorCode.InvalidRequest);
+                    try { await availability.RequireAsync(owner, cancellationToken: cancellationToken); }
+                    catch (ServiceUnavailableException)
+                    { throw new McpProtocolException("The service tool is unavailable.", McpErrorCode.InvalidRequest); }
+                }
                 return await next(context, cancellationToken);
             }));
 

@@ -1,3 +1,4 @@
+using CompanyHQ.ServiceCatalog.Contracts;
 using System.Data;
 using System.Security.Cryptography;
 using System.Text;
@@ -12,17 +13,23 @@ using CompanyHQ.Sales.Contracts.Ports;
 namespace CompanyHQ.Sales.Services;
 
 /// <summary>Atomic unpaid checkout, immutable pricing history, ownership and replay-protected upsells.</summary>
-public sealed partial class SalesOrderService(IPersistence db,SalesCatalogService catalog,SalesCheckoutService checkout,
+public sealed partial class SalesOrderService(IServiceAvailability? availability, IPersistence db,SalesCatalogService catalog,SalesCheckoutService checkout,
     TimeProvider clock,SalesOptions options,SalesCustomerResolution? customers=null,ISalesShipping? shipping=null) : ISalesOrderService
 {
+    /// <summary>Retains the original strict constructor for existing consumers.</summary>
+    public SalesOrderService(IPersistence db,SalesCatalogService catalog,SalesCheckoutService checkout,
+    TimeProvider clock,SalesOptions options,SalesCustomerResolution? customers=null,ISalesShipping? shipping=null) : this(null, db, catalog, checkout, clock, options, customers, shipping) { }
+
     private static readonly Guid CounterId=Guid.Parse("7147ed7e-2a68-4c22-8a2c-c68bad4a370b");
     public async Task<OrderReceiptDto> PlaceAsync(PlaceOrderRequest request,Guid? actor,CancellationToken ct=default)
     {
+        await (availability?.RequireAsync("sales", false, ct) ?? Task.CompletedTask);
         var prepared=await PrepareAsync(request,actor,ct);
         return await PersistAsync(prepared,actor,null,ct);
     }
     internal async Task<PreparedOrder> PrepareAsync(PlaceOrderRequest request,Guid? actor,CancellationToken ct,bool staff=false)
     {
+        await (availability?.RequireAsync("sales", false, ct) ?? Task.CompletedTask);
         SalesRules.Validate(request);if(request.BillingAddress is not null)SalesRules.Validate(request.BillingAddress);
         if(actor.HasValue)
         {
@@ -55,6 +62,7 @@ public sealed partial class SalesOrderService(IPersistence db,SalesCatalogServic
     }
     internal async Task<OrderReceiptDto> PersistAsync(PreparedOrder prepared,Guid? actor,Guid? sourceQuote,CancellationToken ct,int? invoiceOverride=null)
     {
+        await (availability?.RequireAsync("sales", false, ct) ?? Task.CompletedTask);
         var request=prepared.Request;var priced=prepared.Priced;
         var guest=actor.HasValue?null:Convert.ToHexString(RandomNumberGenerator.GetBytes(32));
         // The counter row serializes numbering. Its unique primary key also protects first use on
@@ -106,14 +114,17 @@ public sealed partial class SalesOrderService(IPersistence db,SalesCatalogServic
     {var row=await db.Query<SalesOrder>().FirstOrDefaultAsync(x=>x.Id==id,ct);return row is not null && await Access(row,actor,token,ct)?await WithRevision(row,ct):null;}
     private async Task<List<OrderUpsellAcceptance>> Additions(Guid id,CancellationToken ct,int? revision=null)=>await db.Query<OrderUpsellAcceptance>().Where(x=>x.OrderId==id && (!revision.HasValue || x.RevisionNumber==revision.Value)).OrderBy(x=>x.CreatedAt).ThenBy(x=>x.Id).ToListAsync(ct);
     public async Task<ClientOrderDto?> GetAsync(Guid id,Guid? actor,string? token,CancellationToken ct=default)
-    {var row=await ReadAccessible(id,actor,token,ct);return row is null?null:ToDto(row,await Additions(id,ct,row.RevisionNumber),await catalog.Manager(actor,ct));}
+    {
+        await (availability?.RequireAsync("sales", false, ct) ?? Task.CompletedTask);var row=await ReadAccessible(id,actor,token,ct);return row is null?null:ToDto(row,await Additions(id,ct,row.RevisionNumber),await catalog.Manager(actor,ct));}
     public async Task<PagedResult<ClientOrderSummaryDto>> ListAsync(PageRequest page,Guid actor,SearchRequest? search=null,CancellationToken ct=default)
     {
+        await (availability?.RequireAsync("sales", false, ct) ?? Task.CompletedTask);
         var manager=await catalog.Manager(actor,ct);var result=await db.Query<SalesOrder>().Where(x=>manager || x.UserId==actor).Search(search?.Field,search?.Keyword,manager?typeof(AdminOrderSummaryDto):typeof(ClientOrderSummaryDto)).OrderByDescending(x=>x.CreatedAt).ThenBy(x=>x.Id).ToPageAsync(page.Skip,page.PageSize,ct);
         return new(result.Items.Select(row=> {return manager?(ClientOrderSummaryDto)new AdminOrderSummaryDto(row.Id,row.InvoiceNumber,row.CreatedAt,row.Status,row.PaymentStatus,row.Currency,row.TotalAmount,row.ItemCount,row.Number,row.UserId,row.CustomerFirstName,row.CustomerLastName,row.CustomerEmail):new ClientOrderSummaryDto(row.Id,row.InvoiceNumber,row.CreatedAt,row.Status,row.PaymentStatus,row.Currency,row.TotalAmount,row.ItemCount);}).ToArray(),page.Page,page.PageSize,result.Total);
     }
     public async Task<OrderUpsellContextDto?> ContextAsync(Guid id,Guid? actor,string? token,CancellationToken ct=default)
     {
+        await (availability?.RequireAsync("sales", false, ct) ?? Task.CompletedTask);
         var order=await ReadAccessible(id,actor,token,ct);if(order is null)return null;
         var additions=await Additions(id,ct,order.RevisionNumber);var offers=await Offers(order,additions,ct);
         return new(ToDto(order,additions,await catalog.Manager(actor,ct)),offers,order.FinalizedAt.HasValue);
@@ -151,6 +162,7 @@ public sealed partial class SalesOrderService(IPersistence db,SalesCatalogServic
     }
     public async Task<UpsellAcceptanceDto?> AcceptUnpaidAsync(Guid id,AcceptUpsellRequest request,Guid? actor,string? token,CancellationToken ct=default)
     {
+        await (availability?.RequireAsync("sales", false, ct) ?? Task.CompletedTask);
         if(request.RequestId==Guid.Empty || request.OfferId==Guid.Empty || request.ParentLineId==Guid.Empty)throw new ArgumentException("Stable request, offer and parent ids are required.");
         var order=await ReadAccessible(id,actor,token,ct);if(order is null)return null;
         var history=await Additions(id,ct);var additions=history.Where(x=>x.RevisionNumber==order.RevisionNumber).ToList();var replay=history.FirstOrDefault(x=>x.RequestId==request.RequestId);
@@ -205,6 +217,7 @@ public sealed partial class SalesOrderService(IPersistence db,SalesCatalogServic
     }
     public async Task<ClientOrderDto?> FinalizeAsync(Guid id,Guid? actor,string? token,CancellationToken ct=default)
     {
+        await (availability?.RequireAsync("sales", false, ct) ?? Task.CompletedTask);
         return await db.InTransactionAsync(async t=>
         {
             var row=await db.Locked<SalesOrder>().FirstOrDefaultAsync(x=>x.Id==id,t);
@@ -216,6 +229,7 @@ public sealed partial class SalesOrderService(IPersistence db,SalesCatalogServic
     }
     public async Task<ClientOrderDto?> ChangeStatusAsync(Guid id,ChangeOrderStatusRequest request,Guid? actor,CancellationToken ct=default)
     {
+        await (availability?.RequireAsync("sales", false, ct) ?? Task.CompletedTask);
         await catalog.RequireManager(actor,ct);if(!Enum.IsDefined(request.Status))throw new ArgumentException("Invalid status.");
         return await db.InTransactionAsync(async t=>
         {

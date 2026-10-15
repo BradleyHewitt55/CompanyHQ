@@ -1,3 +1,4 @@
+using CompanyHQ.ServiceCatalog.Contracts;
 using CompanyHQ.Sales.Contracts.Dtos;
 using CompanyHQ.Sales.Contracts.Enums;
 using CompanyHQ.Sales.Contracts.Forms;
@@ -8,6 +9,7 @@ public sealed partial class SalesOrderService
 {
     internal async Task<PreparedOrder> PrepareStaffAsync(PlaceOrderRequest request,Guid? userId,StaffPricingRequest? adjustment,CancellationToken ct)
     {
+        await (availability?.RequireAsync("sales", false, ct) ?? Task.CompletedTask);
         var prepared=await PrepareAsync(request,userId,ct,true);var a=adjustment ?? new StaffPricingRequest();SalesRules.Validate(a);
         if(a.ManualDiscountType.HasValue && (!Enum.IsDefined(a.ManualDiscountType.Value) || a.ManualDiscountType==DiscountType.FreeShipping) ||
             a.ManualDiscountType==DiscountType.Percentage && a.ManualDiscountValue>100 || !a.ManualDiscountType.HasValue && a.ManualDiscountValue!=0 || (a.LineDiscounts?.Count ?? 0)>200)
@@ -43,11 +45,14 @@ public sealed partial class SalesOrderService
         return prepared with {Priced=prepared.Priced with {Price=price,AdminLines=lines,Shipping=quote},Adjustments=a};
     }
     public async Task<PricedSaleDto> PriceStaffAsync(SaveStaffOrderRequest request,Guid? actor,CancellationToken ct=default)
-    {await catalog.RequireManager(actor,ct);SalesRules.Validate(request);return (await PrepareStaffAsync(request.Order,request.UserId,request.Pricing,ct)).Priced.Price;}
+    {
+        await (availability?.RequireAsync("sales", false, ct) ?? Task.CompletedTask);await catalog.RequireManager(actor,ct);SalesRules.Validate(request);return (await PrepareStaffAsync(request.Order,request.UserId,request.Pricing,ct)).Priced.Price;}
     public async Task<OrderReceiptDto> PlaceStaffAsync(SaveStaffOrderRequest request,Guid? actor,CancellationToken ct=default)
-    {await catalog.RequireManager(actor,ct);SalesRules.Validate(request);return await PersistAsync(await PrepareStaffAsync(request.Order,request.UserId,request.Pricing,ct),request.UserId,null,ct,request.InvoiceNumber);}
+    {
+        await (availability?.RequireAsync("sales", false, ct) ?? Task.CompletedTask);await catalog.RequireManager(actor,ct);SalesRules.Validate(request);return await PersistAsync(await PrepareStaffAsync(request.Order,request.UserId,request.Pricing,ct),request.UserId,null,ct,request.InvoiceNumber);}
     public async Task<ClientOrderDto?> UpdateStaffAsync(Guid id,SaveStaffOrderRequest request,Guid? actor,CancellationToken ct=default)
     {
+        await (availability?.RequireAsync("sales", false, ct) ?? Task.CompletedTask);
         await catalog.RequireManager(actor,ct);SalesRules.Validate(request);var prepared=await PrepareStaffAsync(request.Order,request.UserId,request.Pricing,ct);
         return await db.InTransactionAsync(async token=>
         {
@@ -71,7 +76,8 @@ public sealed partial class SalesOrderService
         },cancellationToken:ct);
     }
     public async Task<NumberAvailabilityDto> InvoiceAvailabilityAsync(int number,Guid? excludeOrder,Guid? actor,CancellationToken ct=default)
-    {await catalog.RequireManager(actor,ct);if(number<=0)throw new ArgumentException("Invoice number must be positive.");return new(!await db.Query<SalesOrder>().AnyAsync(x=>x.InvoiceNumber==number && x.Id!=excludeOrder,ct));}    private async Task UpdateUnitsAsync(IReadOnlyList<AdminSalesLineDto> before,IReadOnlyList<AdminSalesLineDto> after,CancellationToken ct)
+    {
+        await (availability?.RequireAsync("sales", false, ct) ?? Task.CompletedTask);await catalog.RequireManager(actor,ct);if(number<=0)throw new ArgumentException("Invoice number must be positive.");return new(!await db.Query<SalesOrder>().AnyAsync(x=>x.InvoiceNumber==number && x.Id!=excludeOrder,ct));}    private async Task UpdateUnitsAsync(IReadOnlyList<AdminSalesLineDto> before,IReadOnlyList<AdminSalesLineDto> after,CancellationToken ct)
     {
         var prior=before.GroupBy(x=>x.ProductId).ToDictionary(g=>g.Key,g=>g.Sum(x=>x.Quantity));
         var next=after.GroupBy(x=>x.ProductId).ToDictionary(g=>g.Key,g=>g.Sum(x=>x.Quantity));

@@ -1,3 +1,4 @@
+using CompanyHQ.ServiceCatalog.Contracts;
 
 using CompanyHQ.Moderation.Contracts.Ports;
 using CompanyHQ.Moderation.Contracts.Captures;
@@ -8,9 +9,13 @@ using CompanyHQ.Users.Contracts.Models;
 namespace CompanyHQ.Moderation.Services;
 
 /// <summary>Resolves accounts and captures only public, operator-safe profile evidence.</summary>
-public sealed class UserReportableContentSource(
+public sealed class UserReportableContentSource(IServiceAvailability? availability,
     IRepository<User> users) : IReportableContentSource
 {
+    /// <summary>Retains the original strict constructor for existing consumers.</summary>
+    public UserReportableContentSource(
+    IRepository<User> users) : this(null, users) { }
+
     public string TargetKind => "user";
 
     public IReadOnlyList<ReportReason> AllowedReasons { get; } =
@@ -27,6 +32,7 @@ public sealed class UserReportableContentSource(
         Guid targetId,
         CancellationToken ct = default)
     {
+        await (availability?.RequireAsync("moderation", false, ct) ?? Task.CompletedTask);
         var user = await users.Query()
             .Where(candidate => candidate.Id == targetId)
             .Select(candidate => new { candidate.Id, candidate.FirstName, candidate.LastName, candidate.Bio })

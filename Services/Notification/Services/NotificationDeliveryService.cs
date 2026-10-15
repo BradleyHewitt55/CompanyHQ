@@ -1,3 +1,4 @@
+using CompanyHQ.ServiceCatalog.Contracts;
 using System.Text.Json;
 using Microsoft.Extensions.Logging;
 using CompanyHQ.Notifications.Contracts.Enums;
@@ -93,6 +94,7 @@ internal sealed class NotificationDeliveryService(
                 _ => Permanent("Email was rejected before queuing.")
             };
         }
+        catch (ServiceUnavailableException) { return new(NotificationDeliveryDisposition.Deferred); }
         catch (Exception exception) when (exception is not OperationCanceledException)
         {
             logger.LogWarning("Email delivery failed with {ExceptionType}.", exception.GetType().Name);
@@ -147,6 +149,7 @@ internal sealed class NotificationDeliveryService(
         {
             return Transient("Push provider could not be reached.");
         }
+        catch (ServiceUnavailableException) { return new(NotificationDeliveryDisposition.Deferred); }
 
         var outcomesByToken = result.Outcomes.ToDictionary(outcome => outcome.Token, StringComparer.Ordinal);
         var hasTransientFailure = false;
@@ -209,6 +212,9 @@ internal sealed class NotificationDeliveryService(
     private static NotificationDeliveryResult Combine(
         IReadOnlyList<NotificationDeliveryResult> outcomes)
     {
+        if (outcomes.Any(outcome => outcome.Disposition == NotificationDeliveryDisposition.Deferred))
+            return new(NotificationDeliveryDisposition.Deferred);
+
         if (outcomes.Any(outcome => outcome.Disposition == NotificationDeliveryDisposition.TransientFailure))
         {
             return Transient("At least one notification channel returned a retryable failure.");

@@ -10,6 +10,21 @@ namespace CompanyHQ.Geo.Extensions;
 /// <summary>Registers the Geo service and its controller assembly.</summary>
 public static class GeoServiceCollectionExtensions
 {
+    /// <summary>Opt-in boot with an explicitly unavailable geographic provider.</summary>
+    public static IServiceCollection AddGeo(this IServiceCollection services, IConfiguration configuration, bool allowUnconfigured)
+    {
+        if (allowUnconfigured && !services.Any(item => item.ServiceType == typeof(CompanyHQ.Geo.Contracts.Ports.IGeoProvider)))
+            services.AddScoped<CompanyHQ.Geo.Contracts.Ports.IGeoProvider, UnconfiguredGeoProvider>();
+        return services.AddGeo(configuration);
+    }
+
+    public static IServiceCollection AddGeo<TProvider>(this IServiceCollection services, IConfiguration configuration)
+        where TProvider : class, CompanyHQ.Geo.Contracts.Ports.IGeoProvider
+    {
+        services.AddScoped<CompanyHQ.Geo.Contracts.Ports.IGeoProvider, TProvider>();
+        return services.AddGeo(configuration);
+    }
+
     /// <summary>
     /// Registers area lookups and the nearby-place map. Call after <c>AddCache</c>;
     /// <see cref="GeoService"/> depends on that registration's <c>ICacheService</c>. The host

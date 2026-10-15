@@ -50,3 +50,7 @@ member-to-member conversations (that is `Message`), or issues (that is `GitHub`)
   surfaced: the stored reply is the source of truth.
 - A channel bridge must not depend on anything that depends back on Inbox. The host builds every
   channel to answer any inbox call.
+
+## Runtime catalog constraints
+
+Runtime disable pauses retention and visitor/staff calls without deleting pending conversations. Optional channels report disabled/unconfigured targets as unavailable rather than hiding another feature switch behind a successful empty answer.

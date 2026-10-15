@@ -3,13 +3,14 @@ using FirebaseAdmin.Messaging;
 using Microsoft.Extensions.Logging;
 
 using CompanyHQ.Notifications.Contracts.Ports;
+using CompanyHQ.ServiceCatalog.Contracts;
 
 namespace CompanyHQ.Notifications.Services;
 
 /// <summary>Notification's push port, implemented with data-only Firebase Cloud Messaging multicasts.</summary>
 internal sealed class FcmSender(
     FirebaseCredentialProvider credentials,
-    ILogger<FcmSender> logger) : IPushSender
+    ILogger<FcmSender> logger, IServiceAvailability? availability = null) : IPushSender
 {
     private const int MaxTokensPerRequest = 500;
     private const string TitleKey = "title";
@@ -52,6 +53,7 @@ internal sealed class FcmSender(
         foreach (var tokenChunk in message.Tokens.Chunk(MaxTokensPerRequest))
         {
             cancellationToken.ThrowIfCancellationRequested();
+            if (availability is not null) await availability.RequireAsync("notifications", true, cancellationToken);
             var tokens = tokenChunk.ToArray();
 
             try

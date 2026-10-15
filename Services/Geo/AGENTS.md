@@ -42,3 +42,7 @@ Public concrete constructors/transport namespaces changed and require a coordina
 (see Docs/provider-upgrade.md), while IGeoService/HTTP DTOs remain stable. Tile keys/payloads must
 remain readable through a provider split. Always test using a fake neutral provider and scripted
 HTTP; never contact public Nominatim/Overpass in a test.
+
+## Runtime catalog constraints
+
+Catalog admission gates cached domain results and provider operations as well as HTTP/MCP. Explicit unavailable providers throw typed unavailability, never successful empty data. Detached refresh uses host shutdown plus a bounded timeout, rechecks admission and cannot continue unchecked with CancellationToken.None.

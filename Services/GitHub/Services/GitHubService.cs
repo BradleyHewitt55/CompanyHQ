@@ -1,3 +1,4 @@
+using CompanyHQ.ServiceCatalog.Contracts;
 using System.Net;
 using System.Security.Cryptography;
 using System.Text;
@@ -18,12 +19,19 @@ using CompanyHQ.Users.Services;
 
 namespace CompanyHQ.GitHub.Services;
 
-public sealed class GitHubService(
+public sealed class GitHubService(IServiceAvailability? availability,
     IRepository<GitHubConnection> connections,
     IUserAuthorizationService authorization,
     IHttpMessageHandlerFactory handlers,
     GitHubOptions options) : IGitHubService
 {
+    /// <summary>Retains the original strict constructor for existing consumers.</summary>
+    public GitHubService(
+    IRepository<GitHubConnection> connections,
+    IUserAuthorizationService authorization,
+    IHttpMessageHandlerFactory handlers,
+    GitHubOptions options) : this(null, connections, authorization, handlers, options) { }
+
     public const string HttpClientName = "github";
 
     private static readonly TimeSpan RequestTimeout = TimeSpan.FromSeconds(10);
@@ -42,6 +50,7 @@ public sealed class GitHubService(
         ResponseAudience audience = ResponseAudience.Client,
         CancellationToken cancellationToken = default)
     {
+        await (availability?.RequireAsync("github", false, cancellationToken) ?? Task.CompletedTask);
         var connection = await connections.Query()
             .Where(candidate => candidate.Id == GitHubConnection.SingletonId)
             .Select(candidate => new { candidate.Repository, candidate.UpdatedAt })
@@ -58,6 +67,7 @@ public sealed class GitHubService(
         ConnectGitHubRepositoryRequest request,
         CancellationToken cancellationToken = default)
     {
+        await (availability?.RequireAsync("github", false, cancellationToken) ?? Task.CompletedTask);
         ArgumentNullException.ThrowIfNull(request);
 
         if (!await CanManageAsync(actingUserId, cancellationToken))
@@ -110,6 +120,7 @@ public sealed class GitHubService(
 
     public async Task<GitHubError> DisconnectAsync(Guid actingUserId, CancellationToken cancellationToken = default)
     {
+        await (availability?.RequireAsync("github", false, cancellationToken) ?? Task.CompletedTask);
         if (!await CanManageAsync(actingUserId, cancellationToken))
         {
             return GitHubError.Forbidden;
@@ -123,6 +134,7 @@ public sealed class GitHubService(
         SubmitGitHubIssueRequest request,
         CancellationToken cancellationToken = default)
     {
+        await (availability?.RequireAsync("github", false, cancellationToken) ?? Task.CompletedTask);
         ArgumentNullException.ThrowIfNull(request);
 
         if (await ConnectionAsync(cancellationToken) is not { } connection)
@@ -155,6 +167,7 @@ public sealed class GitHubService(
         string? keyword = null,
         CancellationToken cancellationToken = default)
     {
+        await (availability?.RequireAsync("github", false, cancellationToken) ?? Task.CompletedTask);
         ArgumentNullException.ThrowIfNull(paging);
 
         var (denied, connection) = await ManagedConnectionAsync(actingUserId, cancellationToken);
@@ -184,6 +197,7 @@ public sealed class GitHubService(
         int number,
         CancellationToken cancellationToken = default)
     {
+        await (availability?.RequireAsync("github", false, cancellationToken) ?? Task.CompletedTask);
         var (denied, connection) = await ManagedConnectionAsync(actingUserId, cancellationToken);
         if (connection is null)
         {
@@ -229,6 +243,7 @@ public sealed class GitHubService(
         string body,
         CancellationToken cancellationToken = default)
     {
+        await (availability?.RequireAsync("github", false, cancellationToken) ?? Task.CompletedTask);
         var (denied, connection) = await ManagedConnectionAsync(actingUserId, cancellationToken);
         if (connection is null)
         {
@@ -247,6 +262,7 @@ public sealed class GitHubService(
         int number,
         CancellationToken cancellationToken = default)
     {
+        await (availability?.RequireAsync("github", false, cancellationToken) ?? Task.CompletedTask);
         var (denied, connection) = await ManagedConnectionAsync(actingUserId, cancellationToken);
         if (connection is null)
         {

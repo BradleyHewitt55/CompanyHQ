@@ -40,3 +40,7 @@ published response.
 A blog write that changes the shape or publication rules must update the OpenAPI document, the
 Marketing generated aliases, and `Blog.http`. The unique slug index is the
 idempotency boundary for seed data; do not replace it with a mutable title lookup.
+
+## Runtime catalog constraints
+
+Runtime disable revokes public reads, authoring, direct service calls and MCP discovery/direct calls. The named blogs.manage aggregate grants HTTP/domain authoring and draft access alongside the existing individual grants; it does not bypass MCP action permissions, read-only keys or deny lists.

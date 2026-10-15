@@ -42,4 +42,5 @@
     <PackageReference Include="Octokit" Version="14.0.0" />
   </ItemGroup>
 
+  <ItemGroup><ProjectReference Include="..\ServiceCatalog\ServiceCatalog.csproj" /></ItemGroup>
 </Project>

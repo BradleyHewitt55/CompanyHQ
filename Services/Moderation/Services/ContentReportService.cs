@@ -1,3 +1,4 @@
+using CompanyHQ.ServiceCatalog.Contracts;
 using System.Data;
 using System.Linq.Expressions;
 
@@ -21,7 +22,7 @@ using CompanyHQ.Users.Services;
 namespace CompanyHQ.Moderation.Services;
 
 /// <inheritdoc cref="IContentReportService" />
-public sealed class ContentReportService(
+public sealed class ContentReportService(IServiceAvailability? availability,
     IPersistence context,
     IRepository<ContentReport> reports,
     IUserAuthorizationService authorization,
@@ -31,11 +32,23 @@ public sealed class ContentReportService(
     IEnumerable<IReportHistoryClearer> historyClearers,
     ILogger<ContentReportService> logger) : IContentReportService
 {
+    /// <summary>Retains the original strict constructor for existing consumers.</summary>
+    public ContentReportService(
+    IPersistence context,
+    IRepository<ContentReport> reports,
+    IUserAuthorizationService authorization,
+    ICacheService cache,
+    IContentRestrictionService restrictions,
+    IReportTargetRegistry registry,
+    IEnumerable<IReportHistoryClearer> historyClearers,
+    ILogger<ContentReportService> logger) : this(null, context, reports, authorization, cache, restrictions, registry, historyClearers, logger) { }
+
     public async Task<ReportResult> CreateAsync(
         Guid reporterUserId,
         CreateReportRequest request,
         CancellationToken ct = default)
     {
+        await (availability?.RequireAsync("moderation", false, ct) ?? Task.CompletedTask);
         EnsureUserId(reporterUserId, nameof(reporterUserId));
         ArgumentNullException.ThrowIfNull(request);
 
@@ -184,6 +197,7 @@ public sealed class ContentReportService(
         ResponseAudience audience = ResponseAudience.Client,
         CancellationToken ct = default)
     {
+        await (availability?.RequireAsync("moderation", false, ct) ?? Task.CompletedTask);
         var query = reports.Query();
         var effectiveStatus = status ?? ReportStatus.Pending;
         query = query.Where(report => report.Status == effectiveStatus);
@@ -217,6 +231,7 @@ public sealed class ContentReportService(
         ResponseAudience audience = ResponseAudience.Client,
         CancellationToken ct = default)
     {
+        await (availability?.RequireAsync("moderation", false, ct) ?? Task.CompletedTask);
         var report = await reports.Query()
             .Where(candidate => candidate.Id == reportId)
             .Select(ReportProjection(audience))
@@ -288,6 +303,7 @@ public sealed class ContentReportService(
         Guid targetId,
         CancellationToken ct = default)
     {
+        await (availability?.RequireAsync("moderation", false, ct) ?? Task.CompletedTask);
         EnsureUserId(reporterUserId, nameof(reporterUserId));
         var normalizedKind = ReportTargetKind.Normalize(targetKind);
         if (normalizedKind is not ("post" or "article"))
@@ -352,6 +368,7 @@ public sealed class ContentReportService(
         ReportDecisionRequest request,
         CancellationToken ct = default)
     {
+        await (availability?.RequireAsync("moderation", false, ct) ?? Task.CompletedTask);
         await EnsureModeratorAsync(actingAdministratorId, ct);
         ArgumentNullException.ThrowIfNull(request);
 
@@ -513,6 +530,7 @@ public sealed class ContentReportService(
         ResponseAudience audience = ResponseAudience.Client,
         CancellationToken ct = default)
     {
+        await (availability?.RequireAsync("moderation", false, ct) ?? Task.CompletedTask);
         var query = reports.Query();
         query = asReporter
             ? query.Where(report => report.ReporterUserId == userId)

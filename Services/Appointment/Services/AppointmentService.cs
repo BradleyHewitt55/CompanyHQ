@@ -1,3 +1,4 @@
+using CompanyHQ.ServiceCatalog.Contracts;
 
 using CompanyHQ.Appointments.Contracts.Dtos;
 using CompanyHQ.Appointments.Contracts.Forms;
@@ -13,12 +14,19 @@ using CompanyHQ.Users.Services;
 namespace CompanyHQ.Appointments.Services;
 
 /// <inheritdoc cref="IAppointmentService" />
-public sealed class AppointmentService(
+public sealed class AppointmentService(IServiceAvailability? availability,
     IRepository<Appointment> appointments,
     IRepository<User> users,
     IUserAuthorizationService authorization,
     TimeProvider clock) : IAppointmentService
 {
+    /// <summary>Retains the original strict constructor for existing consumers.</summary>
+    public AppointmentService(
+    IRepository<Appointment> appointments,
+    IRepository<User> users,
+    IUserAuthorizationService authorization,
+    TimeProvider clock) : this(null, appointments, users, authorization, clock) { }
+
     public async Task<PagedResult<ClientAppointmentDto>> ListAsync(
         Guid actingUserId,
         PageRequest page,
@@ -27,6 +35,7 @@ public sealed class AppointmentService(
         Guid? userId = null,
         CancellationToken cancellationToken = default)
     {
+        await (availability?.RequireAsync("appointments", false, cancellationToken) ?? Task.CompletedTask);
         var manager = await IsManagerAsync(actingUserId, cancellationToken);
         var audience = Audience(manager);
         var now = clock.GetUtcNow();
@@ -53,6 +62,7 @@ public sealed class AppointmentService(
         Guid actingUserId,
         CancellationToken cancellationToken = default)
     {
+        await (availability?.RequireAsync("appointments", false, cancellationToken) ?? Task.CompletedTask);
         var manager = await IsManagerAsync(actingUserId, cancellationToken);
         return await Reachable(actingUserId, manager)
             .Where(a => a.Id == appointmentId)
@@ -65,6 +75,7 @@ public sealed class AppointmentService(
         CreateAppointmentRequest request,
         CancellationToken cancellationToken = default)
     {
+        await (availability?.RequireAsync("appointments", false, cancellationToken) ?? Task.CompletedTask);
         ArgumentNullException.ThrowIfNull(request);
         AppointmentValidation.ThrowIfInvalid(request);
 
@@ -102,6 +113,7 @@ public sealed class AppointmentService(
         UpdateAppointmentRequest request,
         CancellationToken cancellationToken = default)
     {
+        await (availability?.RequireAsync("appointments", false, cancellationToken) ?? Task.CompletedTask);
         ArgumentNullException.ThrowIfNull(request);
 
         var manager = await IsManagerAsync(actingUserId, cancellationToken);
@@ -126,6 +138,7 @@ public sealed class AppointmentService(
         Guid actingUserId,
         CancellationToken cancellationToken = default)
     {
+        await (availability?.RequireAsync("appointments", false, cancellationToken) ?? Task.CompletedTask);
         var manager = await IsManagerAsync(actingUserId, cancellationToken);
         return await appointments.DeleteAsync(
             a => a.Id == appointmentId && a.SourceKind == null && (manager || a.UserId == actingUserId),

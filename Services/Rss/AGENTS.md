@@ -34,3 +34,7 @@ resolve from the document. Unknown dates are null. Named XML entities without a 
 malformed; even harmless historical DOCTYPE feeds are refused. The offline fixture is plain HTTP,
 so HTTPS certificate rejection/downgrade enforcement is reviewed code, not certificate-fixture
 coverage. Byte/entry limits may intentionally truncate results.
+
+## Runtime catalog constraints
+
+RSS is protected core metadata with no HTTP or navigation destination. Generic release discovery stays available regardless of optional feature switches and publication ordering remains unchanged.

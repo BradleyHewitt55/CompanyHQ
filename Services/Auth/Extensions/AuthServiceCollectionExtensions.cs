@@ -159,7 +159,8 @@ public static class AuthServiceCollectionExtensions
         {
             foreach (var permission in AccessPermissions.All)
                 options.AddPolicy(permission, policy => policy.RequireAuthenticatedUser()
-                    .RequireClaim(AuthClaims.Permission, permission));
+                    .RequireAssertion(context => context.User.HasClaim(AuthClaims.Permission, permission)
+                        || BlogPermissions.Contains(permission) && context.User.HasClaim(AuthClaims.Permission, AccessPermissions.ManageBlogs)));
             options.AddPolicy(
                 AuthPolicies.RequireVerifiedEmail,
                 policy => policy.RequireClaim(AuthClaims.EmailVerified, "true"));
@@ -170,6 +171,9 @@ public static class AuthServiceCollectionExtensions
 
         return services;
     }
+
+    private static readonly string[] BlogPermissions = [McpCapabilityCatalog.ListBlogPosts, McpCapabilityCatalog.GetBlogPost,
+        McpCapabilityCatalog.CreateBlogPost, McpCapabilityCatalog.UpdateBlogPost, McpCapabilityCatalog.DeleteBlogPost];
 
     private static void ReplaceClaim(ClaimsIdentity identity, string claimType, string value)
     {

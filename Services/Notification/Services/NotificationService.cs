@@ -1,3 +1,4 @@
+using CompanyHQ.ServiceCatalog.Contracts;
 using System.Text.Json;
 using CompanyHQ.Notifications.Contracts.Enums;
 using CompanyHQ.Notifications.Contracts.Models;
@@ -7,10 +8,15 @@ using CompanyHQ.Persistence.Services;
 namespace CompanyHQ.Notifications.Services;
 
 /// <inheritdoc cref="INotificationService" />
-public sealed class NotificationService(
+public sealed class NotificationService(IServiceAvailability? availability,
     IPersistence context,
     TimeProvider timeProvider) : INotificationService
 {
+    /// <summary>Retains the original strict constructor for existing consumers.</summary>
+    public NotificationService(
+    IPersistence context,
+    TimeProvider timeProvider) : this(null, context, timeProvider) { }
+
     private const int MaxKindLength = 128;
     private const int MaxTitleLength = 255;
     private const int MaxBodyLength = 4000;
@@ -19,6 +25,7 @@ public sealed class NotificationService(
         NotificationRequest request,
         CancellationToken cancellationToken = default)
     {
+        availability?.RequireAsync("notifications", false, cancellationToken).GetAwaiter().GetResult();
         ArgumentNullException.ThrowIfNull(request);
         Validate(request);
 
@@ -29,6 +36,7 @@ public sealed class NotificationService(
         IEnumerable<NotificationRequest> requests,
         CancellationToken cancellationToken = default)
     {
+        availability?.RequireAsync("notifications", false, cancellationToken).GetAwaiter().GetResult();
         ArgumentNullException.ThrowIfNull(requests);
 
         var materialised = requests.ToArray();

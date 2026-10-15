@@ -15,6 +15,7 @@
   <ItemGroup>
     <!-- The adapter implements Geo's IGeoProvider port and references nothing else of Geo. -->
     <ProjectReference Include="..\Geo\Contracts\Geo.Contracts.csproj" />
+    <ProjectReference Include="..\ServiceCatalog\Contracts\ServiceCatalog.Contracts.csproj" />
   </ItemGroup>
 
 </Project>

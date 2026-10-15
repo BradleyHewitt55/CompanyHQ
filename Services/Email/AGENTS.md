@@ -73,3 +73,7 @@ Test hosts can replace only `IEmailService` and still exercise real template ren
 then finds an empty queue. In-memory test contexts must discover models from the API assembly
 (`PostgresModelRegistry.Discover`): EF caches one model per context type, so a test that discovers
 fewer assemblies breaks whichever test runs after it.
+
+## Runtime catalog constraints
+
+Strict registrations and original constructors retain their SDK requirements. Explicit unconfigured registration keeps the outbox/templates available but its transport returns typed unavailability. Catalog provider mismatch or missing transport pauses batches and releases unfinished claims without changing attempts or bodies. Record accepted sends even if configuration becomes unavailable mid-batch. Local SMTP is a company-supplied port implementation, never a generic simulated transport.

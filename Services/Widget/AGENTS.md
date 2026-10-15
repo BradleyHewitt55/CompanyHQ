@@ -38,3 +38,7 @@ and does not own the conversations (that is `Inbox`) or the issue repository (th
 - `AddWidget(configuration)` validates `Widget:Sources` at startup; an empty list stops the host.
 - A new destination (a second tracker, a CRM) is a new port here and a bridge in the host, never a
   reference from this project.
+
+## Runtime catalog constraints
+
+Catalog capabilities are independent: registered ports alone do not prove an enabled/ready destination. Conversation bridges report current availability through the additive default interface method; existing standalone implementations retain their behavior. Disabled Inbox or unavailable GitHub removes only its capability and submissions report unavailability. Widget sources stay deployment configuration.

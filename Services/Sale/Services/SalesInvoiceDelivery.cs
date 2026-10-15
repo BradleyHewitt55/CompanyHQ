@@ -1,3 +1,4 @@
+using CompanyHQ.ServiceCatalog.Contracts;
 using CompanyHQ.Persistence.Services;
 using CompanyHQ.Sales.Contracts.Models;
 using CompanyHQ.Sales.Contracts.Ports;
@@ -8,6 +9,7 @@ public sealed partial class SalesOrderService
 {
     internal async Task<SalesDocument?> ReserveInvoiceDeliveryAsync(Guid id,Guid requestId,Guid? actor,CancellationToken ct)
     {
+        await (availability?.RequireAsync("sales", false, ct) ?? Task.CompletedTask);
         await catalog.RequireManager(actor,ct);
         return await db.InTransactionAsync<SalesDocument?>(async token=>
         {
@@ -29,6 +31,7 @@ public sealed partial class SalesOrderService
 
     internal async Task RecordInvoiceDeliveryAsync(Guid id,Guid requestId,SalesDocumentDeliveryResult result,CancellationToken ct)
     {
+        await (availability?.RequireAsync("sales", false, ct) ?? Task.CompletedTask);
         await db.InTransactionAsync(async token=>
         {
             var row=await db.Locked<InvoiceDeliveryRequest>().Where(x=>x.OrderId==id && x.RequestId==requestId).FirstAsync(token);

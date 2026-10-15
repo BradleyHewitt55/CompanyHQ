@@ -1,3 +1,4 @@
+using CompanyHQ.ServiceCatalog.Contracts;
 
 using CompanyHQ.Cache.Services;
 using CompanyHQ.Moderation.Contracts.Dtos;
@@ -14,11 +15,17 @@ using CompanyHQ.Users.Services;
 namespace CompanyHQ.Moderation.Services;
 
 /// <inheritdoc cref="IAccountFlagService" />
-public sealed class AccountFlagService(
+public sealed class AccountFlagService(IServiceAvailability? availability,
     IRepository<AccountFlag> flags,
     IUserAuthorizationService authorization,
     ICacheService cache) : IAccountFlagService
 {
+    /// <summary>Retains the original strict constructor for existing consumers.</summary>
+    public AccountFlagService(
+    IRepository<AccountFlag> flags,
+    IUserAuthorizationService authorization,
+    ICacheService cache) : this(null, flags, authorization, cache) { }
+
     private static readonly TimeSpan FlagCacheTtl = TimeSpan.FromMinutes(5);
 
     public async Task RaiseAsync(
@@ -27,6 +34,7 @@ public sealed class AccountFlagService(
         string evidence,
         CancellationToken ct = default)
     {
+        await (availability?.RequireAsync("moderation", false, ct) ?? Task.CompletedTask);
         EnsureUserId(userId, nameof(userId));
         var normalizedKind = NormalizeKind(kind);
         var normalizedEvidence = NormalizeEvidence(evidence);
@@ -65,6 +73,7 @@ public sealed class AccountFlagService(
         string kind,
         CancellationToken ct = default)
     {
+        await (availability?.RequireAsync("moderation", false, ct) ?? Task.CompletedTask);
         EnsureUserId(userId, nameof(userId));
         var normalizedKind = NormalizeKind(kind);
 
@@ -87,6 +96,7 @@ public sealed class AccountFlagService(
         ResponseAudience audience = ResponseAudience.Client,
         CancellationToken ct = default)
     {
+        await (availability?.RequireAsync("moderation", false, ct) ?? Task.CompletedTask);
         var query = flags.Query().Where(flag => flag.Status == (status ?? AccountFlagStatus.Active));
 
         if (!string.IsNullOrWhiteSpace(kind))
@@ -110,6 +120,7 @@ public sealed class AccountFlagService(
         FlagDecisionRequest request,
         CancellationToken ct = default)
     {
+        await (availability?.RequireAsync("moderation", false, ct) ?? Task.CompletedTask);
         await EnsureModeratorAsync(actingAdministratorId, ct);
         ArgumentNullException.ThrowIfNull(request);
 
@@ -149,6 +160,7 @@ public sealed class AccountFlagService(
         ResponseAudience audience = ResponseAudience.Client,
         CancellationToken ct = default)
     {
+        await (availability?.RequireAsync("moderation", false, ct) ?? Task.CompletedTask);
         EnsureUserId(userId, nameof(userId));
 
         return await flags.Query()

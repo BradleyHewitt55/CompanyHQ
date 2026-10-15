@@ -15,6 +15,7 @@
   <ItemGroup>
     <!-- Persisted through the provider-neutral ports; the database provider is never referenced. -->
     <ProjectReference Include="..\Persistence\Persistence.csproj" />
+    <ProjectReference Include="..\ServiceCatalog\ServiceCatalog.csproj" />
     <!-- Shared wire contracts only: paging, search, response audiences and permission names. -->
     <ProjectReference Include="..\Postgres\Contracts\Postgres.Contracts.csproj" />
     <ProjectReference Include="..\User\User.csproj" />

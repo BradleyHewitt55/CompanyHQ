@@ -19,7 +19,10 @@ export const permissionGroups: readonly {
   {
     title: 'Blog',
     description: 'Drafts and published posts.',
-    permissions: pick('list_blog_posts', 'get_blog_post', 'create_blog_post', 'update_blog_post', 'delete_blog_post'),
+    permissions: {
+      'blogs.manage': 'Manage blog posts',
+      ...pick('list_blog_posts', 'get_blog_post', 'create_blog_post', 'update_blog_post', 'delete_blog_post'),
+    },
   },
   {
     title: "FAQ's",
@@ -41,9 +44,11 @@ export const permissionGroups: readonly {
   },
   {
     title: 'Company',
-    description: 'What the public site says about the company.',
+    description: 'Company profile, service availability and deployment settings.',
     permissions: {
       'company.manage': 'Edit the company profile',
+      'company.services.manage': 'Manage enabled services and provider selections',
+      'company.environment.manage': 'Edit company environment files',
       'github.manage': 'Connect the GitHub repository bug reports go to',
     },
   },

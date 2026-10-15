@@ -43,3 +43,7 @@ Malformed provider coordinates (nonfinite, out of range or partial pairs) are re
 and geocoder boundaries. A bad origin never hides a valid alternative. Basket context passed to
 discount ports retains identities, selections and parent links; its strings and collections are
 bounded before invoking the port. Standalone basket ids may be omitted unless parent links are used.
+
+## Runtime catalog constraints
+
+Catalog admission covers concrete address operations and domain calls as well as HTTP. A present bridge whose Sales or Geo target is disabled/unconfigured reports typed dependency unavailability; it must not masquerade as missing products, empty address results or an undiscounted successful quote.

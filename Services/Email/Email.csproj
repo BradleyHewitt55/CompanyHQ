@@ -56,4 +56,5 @@
     <PackageReference Include="Resend" Version="0.23.0" />
   </ItemGroup>
 
+  <ItemGroup><ProjectReference Include="..\ServiceCatalog\ServiceCatalog.csproj" /></ItemGroup>
 </Project>

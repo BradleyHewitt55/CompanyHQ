@@ -1,3 +1,4 @@
+using CompanyHQ.ServiceCatalog.Contracts;
 using Microsoft.Extensions.DependencyInjection;
 using CompanyHQ.Email.Contracts.Models;
 using CompanyHQ.Email.Contracts.Ports;
@@ -9,12 +10,16 @@ namespace CompanyHQ.Email.Services;
 /// Validates a message and stores it for <see cref="EmailWorker"/>. Nothing here calls the provider,
 /// so success means the email is durably queued, not delivered.
 /// </summary>
-public sealed class EmailService(IServiceScopeFactory scopeFactory, TimeProvider time) : IEmailService
+public sealed class EmailService(IServiceAvailability? availability, IServiceScopeFactory scopeFactory, TimeProvider time) : IEmailService
 {
+    /// <summary>Retains the original strict constructor for existing consumers.</summary>
+    public EmailService(IServiceScopeFactory scopeFactory, TimeProvider time) : this(null, scopeFactory, time) { }
+
     public async Task<EmailSendResult> SendAsync(
         EmailMessage message,
         CancellationToken cancellationToken = default)
     {
+        await (availability?.RequireAsync("email", false, cancellationToken) ?? Task.CompletedTask);
         ArgumentNullException.ThrowIfNull(message);
         message.Validate();
 

@@ -1,3 +1,4 @@
+using CompanyHQ.ServiceCatalog.Contracts;
 
 using CompanyHQ.Cache.Services;
 using CompanyHQ.Moderation.Contracts.Dtos;
@@ -11,10 +12,15 @@ using CompanyHQ.Persistence.Services;
 namespace CompanyHQ.Moderation.Services;
 
 /// <inheritdoc cref="IContentHider" />
-public sealed class ContentHider(
+public sealed class ContentHider(IServiceAvailability? availability,
     IRepository<HiddenContent> hidden,
     ICacheService cache) : IContentHider
 {
+    /// <summary>Retains the original strict constructor for existing consumers.</summary>
+    public ContentHider(
+    IRepository<HiddenContent> hidden,
+    ICacheService cache) : this(null, hidden, cache) { }
+
     private static readonly TimeSpan HiddenCacheTtl = TimeSpan.FromMinutes(5);
 
     public async Task<IReadOnlySet<Guid>> HiddenIdsAsync(
@@ -22,6 +28,7 @@ public sealed class ContentHider(
         string targetKind,
         CancellationToken ct = default)
     {
+        await (availability?.RequireAsync("moderation", false, ct) ?? Task.CompletedTask);
         EnsureUserId(userId, nameof(userId));
         var normalizedKind = ReportTargetKind.Normalize(targetKind);
 
@@ -43,6 +50,7 @@ public sealed class ContentHider(
         Guid? sourceId = null,
         CancellationToken ct = default)
     {
+        await (availability?.RequireAsync("moderation", false, ct) ?? Task.CompletedTask);
         EnsureUserId(userId, nameof(userId));
         ArgumentNullException.ThrowIfNull(request);
 
@@ -90,6 +98,7 @@ public sealed class ContentHider(
         Guid sourceId,
         CancellationToken ct = default)
     {
+        await (availability?.RequireAsync("moderation", false, ct) ?? Task.CompletedTask);
         EnsureUserId(userId, nameof(userId));
         if (targetId == Guid.Empty)
         {
@@ -124,6 +133,7 @@ public sealed class ContentHider(
         Guid targetId,
         CancellationToken ct = default)
     {
+        await (availability?.RequireAsync("moderation", false, ct) ?? Task.CompletedTask);
         EnsureUserId(userId, nameof(userId));
         if (targetId == Guid.Empty)
         {
@@ -163,6 +173,7 @@ public sealed class ContentHider(
         PageRequest paging,
         CancellationToken ct = default)
     {
+        await (availability?.RequireAsync("moderation", false, ct) ?? Task.CompletedTask);
         EnsureUserId(userId, nameof(userId));
 
         var query = hidden.Query()

@@ -1,3 +1,4 @@
+using CompanyHQ.ServiceCatalog.Contracts;
 using CompanyHQ.Faqs.Contracts.Dtos;
 using CompanyHQ.Faqs.Contracts.Forms;
 using CompanyHQ.Faqs.Contracts.Models;
@@ -10,10 +11,15 @@ using CompanyHQ.Users.Services;
 
 namespace CompanyHQ.Faqs.Services;
 
-public sealed class FaqService(
+public sealed class FaqService(IServiceAvailability? availability,
     IRepository<FaqEntry> entries,
     IUserAuthorizationService authorization) : IFaqService
 {
+    /// <summary>Retains the original strict constructor for existing consumers.</summary>
+    public FaqService(
+    IRepository<FaqEntry> entries,
+    IUserAuthorizationService authorization) : this(null, entries, authorization) { }
+
     public async Task<PagedResult<ClientFaqEntryDto>> ListAsync(
         PageRequest page,
         SearchRequest? search = null,
@@ -21,6 +27,7 @@ public sealed class FaqService(
         Guid? actingUserId = null,
         CancellationToken cancellationToken = default)
     {
+        await (availability?.RequireAsync("faqs", false, cancellationToken) ?? Task.CompletedTask);
         var effectiveAudience = await EffectiveAudienceAsync(audience, actingUserId, McpCapabilityCatalog.ListFaqEntries, cancellationToken);
         // The searchable fields are the ones this caller's shape carries, so a reader cannot probe a draft-only field.
         var query = entries.Query()
@@ -49,6 +56,7 @@ public sealed class FaqService(
         Guid? actingUserId = null,
         CancellationToken cancellationToken = default)
     {
+        await (availability?.RequireAsync("faqs", false, cancellationToken) ?? Task.CompletedTask);
         var effectiveAudience = await EffectiveAudienceAsync(audience, actingUserId, McpCapabilityCatalog.GetFaqEntry, cancellationToken);
         var normalised = NormaliseKey(key);
         var query = entries.Query().Where(entry => entry.Key == normalised);
@@ -69,6 +77,7 @@ public sealed class FaqService(
         Guid? actingUserId = null,
         CancellationToken cancellationToken = default)
     {
+        await (availability?.RequireAsync("faqs", false, cancellationToken) ?? Task.CompletedTask);
         await EnsurePermissionAsync(actingUserId, McpCapabilityCatalog.CreateFaqEntry, cancellationToken);
         var key = NormaliseKey(request.Key);
         if (await entries.Query().AnyAsync(entry => entry.Key == key, cancellationToken))
@@ -107,6 +116,7 @@ public sealed class FaqService(
         Guid? actingUserId = null,
         CancellationToken cancellationToken = default)
     {
+        await (availability?.RequireAsync("faqs", false, cancellationToken) ?? Task.CompletedTask);
         await EnsurePermissionAsync(actingUserId, McpCapabilityCatalog.UpdateFaqEntry, cancellationToken);
         var entry = await entries.Query().FirstOrDefaultAsync(
             candidate => candidate.Key == NormaliseKey(key),
@@ -134,6 +144,7 @@ public sealed class FaqService(
         Guid? actingUserId = null,
         CancellationToken cancellationToken = default)
     {
+        await (availability?.RequireAsync("faqs", false, cancellationToken) ?? Task.CompletedTask);
         await EnsurePermissionAsync(actingUserId, McpCapabilityCatalog.DeleteFaqEntry, cancellationToken);
         var entry = await entries.Query().FirstOrDefaultAsync(
             candidate => candidate.Key == NormaliseKey(key),

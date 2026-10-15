@@ -2,6 +2,7 @@ namespace CompanyHQ.Notifications.Services;
 
 internal enum NotificationDeliveryDisposition
 {
+    Deferred,
     Sent,
     TransientFailure,
     PermanentFailure

@@ -1,3 +1,4 @@
+using CompanyHQ.ServiceCatalog.Contracts;
 using System.Globalization;
 
 using CompanyHQ.Cache.Services;
@@ -11,13 +12,21 @@ namespace CompanyHQ.Geo.Services;
 /// <summary>
 /// Rounding, caching, and mapping around the composed <see cref="IGeoProvider"/>.
 /// </summary>
-public sealed class GeoService(
+public sealed class GeoService(IServiceAvailability? availability,
     IGeoProvider provider,
     NearbyTileStore tiles,
     NearbyTileRefresher refresher,
     ICacheService cache,
     GeoOptions options) : IGeoService
 {
+    /// <summary>Retains the original strict constructor for existing consumers.</summary>
+    public GeoService(
+    IGeoProvider provider,
+    NearbyTileStore tiles,
+    NearbyTileRefresher refresher,
+    ICacheService cache,
+    GeoOptions options) : this(null, provider, tiles, refresher, cache, options) { }
+
     /// <summary>
     /// Three decimals is roughly 110 m. Coarse enough that a coordinate no longer identifies a
     /// home, fine enough to name the right suburb — and it is applied here as well as on the
@@ -30,6 +39,7 @@ public sealed class GeoService(
         double longitude,
         CancellationToken cancellationToken = default)
     {
+        await (availability?.RequireAsync("geo", true, cancellationToken) ?? Task.CompletedTask);
         var roundedLatitude = Round(latitude);
         var roundedLongitude = Round(longitude);
 
@@ -67,6 +77,7 @@ public sealed class GeoService(
         int limit = 10,
         CancellationToken cancellationToken = default)
     {
+        await (availability?.RequireAsync("geo", true, cancellationToken) ?? Task.CompletedTask);
         var normalised = query?.Trim() ?? string.Empty;
         if (normalised.Length == 0)
         {
@@ -112,6 +123,7 @@ public sealed class GeoService(
         GeoViewport viewport,
         CancellationToken cancellationToken = default)
     {
+        await (availability?.RequireAsync("geo", true, cancellationToken) ?? Task.CompletedTask);
         // No configured kinds means the deployment has not switched the search on.
         if (options.NearbyPlaceKinds.Length == 0)
         {

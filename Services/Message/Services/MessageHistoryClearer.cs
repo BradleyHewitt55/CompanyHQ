@@ -1,3 +1,4 @@
+using CompanyHQ.ServiceCatalog.Contracts;
 
 using CompanyHQ.Messages.Contracts.Models;
 using CompanyHQ.Persistence.Services;
@@ -12,14 +13,18 @@ namespace CompanyHQ.Messages.Services;
 /// Takes <see cref="IPersistence"/> because every affected participant row is cleared in one
 /// save; one repository update per row would be one transaction per row.
 /// </remarks>
-public sealed class MessageHistoryClearer(IPersistence context, TimeProvider timeProvider)
+public sealed class MessageHistoryClearer(IServiceAvailability? availability, IPersistence context, TimeProvider timeProvider)
 {
+    /// <summary>Retains the original strict constructor for existing consumers.</summary>
+    public MessageHistoryClearer(IPersistence context, TimeProvider timeProvider) : this(null, context, timeProvider) { }
+
     /// <summary>Clears the reporter's view of the conversation holding <paramref name="messageId"/>.</summary>
     public async Task ClearForMessageAsync(
         Guid reporterUserId,
         Guid messageId,
         CancellationToken cancellationToken = default)
     {
+        await (availability?.RequireAsync("messages", false, cancellationToken) ?? Task.CompletedTask);
         var conversationIds = await context.Query<Message>()
             .Where(message => message.Id == messageId)
             .Select(message => message.ConversationId)
@@ -34,6 +39,7 @@ public sealed class MessageHistoryClearer(IPersistence context, TimeProvider tim
         Guid otherUserId,
         CancellationToken cancellationToken = default)
     {
+        await (availability?.RequireAsync("messages", false, cancellationToken) ?? Task.CompletedTask);
         var reporterConversations = context.Tracked<ConversationParticipant>()
             .Where(participant => participant.UserId == reporterUserId)
             .Select(participant => participant.ConversationId);

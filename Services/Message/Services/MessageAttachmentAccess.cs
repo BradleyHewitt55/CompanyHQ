@@ -1,3 +1,4 @@
+using CompanyHQ.ServiceCatalog.Contracts;
 
 using CompanyHQ.Messages.Contracts.Models;
 using CompanyHQ.Messages.Contracts.Enums;
@@ -13,7 +14,7 @@ namespace CompanyHQ.Messages.Services;
 /// administrator once the conversation is closed — the same rule as the message text. The host hands
 /// it to whichever media service is plugged in as that service's read policy.
 /// </summary>
-public sealed class MessageAttachmentAccess(
+public sealed class MessageAttachmentAccess(IServiceAvailability? availability,
     IRepository<Message> messages,
     IRepository<ConversationParticipant> participants,
     IRepository<Conversation> conversations,
@@ -21,11 +22,21 @@ public sealed class MessageAttachmentAccess(
     MessageConversationRules rules,
     IMessageRestrictions? restrictions = null)
 {
+    /// <summary>Retains the original strict constructor for existing consumers.</summary>
+    public MessageAttachmentAccess(
+    IRepository<Message> messages,
+    IRepository<ConversationParticipant> participants,
+    IRepository<Conversation> conversations,
+    IUserAuthorizationService authorization,
+    MessageConversationRules rules,
+    IMessageRestrictions? restrictions = null) : this(null, messages, participants, conversations, authorization, rules, restrictions) { }
+
     public async Task<bool> CanReadAsync(
         Guid mediaObjectId,
         Guid viewerUserId,
         CancellationToken cancellationToken = default)
     {
+        await (availability?.RequireAsync("messages", false, cancellationToken) ?? Task.CompletedTask);
         if (mediaObjectId == Guid.Empty || viewerUserId == Guid.Empty)
         {
             return false;

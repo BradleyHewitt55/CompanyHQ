@@ -17,7 +17,7 @@ public static class McpEndpointRouteBuilderExtensions
     {
         ArgumentNullException.ThrowIfNull(endpoints);
 
-        endpoints.MapMcp("/mcp").RequireAuthorization(McpPolicies.Agent);
+        endpoints.MapMcp("/mcp").WithMetadata(new CompanyHQ.ServiceCatalog.ServiceOwnerAttribute("mcp")).RequireAuthorization(McpPolicies.Agent);
 
         return endpoints;
     }

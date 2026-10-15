@@ -2,7 +2,7 @@
 
 Owns Nominatim/Overpass HTTP, raw responses, parsing, endpoint configuration, identity and pacing.
 Geo owns domain policy, rounded privacy coordinates, cache/tiles, public routes and DTOs. This adapter
-references Geo.Contracts only, never Geo or Cache.
+references Geo.Contracts and shared ServiceCatalog.Contracts, never Geo or Cache implementations.
 
 ## Rules
 
@@ -14,6 +14,8 @@ references Geo.Contracts only, never Geo or Cache.
 - Always send an identifying contact User-Agent. Measure pacing from the end of the previous call.
 - Validate amenity identifiers before query interpolation. One bounded regex query, not one scan per
   kind; transport timeout must exceed the upstream query budget.
+- The optional catalog HTTP handler rechecks committed Geo admission after provider pacing and before
+  outbound HTTP. Legacy standalone registrations without availability retain their strict behavior.
 
 ## Decisions and limits
 

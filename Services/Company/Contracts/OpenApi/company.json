@@ -90,10 +90,359 @@
           }
         }
       }
+    },
+    "/api/company/services": {
+      "get": {
+        "tags": [
+          "CompanyServices"
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/ServiceCatalogDto"
+                  }
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/ServiceCatalogDto"
+                  }
+                }
+              },
+              "text/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/ServiceCatalogDto"
+                  }
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Forbidden",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              },
+              "text/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/company/services/{key}": {
+      "get": {
+        "tags": [
+          "CompanyServices"
+        ],
+        "parameters": [
+          {
+            "name": "key",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "$ref": "#/components/schemas/ServiceCatalogDto"
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ServiceCatalogDto"
+                }
+              },
+              "text/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ServiceCatalogDto"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              },
+              "text/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Forbidden",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              },
+              "text/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      },
+      "put": {
+        "tags": [
+          "CompanyServices"
+        ],
+        "parameters": [
+          {
+            "name": "key",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ChangeServiceRequest"
+              }
+            },
+            "text/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ChangeServiceRequest"
+              }
+            },
+            "application/*+json": {
+              "schema": {
+                "$ref": "#/components/schemas/ChangeServiceRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "$ref": "#/components/schemas/ValidationProblemDetails"
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ValidationProblemDetails"
+                }
+              },
+              "text/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ValidationProblemDetails"
+                }
+              }
+            }
+          },
+          "200": {
+            "description": "OK",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "$ref": "#/components/schemas/ServiceChangeResult"
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ServiceChangeResult"
+                }
+              },
+              "text/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ServiceChangeResult"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Conflict",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "$ref": "#/components/schemas/ServiceChangeResult"
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ServiceChangeResult"
+                }
+              },
+              "text/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ServiceChangeResult"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              },
+              "text/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Forbidden",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              },
+              "text/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/company/navigation": {
+      "get": {
+        "tags": [
+          "CompanyServiceNavigation"
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/ServiceNavigationDto"
+                  }
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/ServiceNavigationDto"
+                  }
+                }
+              },
+              "text/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/ServiceNavigationDto"
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              },
+              "text/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      }
     }
   },
   "components": {
     "schemas": {
+      "ChangeServiceRequest": {
+        "required": [
+          "enabled"
+        ],
+        "type": "object",
+        "properties": {
+          "enabled": {
+            "type": "boolean"
+          },
+          "selectedProvider": {
+            "type": [
+              "null",
+              "string"
+            ]
+          }
+        }
+      },
       "ClientCompanyEmailDto": {
         "required": [
           "title",
@@ -222,6 +571,330 @@
           }
         }
       },
+      "ServiceCapabilityDescriptor": {
+        "required": [
+          "key",
+          "description",
+          "dependencies"
+        ],
+        "type": "object",
+        "properties": {
+          "key": {
+            "type": "string"
+          },
+          "description": {
+            "type": "string"
+          },
+          "dependencies": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          }
+        }
+      },
+      "ServiceCapabilityDto": {
+        "required": [
+          "key",
+          "description",
+          "available"
+        ],
+        "type": "object",
+        "properties": {
+          "key": {
+            "type": "string"
+          },
+          "description": {
+            "type": "string"
+          },
+          "available": {
+            "type": "boolean"
+          }
+        }
+      },
+      "ServiceCatalogDto": {
+        "required": [
+          "descriptor",
+          "enabled",
+          "selectedProvider",
+          "status",
+          "unavailableReason",
+          "restartRequired",
+          "menuVisible",
+          "capabilities"
+        ],
+        "type": "object",
+        "properties": {
+          "descriptor": {
+            "$ref": "#/components/schemas/ServiceDescriptor"
+          },
+          "enabled": {
+            "type": "boolean"
+          },
+          "selectedProvider": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "status": {
+            "$ref": "#/components/schemas/ServiceStatus"
+          },
+          "unavailableReason": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "restartRequired": {
+            "type": "boolean"
+          },
+          "menuVisible": {
+            "type": "boolean"
+          },
+          "capabilities": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ServiceCapabilityDto"
+            }
+          }
+        }
+      },
+      "ServiceChangeError": {
+        "enum": [
+          "None",
+          "NotFound",
+          "CoreService",
+          "DependencyUnavailable",
+          "RequiredByEnabledService",
+          "UnknownProvider",
+          "UnsafeProviderChange",
+          "ConcurrentChange"
+        ],
+        "default": "None"
+      },
+      "ServiceChangeResult": {
+        "required": [
+          "service"
+        ],
+        "type": "object",
+        "properties": {
+          "service": {
+            "oneOf": [
+              {
+                "type": "null"
+              },
+              {
+                "$ref": "#/components/schemas/ServiceCatalogDto"
+              }
+            ]
+          },
+          "error": {
+            "$ref": "#/components/schemas/ServiceChangeError"
+          },
+          "detail": {
+            "type": [
+              "null",
+              "string"
+            ]
+          }
+        }
+      },
+      "ServiceConfigurationKey": {
+        "required": [
+          "key",
+          "description"
+        ],
+        "type": "object",
+        "properties": {
+          "key": {
+            "type": "string"
+          },
+          "description": {
+            "type": "string"
+          },
+          "secret": {
+            "type": "boolean",
+            "default": false
+          },
+          "required": {
+            "type": "boolean",
+            "default": true
+          },
+          "restartRequired": {
+            "type": "boolean",
+            "default": true
+          },
+          "readOnly": {
+            "type": "boolean",
+            "default": false
+          },
+          "protectionReason": {
+            "type": [
+              "null",
+              "string"
+            ]
+          }
+        }
+      },
+      "ServiceDescriptor": {
+        "required": [
+          "key",
+          "name",
+          "description",
+          "details"
+        ],
+        "type": "object",
+        "properties": {
+          "key": {
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
+          },
+          "description": {
+            "type": "string"
+          },
+          "details": {
+            "type": "string"
+          },
+          "core": {
+            "type": "boolean",
+            "default": false
+          },
+          "owner": {
+            "type": "string",
+            "default": "generic"
+          },
+          "defaultEnabled": {
+            "type": "boolean",
+            "default": true
+          },
+          "dependencies": {
+            "type": [
+              "null",
+              "array"
+            ],
+            "items": {
+              "type": "string"
+            }
+          },
+          "providers": {
+            "type": [
+              "null",
+              "array"
+            ],
+            "items": {
+              "$ref": "#/components/schemas/ServiceProviderDescriptor"
+            }
+          },
+          "defaultProvider": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "menuPath": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "capabilities": {
+            "type": [
+              "null",
+              "array"
+            ],
+            "items": {
+              "$ref": "#/components/schemas/ServiceCapabilityDescriptor"
+            }
+          },
+          "readPermission": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "additionalReadPermissions": {
+            "type": [
+              "null",
+              "array"
+            ],
+            "items": {
+              "type": "string"
+            }
+          },
+          "configurationKeys": {
+            "type": [
+              "null",
+              "array"
+            ],
+            "items": {
+              "$ref": "#/components/schemas/ServiceConfigurationKey"
+            }
+          },
+          "providerChangeRequiresMigration": {
+            "type": "boolean",
+            "default": false
+          }
+        }
+      },
+      "ServiceNavigationDto": {
+        "required": [
+          "key",
+          "name",
+          "destination",
+          "status"
+        ],
+        "type": "object",
+        "properties": {
+          "key": {
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
+          },
+          "destination": {
+            "type": "string"
+          },
+          "status": {
+            "$ref": "#/components/schemas/ServiceStatus"
+          }
+        }
+      },
+      "ServiceProviderDescriptor": {
+        "required": [
+          "key",
+          "name",
+          "description",
+          "configurationKeys"
+        ],
+        "type": "object",
+        "properties": {
+          "key": {
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
+          },
+          "description": {
+            "type": "string"
+          },
+          "configurationKeys": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ServiceConfigurationKey"
+            }
+          }
+        }
+      },
+      "ServiceStatus": {
+        "enum": [
+          "Disabled",
+          "EnabledNotConfigured",
+          "EnabledReady"
+        ]
+      },
       "UpdateCompanyProfileRequest": {
         "required": [
           "name",
@@ -281,12 +954,65 @@
             }
           }
         }
+      },
+      "ValidationProblemDetails": {
+        "type": "object",
+        "properties": {
+          "type": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "title": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "status": {
+            "pattern": "^-?(?:0|[1-9]\\d*)$",
+            "type": [
+              "null",
+              "integer",
+              "string"
+            ],
+            "format": "int32"
+          },
+          "detail": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "instance": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "errors": {
+            "type": "object",
+            "additionalProperties": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              }
+            }
+          }
+        }
       }
     }
   },
   "tags": [
     {
       "name": "Company"
+    },
+    {
+      "name": "CompanyServices"
+    },
+    {
+      "name": "CompanyServiceNavigation"
     }
   ]
 }

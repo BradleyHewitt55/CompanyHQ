@@ -30,7 +30,7 @@ using CompanyHQ.Users.Extensions;
 using CompanyHQ.Widget.Extensions;
 using CompanyHQ.Sales.Extensions;
 using CompanyHQ.Shipping.Extensions;
-using Resend;
+using CompanyHQ.ServiceCatalog;
 using StackExchange.Redis;
 
 // Before the host builds, so the .env values are visible to configuration binding.
@@ -89,39 +89,49 @@ builder.Services.AddCache(builder.Configuration);
 // JWT bearer authentication plus /api/auth. It verifies passwords with AddUsers' IPasswordHasher.
 builder.Services.AddAuth(builder.Configuration);
 
-// Email delivers through the official Resend client, which the host registers first. A missing
-// key throws here rather than on the first send.
-builder.Services.AddResend(builder.Configuration["Resend:ApiKey"]!);
-builder.Services.AddEmail(builder.Configuration);
+// Optional transports opt into boot without credentials. Configured transports keep SDK validation.
+if ((builder.Configuration["ServiceProviders:Email"] ?? "resend") == "resend")
+    builder.Services.AddEmail(builder.Configuration, allowUnconfigured: true);
+else
+    builder.Services.AddUnconfiguredEmail(builder.Configuration);
 
-// Media stores objects through the official AWS S3 client, pointed here at Cloudflare R2. R2 has
-// one region, is addressed by path, and rejects the checksum trailers the SDK adds by default.
 var r2 = builder.Configuration.GetSection("Cloudflare:R2");
-builder.Services.AddSingleton<IAmazonS3>(new AmazonS3Client(
-    new BasicAWSCredentials(Required(r2, "AccessKeyId"), Required(r2, "SecretAccessKey")),
-    new AmazonS3Config
-    {
-        ServiceURL = $"https://{Required(r2, "AccountId")}.r2.cloudflarestorage.com",
-        AuthenticationRegion = "auto",
-        ForcePathStyle = true,
-        RequestChecksumCalculation = RequestChecksumCalculation.WHEN_REQUIRED,
-        ResponseChecksumValidation = ResponseChecksumValidation.WHEN_REQUIRED
-    }));
-builder.Services.AddMedia(builder.Configuration);
+var s3Selected = (builder.Configuration["ServiceProviders:Media"] ?? "s3") == "s3";
+if (s3Selected && new[] { "AccountId", "AccessKeyId", "SecretAccessKey" }.All(key => !string.IsNullOrWhiteSpace(r2[key]))
+    && !string.IsNullOrWhiteSpace(builder.Configuration["Media:Bucket"]))
+{
+    builder.Services.AddSingleton<IAmazonS3>(new AmazonS3Client(
+        new BasicAWSCredentials(r2["AccessKeyId"]!, r2["SecretAccessKey"]!),
+        new AmazonS3Config
+        {
+            ServiceURL = $"https://{r2["AccountId"]}.r2.cloudflarestorage.com",
+            AuthenticationRegion = "auto", ForcePathStyle = true,
+            RequestChecksumCalculation = RequestChecksumCalculation.WHEN_REQUIRED,
+            ResponseChecksumValidation = ResponseChecksumValidation.WHEN_REQUIRED
+        }));
+    builder.Services.AddMedia(builder.Configuration);
+}
+else builder.Services.AddUnconfiguredMedia(builder.Configuration);
 
 builder.Services.AddSales(builder.Configuration);
 builder.Services.AddShipping();
 builder.Services.AddAppointments();
 builder.Services.AddCompany();
+builder.Services.AddCompanyServiceManagement();
 builder.Services.AddContact();
 builder.Services.AddBlogs();
 builder.Services.AddFaqs();
-builder.Services.AddGeo(builder.Configuration);
-builder.Services.AddOpenStreetMap(builder.Configuration);
+if (!string.IsNullOrWhiteSpace(builder.Configuration["Geo:UserAgent"]))
+{
+    builder.Services.AddGeo(builder.Configuration);
+    builder.Services.AddOpenStreetMap(builder.Configuration);
+}
+else builder.Services.AddGeo(builder.Configuration, allowUnconfigured: true);
 builder.Services.AddGitHub(builder.Configuration);
 builder.Services.AddInbox();
 builder.Services.AddModeration();
-builder.Services.AddNotifications(builder.Configuration);
+builder.Services.AddNotifications(builder.Configuration, allowUnconfigured: true,
+    useFirebase: builder.Configuration.GetValue("ServiceCatalog:LoadFirebase", true));
 builder.Services.AddMessages(builder.Configuration);
 builder.Services.AddWidget(builder.Configuration);
 
@@ -131,8 +141,11 @@ builder.Services.AddRss(builder.Configuration);
 // Feature services never reference each other; the host plugs their ports together here.
 builder.Services.AddIntegrations();
 
+builder.Services.AddHqServiceDescriptors(builder.Configuration);
+
 // Last: it discovers MCP-marked controller actions from every assembly registered above.
 builder.Services.AddMcp(builder.Configuration);
+builder.Services.AddServiceCatalog(HqServiceCatalog.AllowedServices);
 
 // One generated document per controller-owning service registered above.
 ServiceOpenApiDocuments.AddTo(builder.Services, mvc.PartManager);
@@ -146,6 +159,8 @@ if (app.Environment.IsDevelopment())
 }
 
 app.UseHttpsRedirection();
+app.UseRouting();
+app.UseServiceCatalog();
 
 app.UseCors(MarketingCors.PolicyName);
 
@@ -161,11 +176,6 @@ app.MapMcpEndpoint();
 app.MapHealthChecks("/health");
 
 app.Run();
-
-static string Required(IConfigurationSection section, string key) =>
-    section[key] is { } value && !string.IsNullOrWhiteSpace(value)
-        ? value
-        : throw new InvalidOperationException($"{section.Path}:{key} is required.");
 
 // Exposes the entry point to the black-box API integration tests.
 public partial class Program;

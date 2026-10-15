@@ -1,3 +1,4 @@
+using CompanyHQ.ServiceCatalog.Contracts;
 using System.Data;
 using System.Text.RegularExpressions;
 using CompanyHQ.Persistence.Services;
@@ -14,16 +15,27 @@ using CompanyHQ.Users.Services;
 namespace CompanyHQ.Sales.Services;
 
 /// <summary>Owns the reusable persisted catalog and calculated product prices.</summary>
-public sealed partial class SalesCatalogService(IPersistence db, IUserAuthorizationService auth, TimeProvider clock, SalesOptions options) : ISalesCatalogService
+public sealed partial class SalesCatalogService(IServiceAvailability? availability, IPersistence db, IUserAuthorizationService auth, TimeProvider clock, SalesOptions options) : ISalesCatalogService
 {
+    /// <summary>Retains the original strict constructor for existing consumers.</summary>
+    public SalesCatalogService(IPersistence db, IUserAuthorizationService auth, TimeProvider clock, SalesOptions options) : this(null, db, auth, clock, options) { }
+
     internal SalesOptions PricingOptions => options;
     internal DateOnly Today => DateOnly.FromDateTime(TimeZoneInfo.ConvertTime(clock.GetUtcNow(),TimeZoneInfo.FindSystemTimeZoneById(options.BusinessTimeZone)).Date);
-    internal Task<bool> Manager(Guid? actor,CancellationToken ct) => actor.HasValue?auth.HasPermissionAsync(actor.Value,AccessPermissions.ManageSales,ct):Task.FromResult(false);
-    internal async Task RequireManager(Guid? actor,CancellationToken ct) { if(!await Manager(actor,ct)) throw new UnauthorizedAccessException(); }
-    internal async Task<IReadOnlyList<CouponRule>> Coupons(CancellationToken ct) => (await db.Query<Coupon>().Where(x=>x.IsActive).OrderBy(x=>x.Code).Take(1001).ToListAsync(ct)) is var rows && rows.Count<=1000
+    internal Task<bool> Manager(Guid? actor,CancellationToken ct) {
+        availability?.RequireAsync("sales", false, ct).GetAwaiter().GetResult();
+        return actor.HasValue?auth.HasPermissionAsync(actor.Value,AccessPermissions.ManageSales,ct):Task.FromResult(false);
+    }
+    internal async Task RequireManager(Guid? actor,CancellationToken ct) {
+        await (availability?.RequireAsync("sales", false, ct) ?? Task.CompletedTask); if(!await Manager(actor,ct)) throw new UnauthorizedAccessException(); }
+    internal async Task<IReadOnlyList<CouponRule>> Coupons(CancellationToken ct) {
+        await (availability?.RequireAsync("sales", false, ct) ?? Task.CompletedTask);
+        return (await db.Query<Coupon>().Where(x=>x.IsActive).OrderBy(x=>x.Code).Take(1001).ToListAsync(ct)) is var rows && rows.Count<=1000
         ? rows.Select(x=>new CouponRule(x.Id,SalesRules.Read<SaveCouponRequest>(x.DefinitionJson))).ToArray() : throw new ArgumentException("Promotion limit exceeded.");
+    }
     internal async Task<Dictionary<Guid,SaveProductRequest>> Graph(IEnumerable<Guid> ids,CancellationToken ct)
     {
+        await (availability?.RequireAsync("sales", false, ct) ?? Task.CompletedTask);
         var graph=new Dictionary<Guid,SaveProductRequest>(); var pending=ids.Distinct().ToArray();
         for(var depth=0;pending.Length>0;depth++)
         {
@@ -38,6 +50,7 @@ public sealed partial class SalesCatalogService(IPersistence db, IUserAuthorizat
     public async Task<PagedResult<ClientProductDto>> ListAsync(PageRequest paging, SearchRequest search, ProductFilterRequest filter,
         ResponseAudience audience=ResponseAudience.Client,Guid? actor=null,CancellationToken ct=default)
     {
+        await (availability?.RequireAsync("sales", false, ct) ?? Task.CompletedTask);
         var usesPrice=filter.MinPrice.HasValue || filter.MaxPrice.HasValue || filter.Sale==true || filter.Sort.StartsWith("price-",StringComparison.Ordinal);
         if(!usesPrice)return await ListCoreAsync(paging,search,filter,audience,actor,false,ct);
         var result=await db.InTransactionAsync(async token=>
@@ -94,6 +107,7 @@ public sealed partial class SalesCatalogService(IPersistence db, IUserAuthorizat
     }
     public async Task<ClientProductDto?> GetAsync(string slug,ResponseAudience audience=ResponseAudience.Client,Guid? actor=null,CancellationToken ct=default)
     {
+        await (availability?.RequireAsync("sales", false, ct) ?? Task.CompletedTask);
         var manager=audience==ResponseAudience.Admin && await Manager(actor,ct);
         var p=await db.Query<Product>().FirstOrDefaultAsync(p=>p.Slug==slug && (manager || p.IsVisible),ct);
         if(p is null)return null;
@@ -102,6 +116,7 @@ public sealed partial class SalesCatalogService(IPersistence db, IUserAuthorizat
     }
     public async Task<AdminProductDto> SaveAsync(Guid? id,SaveProductRequest request,Guid? actor,CancellationToken ct=default)
     {
+        await (availability?.RequireAsync("sales", false, ct) ?? Task.CompletedTask);
         await RequireManager(actor,ct);
         request=request with {Currency=string.IsNullOrWhiteSpace(request.Currency)?options.DefaultCurrency:request.Currency};
         await EnsurePriceStateAsync(ct);
@@ -163,6 +178,7 @@ public sealed partial class SalesCatalogService(IPersistence db, IUserAuthorizat
     }
     public async Task<bool> DeleteAsync(Guid id,Guid? actor,CancellationToken ct=default)
     {
+        await (availability?.RequireAsync("sales", false, ct) ?? Task.CompletedTask);
         await RequireManager(actor,ct);await EnsurePriceStateAsync(ct);
         return await db.InTransactionAsync(async token=>
         {
@@ -239,28 +255,37 @@ public sealed partial class SalesCatalogService(IPersistence db, IUserAuthorizat
             new ClientProductDto(row.Id,p.Name,p.Slug,p.ShortDescription,p.Description,p.Type,p.ImageUrls ?? [],p.CategoryIds ?? [],p.Currency,cheapest,p.Options ?? [],variants,components,p.Brand,p.Tags,row.AverageRating,row.ReviewCount,row.UnitsSold,RelatedProducts:related ?? []);
     }
     public async Task<PagedResult<ClientCategoryDto>> CategoriesAsync(PageRequest page,SearchRequest search,CancellationToken ct=default)
-    { var result=await db.Query<Category>().Search(search.Field,search.Keyword,typeof(ClientCategoryDto)).OrderBy(x=>x.Name).ThenBy(x=>x.Id).ToPageAsync(page.Skip,page.PageSize,ct);return new(result.Items.Select(x=>new ClientCategoryDto(x.Id,x.Name,x.Slug,x.ParentId,x.Position,x.Sku,x.ImageUrl)).ToArray(),page.Page,page.PageSize,result.Total); }
+    {
+        await (availability?.RequireAsync("sales", false, ct) ?? Task.CompletedTask); var result=await db.Query<Category>().Search(search.Field,search.Keyword,typeof(ClientCategoryDto)).OrderBy(x=>x.Name).ThenBy(x=>x.Id).ToPageAsync(page.Skip,page.PageSize,ct);return new(result.Items.Select(x=>new ClientCategoryDto(x.Id,x.Name,x.Slug,x.ParentId,x.Position,x.Sku,x.ImageUrl)).ToArray(),page.Page,page.PageSize,result.Total); }
     public async Task<ClientCategoryDto> SaveCategoryAsync(Guid? id,SaveCategoryRequest request,Guid? actor,CancellationToken ct=default)
-    { await RequireManager(actor,ct);SalesRules.Validate(request);if(!Regex.IsMatch(request.Slug,"^[a-z0-9]+(?:-[a-z0-9]+)*$")) throw new ArgumentException("Invalid slug.");var row=id.HasValue?await db.FindAsync<Category>(id.Value,ct):new Category();if(row is null) throw new KeyNotFoundException();if(request.ParentId==id && id.HasValue)throw new ArgumentException("A category cannot parent itself.");
+    {
+        await (availability?.RequireAsync("sales", false, ct) ?? Task.CompletedTask); await RequireManager(actor,ct);SalesRules.Validate(request);if(!Regex.IsMatch(request.Slug,"^[a-z0-9]+(?:-[a-z0-9]+)*$")) throw new ArgumentException("Invalid slug.");var row=id.HasValue?await db.FindAsync<Category>(id.Value,ct):new Category();if(row is null) throw new KeyNotFoundException();if(request.ParentId==id && id.HasValue)throw new ArgumentException("A category cannot parent itself.");
         var parent=request.ParentId;var visited=new HashSet<Guid>();
         while(parent.HasValue){if(parent==id || !visited.Add(parent.Value) || visited.Count>50)throw new ArgumentException("Category cycle or depth limit.");var ancestor=await db.Query<Category>().FirstOrDefaultAsync(x=>x.Id==parent,ct) ?? throw new ArgumentException("Parent category not found.");parent=ancestor.ParentId;}
         row.ParentId=request.ParentId;row.Position=request.Position;row.Sku=request.Sku;row.ImageUrl=request.ImageUrl;row.Name=request.Name.Trim();row.Slug=request.Slug;if(!id.HasValue)db.Add(row);await db.SaveChangesAsync(ct);return new(row.Id,row.Name,row.Slug,row.ParentId,row.Position,row.Sku,row.ImageUrl); }
     public async Task<bool> DeleteCategoryAsync(Guid id,Guid? actor,CancellationToken ct=default)
-    { await RequireManager(actor,ct);return await db.InTransactionAsync(async token=> {if(await db.Query<Category>().AnyAsync(x=>x.ParentId==id,token) || await db.Query<Product>().AnyAsync(x=>x.CategoryIds.Contains(id),token))throw new ArgumentException("Category is in use.");return await db.Query<Category>().Where(x=>x.Id==id).DeleteAsync(token)>0;},IsolationLevel.Serializable,ct); }
+    {
+        await (availability?.RequireAsync("sales", false, ct) ?? Task.CompletedTask); await RequireManager(actor,ct);return await db.InTransactionAsync(async token=> {if(await db.Query<Category>().AnyAsync(x=>x.ParentId==id,token) || await db.Query<Product>().AnyAsync(x=>x.CategoryIds.Contains(id),token))throw new ArgumentException("Category is in use.");return await db.Query<Category>().Where(x=>x.Id==id).DeleteAsync(token)>0;},IsolationLevel.Serializable,ct); }
     public async Task<PagedResult<AdminSupplierDto>> SuppliersAsync(PageRequest page,SearchRequest search,Guid? actor,CancellationToken ct=default)
-    {await RequireManager(actor,ct);var result=await db.Query<Supplier>().Search(search.Field,search.Keyword,typeof(AdminSupplierDto)).OrderBy(x=>x.Name).ThenBy(x=>x.Id).ToPageAsync(page.Skip,page.PageSize,ct);return new(result.Items.Select(SupplierDto).ToArray(),page.Page,page.PageSize,result.Total);}
+    {
+        await (availability?.RequireAsync("sales", false, ct) ?? Task.CompletedTask);await RequireManager(actor,ct);var result=await db.Query<Supplier>().Search(search.Field,search.Keyword,typeof(AdminSupplierDto)).OrderBy(x=>x.Name).ThenBy(x=>x.Id).ToPageAsync(page.Skip,page.PageSize,ct);return new(result.Items.Select(SupplierDto).ToArray(),page.Page,page.PageSize,result.Total);}
     public async Task<AdminSupplierDto> SaveSupplierAsync(Guid? id,SaveSupplierRequest request,Guid? actor,CancellationToken ct=default)
-    {await RequireManager(actor,ct);SalesRules.Validate(request);if(request.Origin is not null)SalesRules.Validate(request.Origin);var row=id.HasValue?await db.FindAsync<Supplier>(id.Value,ct):new Supplier();if(row is null)throw new KeyNotFoundException();row.Name=request.Name.Trim();row.IsActive=request.IsActive;row.OriginJson=request.Origin is null?null:SalesRules.Write(request.Origin);if(!id.HasValue)db.Add(row);await db.SaveChangesAsync(ct);return SupplierDto(row);}
+    {
+        await (availability?.RequireAsync("sales", false, ct) ?? Task.CompletedTask);await RequireManager(actor,ct);SalesRules.Validate(request);if(request.Origin is not null)SalesRules.Validate(request.Origin);var row=id.HasValue?await db.FindAsync<Supplier>(id.Value,ct):new Supplier();if(row is null)throw new KeyNotFoundException();row.Name=request.Name.Trim();row.IsActive=request.IsActive;row.OriginJson=request.Origin is null?null:SalesRules.Write(request.Origin);if(!id.HasValue)db.Add(row);await db.SaveChangesAsync(ct);return SupplierDto(row);}
     public async Task<bool> DeleteSupplierAsync(Guid id,Guid? actor,CancellationToken ct=default)
-    {await RequireManager(actor,ct);return await db.InTransactionAsync(async token=>{if(await db.Query<Product>().AnyAsync(x=>x.SupplierIds.Contains(id),token))throw new ArgumentException("Supplier is in use.");return await db.Query<Supplier>().Where(x=>x.Id==id).DeleteAsync(token)>0;},IsolationLevel.Serializable,ct);}
+    {
+        await (availability?.RequireAsync("sales", false, ct) ?? Task.CompletedTask);await RequireManager(actor,ct);return await db.InTransactionAsync(async token=>{if(await db.Query<Product>().AnyAsync(x=>x.SupplierIds.Contains(id),token))throw new ArgumentException("Supplier is in use.");return await db.Query<Supplier>().Where(x=>x.Id==id).DeleteAsync(token)>0;},IsolationLevel.Serializable,ct);}
     public async Task<ClientCategoryDto?> GetCategoryAsync(Guid id,CancellationToken ct=default)
-    {var x=await db.Query<Category>().FirstOrDefaultAsync(x=>x.Id==id,ct);return x is null?null:new(x.Id,x.Name,x.Slug,x.ParentId,x.Position,x.Sku,x.ImageUrl);}
+    {
+        await (availability?.RequireAsync("sales", false, ct) ?? Task.CompletedTask);var x=await db.Query<Category>().FirstOrDefaultAsync(x=>x.Id==id,ct);return x is null?null:new(x.Id,x.Name,x.Slug,x.ParentId,x.Position,x.Sku,x.ImageUrl);}
     public async Task<AdminSupplierDto?> GetSupplierAsync(Guid id,Guid? actor,CancellationToken ct=default)
-    {await RequireManager(actor,ct);var x=await db.Query<Supplier>().FirstOrDefaultAsync(x=>x.Id==id,ct);return x is null?null:SupplierDto(x);}
+    {
+        await (availability?.RequireAsync("sales", false, ct) ?? Task.CompletedTask);await RequireManager(actor,ct);var x=await db.Query<Supplier>().FirstOrDefaultAsync(x=>x.Id==id,ct);return x is null?null:SupplierDto(x);}
     private static AdminSupplierDto SupplierDto(Supplier s)=>new(s.Id,s.Name,s.OriginJson is null?null:SalesRules.Read<SalesAddressDto>(s.OriginJson),s.IsActive);
     /// <summary>Narrow integration facts for shipping adapters, including active supplier origins.</summary>
     public async Task<IReadOnlyList<SalesCatalogShippingProduct>> ShippingProductsAsync(IReadOnlyCollection<Guid> ids,CancellationToken ct=default)
     {
+        await (availability?.RequireAsync("sales", false, ct) ?? Task.CompletedTask);
         var rows=await db.Query<Product>().Where(x=>ids.Contains(x.Id) && x.IsVisible).ToListAsync(ct);
         var supplierIds=rows.SelectMany(x=>x.SupplierIds).Distinct().ToArray();var suppliers=await db.Query<Supplier>().Where(x=>supplierIds.Contains(x.Id) && x.IsActive).ToListAsync(ct);
         return rows.Select(x=>new SalesCatalogShippingProduct(x.Id,x.Name,suppliers.Where(s=>x.SupplierIds.Contains(s.Id)).Select(s=>new SalesSupplierOrigin(s.Id,s.Name,s.OriginJson is null?null:SalesRules.Read<SalesAddressDto>(s.OriginJson))).ToArray())).ToArray();

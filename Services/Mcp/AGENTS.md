@@ -52,3 +52,7 @@ permission, and agent-facing description through `McpActionAttribute`.
 - Do not add `.WithTools<T>()` registrations. Mark an API action, provide an adapter over its domain
   service, and give both the same stable name. A missing or duplicate adapter fails startup.
 - The MCP list filter is only discovery. Direct `tools/call` must check the permission again.
+
+## Runtime catalog constraints
+
+The opt-in catalog adds action ownership without changing discovery signatures or tool names. Tools/list and direct tools/call check committed enablement in addition to existing permissions; unknown ownership fails closed. Transport, agent-key controllers and OAuth metadata/exchange are all owned by MCP and become 404 together when disabled.

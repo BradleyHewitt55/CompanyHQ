@@ -1,3 +1,4 @@
+using CompanyHQ.ServiceCatalog.Contracts;
 using Microsoft.Extensions.Logging;
 using CompanyHQ.Blogs.Contracts.Dtos;
 using CompanyHQ.Blogs.Contracts.Forms;
@@ -12,12 +13,19 @@ using CompanyHQ.Users.Services;
 
 namespace CompanyHQ.Blogs.Services;
 
-public sealed class BlogService(
+public sealed class BlogService(IServiceAvailability? availability,
     IRepository<BlogPost> posts,
     IUserAuthorizationService authorization,
     ILogger<BlogService> logger,
     IBlogCoverImages? covers = null) : IBlogService
 {
+    /// <summary>Retains the original strict constructor for existing consumers.</summary>
+    public BlogService(
+    IRepository<BlogPost> posts,
+    IUserAuthorizationService authorization,
+    ILogger<BlogService> logger,
+    IBlogCoverImages? covers = null) : this(null, posts, authorization, logger, covers) { }
+
     public async Task<PagedResult<ClientBlogPostDto>> ListAsync(
         PageRequest page,
         SearchRequest? search = null,
@@ -25,6 +33,7 @@ public sealed class BlogService(
         Guid? actingUserId = null,
         CancellationToken cancellationToken = default)
     {
+        await (availability?.RequireAsync("blogs", false, cancellationToken) ?? Task.CompletedTask);
         var effectiveAudience = await EffectiveAudienceAsync(audience, actingUserId, McpCapabilityCatalog.ListBlogPosts, cancellationToken);
         // The searchable fields are the ones this caller's shape carries, so a reader cannot probe a draft-only field.
         var query = posts.Query()
@@ -53,6 +62,7 @@ public sealed class BlogService(
         Guid? actingUserId = null,
         CancellationToken cancellationToken = default)
     {
+        await (availability?.RequireAsync("blogs", false, cancellationToken) ?? Task.CompletedTask);
         var effectiveAudience = await EffectiveAudienceAsync(audience, actingUserId, McpCapabilityCatalog.GetBlogPost, cancellationToken);
         var normalised = NormaliseSlug(slug);
         var query = posts.Query().Where(post => post.Slug == normalised);
@@ -73,6 +83,7 @@ public sealed class BlogService(
         Guid? actingUserId = null,
         CancellationToken cancellationToken = default)
     {
+        await (availability?.RequireAsync("blogs", false, cancellationToken) ?? Task.CompletedTask);
         await EnsurePermissionAsync(actingUserId, McpCapabilityCatalog.CreateBlogPost, cancellationToken);
         var slug = NormaliseSlug(request.Slug);
         if (await posts.Query().AnyAsync(post => post.Slug == slug, cancellationToken))
@@ -114,6 +125,7 @@ public sealed class BlogService(
         Guid? actingUserId = null,
         CancellationToken cancellationToken = default)
     {
+        await (availability?.RequireAsync("blogs", false, cancellationToken) ?? Task.CompletedTask);
         await EnsurePermissionAsync(actingUserId, McpCapabilityCatalog.UpdateBlogPost, cancellationToken);
         var post = await posts.Query().FirstOrDefaultAsync(
             candidate => candidate.Slug == NormaliseSlug(slug),
@@ -151,6 +163,7 @@ public sealed class BlogService(
         Guid? actingUserId = null,
         CancellationToken cancellationToken = default)
     {
+        await (availability?.RequireAsync("blogs", false, cancellationToken) ?? Task.CompletedTask);
         await EnsurePermissionAsync(actingUserId, McpCapabilityCatalog.DeleteBlogPost, cancellationToken);
         var post = await posts.Query().FirstOrDefaultAsync(
             candidate => candidate.Slug == NormaliseSlug(slug),
@@ -186,7 +199,8 @@ public sealed class BlogService(
     private async Task EnsurePermissionAsync(Guid? actingUserId, string permission, CancellationToken cancellationToken)
     {
         if (actingUserId is not { } userId ||
-            !await authorization.HasPermissionAsync(userId, permission, cancellationToken))
+            !(await authorization.HasPermissionAsync(userId, permission, cancellationToken)
+                || await authorization.HasPermissionAsync(userId, AccessPermissions.ManageBlogs, cancellationToken)))
         {
             throw new UnauthorizedAccessException();
         }
@@ -199,7 +213,8 @@ public sealed class BlogService(
         CancellationToken cancellationToken) =>
         requested is ResponseAudience.Admin &&
         actingUserId is { } userId &&
-        await authorization.HasPermissionAsync(userId, permission, cancellationToken)
+        (await authorization.HasPermissionAsync(userId, permission, cancellationToken)
+            || await authorization.HasPermissionAsync(userId, AccessPermissions.ManageBlogs, cancellationToken))
             ? ResponseAudience.Admin
             : ResponseAudience.Client;
 

@@ -102,10 +102,46 @@ and service folder; there is no manual document registration.
   keys for dependent rows and ports for cleanup owned by another service.
 - Exercise behavior against real infrastructure; do not introduce mock data.
 
+## Runtime catalog
+
+- Every feature service ships `Add{Plural}ServiceDescriptor()` in the same change that creates it, so
+  every company can list it in its admin Services page, read what it does and enable or disable it.
+  A service without a descriptor cannot be offered to a company. The description and details are
+  written for a company administrator: what the service gives them, what it needs (dependencies,
+  provider keys) and what turning it off does. Infrastructure (Postgres, Persistence, Cache) has none.
+- Catalog metadata is an additive opt-in contract. Keys are canonical lowercase package suffixes;
+  provider adapters belong under their consuming feature, while persistence and cache stay infrastructure.
+  Only the host's explicit allowlist is exposed. Register and migrate every allowed feature before
+  serving requests; runtime enablement never adds or removes DI registrations or tables.
+- ServiceCatalog and ServiceCatalog.Contracts are shared foundations. Feature services may reference
+  them for descriptors, operation admission and availability; feature-to-feature implementation or
+  Contracts references remain forbidden. Company core owns committed selections independently of
+  its public profile. Readiness callbacks use loaded infrastructure/options, never admitted feature
+  interfaces which would recursively evaluate the catalog.
+- Descriptors contain descriptions, destinations, permissions and configuration-key metadata, never
+  configuration values or credentials. Provider readiness is distinct from enablement. Provider and
+  loaded configuration changes can require restart; committed database switches take effect at the
+  next operation admission. Personal company features declare company ownership and default enabled.
+- Management requires its named permission at HTTP and in-process boundaries. Authenticated navigation
+  has a separate safe shape, filters enabled destinations against current persisted role permissions,
+  and never requires service-management privileges. Company-owned Dashboard and account destinations
+  remain the consumer's concern.
+- Gate HTTP, minimal endpoints, SignalR admission, MCP discovery/direct calls, domain/provider calls,
+  bridges and workers together. Disabled features are absent with 404; an enabled operation needing
+  unconfigured infrastructure or an unavailable optional target returns 503. MCP retains current role
+  intersection, read-only restrictions and deny lists in addition to ownership checks.
+- Worker pauses retain pending data and do not consume attempts or quarantine it. Recheck before each
+  provider admission, use bounded host cancellation for detached work, and persist outcomes of work
+  already accepted externally. A switch cannot recall an accepted email, SDK request or signed URL.
+- Preserve published strict registrations and public constructors. Unconfigured/provider-neutral
+  registrations require explicit opt-in, return typed unavailability and never fabricate successful
+  data. Required domain ports remain startup-validated. Storage switches must preserve object affinity
+  or reject the change until migration makes it safe.
+
 ## Creating and changing a service
 
-A new service is complete only when it includes its own `AGENTS.md` in the same change as the code.
-For HTTP services, include `{Name}.http` requests for every endpoint and its failure cases, then
+A new service is complete only when it includes its own `AGENTS.md` and, for a feature, its catalog
+descriptor (see Runtime catalog) in the same change as the code. For HTTP services, include `{Name}.http` requests for every endpoint and its failure cases, then
 regenerate the contract and consumer types.
 
 Keep the service's `AGENTS.md` focused on four sections:

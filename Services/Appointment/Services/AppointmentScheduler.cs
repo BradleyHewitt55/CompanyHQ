@@ -1,3 +1,4 @@
+using CompanyHQ.ServiceCatalog.Contracts;
 
 using CompanyHQ.Appointments.Contracts.Dtos;
 using CompanyHQ.Appointments.Contracts.Forms;
@@ -14,13 +15,17 @@ namespace CompanyHQ.Appointments.Services;
 /// already inside a transaction gets the scheduled appointment committed or rolled back with the
 /// change that caused it. Do not open another transaction here or that stops being true.
 /// </remarks>
-public sealed class AppointmentScheduler(IRepository<Appointment> appointments) : IAppointmentScheduler
+public sealed class AppointmentScheduler(IServiceAvailability? availability, IRepository<Appointment> appointments) : IAppointmentScheduler
 {
+    /// <summary>Retains the original strict constructor for existing consumers.</summary>
+    public AppointmentScheduler(IRepository<Appointment> appointments) : this(null, appointments) { }
+
     public async Task<ClientAppointmentDto> ScheduleAsync(
         Guid ownerUserId,
         ScheduleAppointmentRequest request,
         CancellationToken cancellationToken = default)
     {
+        await (availability?.RequireAsync("appointments", false, cancellationToken) ?? Task.CompletedTask);
         ArgumentNullException.ThrowIfNull(request);
         AppointmentValidation.ThrowIfInvalid(request);
 
@@ -56,10 +61,12 @@ public sealed class AppointmentScheduler(IRepository<Appointment> appointments) 
     public async Task<bool> CancelAsync(
         string sourceKind,
         Guid sourceId,
-        CancellationToken cancellationToken = default) =>
-        await appointments.DeleteAsync(
+        CancellationToken cancellationToken = default) {
+        await (availability?.RequireAsync("appointments", false, cancellationToken) ?? Task.CompletedTask);
+        return await appointments.DeleteAsync(
             candidate => candidate.SourceKind == sourceKind && candidate.SourceId == sourceId,
             cancellationToken) > 0;
+    }
 
     private static string? Clean(string? value) =>
         string.IsNullOrWhiteSpace(value) ? null : value.Trim();

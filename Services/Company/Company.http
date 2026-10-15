@@ -72,3 +72,74 @@ Content-Type: application/json
   "description":"Consulting and operations support for growing teams.",
   "publicEmails":[{"title":"Support","address":"support@companyhq.app"},{"title":"Information","address":"info@companyhq.app"},{"title":"Sales","address":"invalid"}]
 }
+
+### Safe navigation for any signed-in account (only current permitted enabled entries).
+GET {{host}}/api/company/navigation
+Authorization: Bearer {{adminToken}}
+
+### Navigation without authentication: 401.
+GET {{host}}/api/company/navigation
+
+### List the allowed catalog before a public company profile exists.
+GET {{host}}/api/company/services
+Authorization: Bearer {{adminToken}}
+
+### Get description, providers, readiness and configuration-key metadata (never values).
+GET {{host}}/api/company/services/sales
+Authorization: Bearer {{adminToken}}
+
+### Unknown descriptor: 404.
+GET {{host}}/api/company/services/not-allowlisted
+Authorization: Bearer {{adminToken}}
+
+### Disable sales; following HTTP, MCP and domain admissions are absent immediately.
+PUT {{host}}/api/company/services/sales
+Authorization: Bearer {{adminToken}}
+Content-Type: application/json
+
+{ "enabled": false }
+
+### Enable sales immediately; configuration/provider changes can still require restart.
+PUT {{host}}/api/company/services/sales
+Authorization: Bearer {{adminToken}}
+Content-Type: application/json
+
+{ "enabled": true }
+
+### Protected core: 409 CoreService.
+PUT {{host}}/api/company/services/email
+Authorization: Bearer {{adminToken}}
+Content-Type: application/json
+
+{ "enabled": false }
+
+### Provider selection retains old environment credentials and pauses incompatible transport.
+PUT {{host}}/api/company/services/email
+Authorization: Bearer {{adminToken}}
+Content-Type: application/json
+
+{ "enabled": true, "selectedProvider": "localsmtp" }
+
+### Unsafe media switch: 409 UnsafeProviderChange (existing objects lack provider affinity).
+PUT {{host}}/api/company/services/media
+Authorization: Bearer {{adminToken}}
+Content-Type: application/json
+
+{ "enabled": true, "selectedProvider": "local" }
+
+### Unknown provider: 409 UnknownProvider.
+PUT {{host}}/api/company/services/email
+Authorization: Bearer {{adminToken}}
+Content-Type: application/json
+
+{ "enabled": true, "selectedProvider": "unknown" }
+
+### Enabled Messages still requires Moderation: 409 RequiredByEnabledService.
+PUT {{host}}/api/company/services/moderation
+Authorization: Bearer {{adminToken}}
+Content-Type: application/json
+
+{ "enabled": false }
+
+### Management without a token: 401. A current role without company.services.manage gets 403.
+GET {{host}}/api/company/services

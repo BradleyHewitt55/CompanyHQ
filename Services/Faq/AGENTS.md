@@ -22,3 +22,7 @@ forgets its own filter.
 Keep the unique key index, publication filter, and SQL ordering intact. Changes to the contract must
 regenerate `Services/Faq/Contracts/OpenApi/faq.json` and the consuming app's
 `src/api/schema.d.ts` with `npm run api:sync`, and update `Faq.http`.
+
+## Runtime catalog constraints
+
+Catalog admission covers HTTP and direct service operations, and MCP filters both listing and direct calls by current feature enablement without weakening the individual action permissions.

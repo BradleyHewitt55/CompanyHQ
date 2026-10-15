@@ -12,4 +12,5 @@
     <Compile Remove="Models\**" />
   </ItemGroup>
 
+  <ItemGroup><ProjectReference Include="../../ServiceCatalog/Contracts/ServiceCatalog.Contracts.csproj" /></ItemGroup>
 </Project>

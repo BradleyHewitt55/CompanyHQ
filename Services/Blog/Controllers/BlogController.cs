@@ -30,7 +30,7 @@ public sealed class BlogController(IBlogService blogs) : ControllerBase
         [FromQuery] SearchRequest search,
         CancellationToken cancellationToken = default) =>
         blogs.ListAsync(paging, search,
-            User.Audience(McpCapabilityCatalog.ListBlogPosts),
+            User.HasPermission(AccessPermissions.ManageBlogs) ? ResponseAudience.Admin : User.Audience(McpCapabilityCatalog.ListBlogPosts),
             User.GetUserId(), cancellationToken);
 
     [HttpGet("{slug}")]
@@ -46,7 +46,7 @@ public sealed class BlogController(IBlogService blogs) : ControllerBase
         try
         {
             return await blogs.GetAsync(slug,
-                User.Audience(McpCapabilityCatalog.GetBlogPost),
+                User.HasPermission(AccessPermissions.ManageBlogs) ? ResponseAudience.Admin : User.Audience(McpCapabilityCatalog.GetBlogPost),
                 User.GetUserId(), cancellationToken) is { } post
                 ? post
                 : NotFound();

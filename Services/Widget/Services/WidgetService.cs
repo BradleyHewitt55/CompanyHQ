@@ -16,7 +16,7 @@ internal sealed class WidgetService(
 
     public async Task<ClientWidgetDto> GetAsync(CancellationToken cancellationToken = default) =>
         new(
-            conversations is not null,
+            conversations is not null && await conversations.IsAvailableAsync(cancellationToken),
             issues is not null && await issues.IsAvailableAsync(cancellationToken),
             options.Sources,
             IssueCategories);
@@ -27,7 +27,7 @@ internal sealed class WidgetService(
     {
         ArgumentNullException.ThrowIfNull(request);
 
-        if (conversations is null)
+        if (conversations is null || !await conversations.IsAvailableAsync(cancellationToken))
         {
             return (WidgetError.Unavailable, null);
         }
@@ -47,7 +47,7 @@ internal sealed class WidgetService(
         string token,
         CancellationToken cancellationToken = default)
     {
-        if (conversations is null)
+        if (conversations is null || !await conversations.IsAvailableAsync(cancellationToken))
         {
             return (WidgetError.Unavailable, null);
         }
@@ -57,16 +57,16 @@ internal sealed class WidgetService(
             : (WidgetError.NotFound, null);
     }
 
-    public Task<WidgetError> SendMessageAsync(
+    public async Task<WidgetError> SendMessageAsync(
         Guid id,
         SendWidgetMessageRequest request,
         CancellationToken cancellationToken = default)
     {
         ArgumentNullException.ThrowIfNull(request);
 
-        return conversations is null
-            ? Task.FromResult(WidgetError.Unavailable)
-            : conversations.SendAsync(id, request.Token, request.Body, cancellationToken);
+        return conversations is null || !await conversations.IsAvailableAsync(cancellationToken)
+            ? WidgetError.Unavailable
+            : await conversations.SendAsync(id, request.Token, request.Body, cancellationToken);
     }
 
     public async Task<WidgetError> SubmitIssueAsync(
@@ -75,7 +75,7 @@ internal sealed class WidgetService(
     {
         ArgumentNullException.ThrowIfNull(request);
 
-        if (issues is null)
+        if (issues is null || !await issues.IsAvailableAsync(cancellationToken))
         {
             return WidgetError.Unavailable;
         }

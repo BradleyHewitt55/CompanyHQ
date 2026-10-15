@@ -1,14 +1,22 @@
+using CompanyHQ.ServiceCatalog.Contracts;
 using CompanyHQ.Sales.Contracts.Dtos;
 using CompanyHQ.Sales.Contracts.Forms;
 using CompanyHQ.Sales.Contracts.Models;
 using CompanyHQ.Sales.Contracts.Ports;
 namespace CompanyHQ.Sales.Services;
 /// <summary>Coordinates fresh basket pricing with server shipping quotes.</summary>
-public sealed class SalesCheckoutService(SalesBasketPricing basket,SalesCatalogService catalog,SalesOptions options,ISalesShipping? shipping=null) : ISalesCheckoutService
+public sealed class SalesCheckoutService(IServiceAvailability? availability, SalesBasketPricing basket,SalesCatalogService catalog,SalesOptions options,ISalesShipping? shipping=null) : ISalesCheckoutService
 {
-    public async Task<PricedSaleDto> PriceAsync(PriceSaleRequest request,CancellationToken ct=default)=>(await CalculateAsync(request,false,ct)).Price;
+    /// <summary>Retains the original strict constructor for existing consumers.</summary>
+    public SalesCheckoutService(SalesBasketPricing basket,SalesCatalogService catalog,SalesOptions options,ISalesShipping? shipping=null) : this(null, basket, catalog, options, shipping) { }
+
+    public async Task<PricedSaleDto> PriceAsync(PriceSaleRequest request,CancellationToken ct=default){
+        await (availability?.RequireAsync("sales", false, ct) ?? Task.CompletedTask);
+        return (await CalculateAsync(request,false,ct)).Price;
+    }
     internal async Task<PricedBasket> CalculateAsync(PriceSaleRequest request,bool placing,CancellationToken ct,bool staff=false)
     {
+        await (availability?.RequireAsync("sales", false, ct) ?? Task.CompletedTask);
         var priced=await basket.CalculateAsync(request,ct,staff);
         if(request.ShippingAddress is null)
         {if((await catalog.Coupons(ct)).Any(c=>c.Definition.AppliesToShipping && (request.CouponCodes ?? []).Any(code=>SalesRules.Normalize(code)==c.Definition.Code)))throw new ArgumentException("Entered shipping coupons require a shipping address.");

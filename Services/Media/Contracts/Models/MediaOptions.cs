@@ -67,9 +67,11 @@ public sealed class MediaOptions
         HasPublicDomain ? GetPublicUrl(key) : GetContentUrl(mediaObjectId);
 
     /// <summary>Throws during host registration so invalid media settings never reach a request.</summary>
-    public void Validate()
+    public void Validate() => Validate(false);
+
+    public void Validate(bool allowUnconfigured)
     {
-        if (string.IsNullOrWhiteSpace(Bucket))
+        if (!allowUnconfigured && string.IsNullOrWhiteSpace(Bucket))
         {
             throw new InvalidOperationException("Media:Bucket is required.");
         }
@@ -85,10 +87,11 @@ public sealed class MediaOptions
             }
 
         }
-        else if (!Uri.TryCreate(ContentBaseUrl, UriKind.Absolute, out var contentUri)
+        else if ((!allowUnconfigured || !string.IsNullOrWhiteSpace(ContentBaseUrl))
+            && (!Uri.TryCreate(ContentBaseUrl, UriKind.Absolute, out var contentUri)
             || (contentUri.Scheme != Uri.UriSchemeHttps && contentUri.Scheme != Uri.UriSchemeHttp)
             || !string.IsNullOrEmpty(contentUri.Query)
-            || !string.IsNullOrEmpty(contentUri.Fragment))
+            || !string.IsNullOrEmpty(contentUri.Fragment)))
         {
             throw new InvalidOperationException(
                 "Media needs somewhere to serve public media from: set Media:PublicBaseUrl to a public storage domain, "

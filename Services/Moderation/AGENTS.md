@@ -65,3 +65,7 @@ discovers every registered source through its scoped registry and owns only the 
   operator-raised flag endpoint, or user account sanction from an `ActionTaken` user report.
 - No discovery endpoint for inbound blocks.
 - No moderation dependency on any feature service. The host bridges each one in.
+
+## Runtime catalog constraints
+
+Catalog disable makes moderation operations absent and cannot coexist with enabled Messages, which requires its safety checks. Existing suppression/block data remains untouched and resumes enforcing the same policy on enable.

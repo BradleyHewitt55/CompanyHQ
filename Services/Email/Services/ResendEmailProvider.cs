@@ -2,6 +2,7 @@ using Microsoft.Extensions.Logging;
 using CompanyHQ.Email.Contracts.Models;
 using CompanyHQ.Email.Contracts.Ports;
 using Resend;
+using CompanyHQ.ServiceCatalog.Contracts;
 using EmailMessage = CompanyHQ.Email.Contracts.Ports.EmailMessage;
 
 namespace CompanyHQ.Email.Services;
@@ -14,7 +15,7 @@ internal sealed class ResendEmailProvider(
     IResend resend,
     EmailOptions options,
     EmailSendPacer pacer,
-    ILogger<ResendEmailProvider> logger) : IEmailProvider
+    ILogger<ResendEmailProvider> logger, IServiceAvailability? availability = null) : IEmailProvider
 {
     public async Task<EmailSendResult> SendAsync(
         EmailMessage message,
@@ -23,6 +24,7 @@ internal sealed class ResendEmailProvider(
         ArgumentNullException.ThrowIfNull(message);
 
         await pacer.WaitAsync(cancellationToken);
+        if (availability is not null) await availability.RequireAsync("email", true, cancellationToken);
 
         try
         {

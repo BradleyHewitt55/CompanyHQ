@@ -91,3 +91,7 @@ Single shapes for cart, price and receipts are
 intentional; staff catalog/order shapes add costs. Aggregate request and graph bounds are policy,
 not claims of unlimited cart or bundle support. Company coupon codes and fixed geography belong
 in consumer configuration/data, never in this service.
+
+## Runtime catalog constraints
+
+Catalog checks also guard concrete service operations and resumable projection maintenance, not only interface registrations. Disabled price maintenance pauses without moving generation state. Shipping/provider bridges report unavailable targets explicitly and retain existing pricing, permission and immutable-order rules.

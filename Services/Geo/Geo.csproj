@@ -30,4 +30,5 @@
     <PackageReference Include="ModelContextProtocol.Core" Version="2.2.0" />
   </ItemGroup>
 
+  <ItemGroup><ProjectReference Include="..\ServiceCatalog\ServiceCatalog.csproj" /></ItemGroup>
 </Project>

@@ -1,3 +1,4 @@
+using CompanyHQ.ServiceCatalog.Contracts;
 using CompanyHQ.Sales.Contracts.Dtos;
 using CompanyHQ.Sales.Contracts.Forms;
 using CompanyHQ.Sales.Contracts.Ports;
@@ -5,12 +6,17 @@ using CompanyHQ.Sales.Contracts.Ports;
 namespace CompanyHQ.Sales.Services;
 
 /// <summary>Authorizes customer-safe delivery; provider calls run outside database transactions.</summary>
-public sealed class SalesDocumentService(SalesCatalogService catalog, SalesOrderService orders,
+public sealed class SalesDocumentService(IServiceAvailability? availability, SalesCatalogService catalog, SalesOrderService orders,
     SalesQuoteService quotes, ISalesDocumentDelivery? delivery = null)
 {
+    /// <summary>Retains the original strict constructor for existing consumers.</summary>
+    public SalesDocumentService(SalesCatalogService catalog, SalesOrderService orders,
+    SalesQuoteService quotes, ISalesDocumentDelivery? delivery = null) : this(null, catalog, orders, quotes, delivery) { }
+
     public async Task<SalesDocumentDeliveryResult?> SendInvoiceAsync(Guid id, SendSalesDocumentRequest request,
         Guid? actor, CancellationToken ct = default)
     {
+        await (availability?.RequireAsync("sales", false, ct) ?? Task.CompletedTask);
         await catalog.RequireManager(actor, ct);
         Validate(request);
         if (delivery is null) throw new SalesCapabilityUnavailableException("Invoice delivery is not configured.");
@@ -24,6 +30,7 @@ public sealed class SalesDocumentService(SalesCatalogService catalog, SalesOrder
     public async Task<SalesDocumentDeliveryResult?> SendQuoteAsync(Guid id, SendSalesDocumentRequest request,
         Guid? actor, CancellationToken ct = default)
     {
+        await (availability?.RequireAsync("sales", false, ct) ?? Task.CompletedTask);
         await catalog.RequireManager(actor, ct);
         Validate(request);
         if (delivery is null) throw new SalesCapabilityUnavailableException("Quote delivery is not configured.");

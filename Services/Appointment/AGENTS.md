@@ -72,3 +72,7 @@ that is not a real instant, enforced in `AppointmentValidation` and as a check c
 - There is no all-day flag, so a caller scheduling from a date anchors it to midnight UTC.
 - Nothing notifies. There are no reminders and no calendar sync.
 - An appointment cannot be moved to another account's diary; delete it and book it again.
+
+## Runtime catalog constraints
+
+Catalog admission applies to diary and scheduler calls as well as HTTP. Disabling keeps bookings and source links intact; enabling does not replay or duplicate them.

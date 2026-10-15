@@ -87,3 +87,7 @@ is client configuration and stays with the mobile app.
 No admin send/broadcast action, inbox/history endpoint, per-kind preference, digest, quiet hours,
 SMS, APNs, web push, native Windows/macOS toast, FCM topic, or delivery report is part of this
 service.
+
+## Runtime catalog constraints
+
+Legacy Firebase registration keeps its documented graceful credential behavior. The explicit catalog host path allows absent/inactive credentials, validates fully supplied active credentials eagerly and exposes actual readiness. Catalog batches pause before claiming or defer without consuming attempts; switches never turn unavailable work into Sent, Failed or Abandoned. Already accepted deliveries cannot be recalled.

@@ -1,3 +1,4 @@
+using CompanyHQ.ServiceCatalog.Contracts;
 using CompanyHQ.Notifications.Contracts.Dtos;
 using CompanyHQ.Notifications.Contracts.Enums;
 using CompanyHQ.Notifications.Contracts.Forms;
@@ -7,15 +8,21 @@ using CompanyHQ.Persistence.Services;
 namespace CompanyHQ.Notifications.Services;
 
 /// <inheritdoc cref="INotificationAccountService" />
-public sealed class NotificationAccountService(
+public sealed class NotificationAccountService(IServiceAvailability? availability,
     IPersistence context,
     TimeProvider timeProvider) : INotificationAccountService
 {
+    /// <summary>Retains the original strict constructor for existing consumers.</summary>
+    public NotificationAccountService(
+    IPersistence context,
+    TimeProvider timeProvider) : this(null, context, timeProvider) { }
+
     public async Task RegisterDeviceAsync(
         Guid userId,
         RegisterDeviceRequest request,
         CancellationToken cancellationToken = default)
     {
+        await (availability?.RequireAsync("notifications", false, cancellationToken) ?? Task.CompletedTask);
         ArgumentNullException.ThrowIfNull(request);
         ValidateUserId(userId);
 
@@ -63,6 +70,7 @@ public sealed class NotificationAccountService(
         string token,
         CancellationToken cancellationToken = default)
     {
+        availability?.RequireAsync("notifications", false, cancellationToken).GetAwaiter().GetResult();
         ValidateUserId(userId);
         ArgumentException.ThrowIfNullOrWhiteSpace(token);
 
@@ -80,6 +88,7 @@ public sealed class NotificationAccountService(
         Guid userId,
         CancellationToken cancellationToken = default)
     {
+        await (availability?.RequireAsync("notifications", false, cancellationToken) ?? Task.CompletedTask);
         ValidateUserId(userId);
 
         var preference = await context.Query<NotificationPreference>()
@@ -93,6 +102,7 @@ public sealed class NotificationAccountService(
         UpdateNotificationPreferencesRequest request,
         CancellationToken cancellationToken = default)
     {
+        await (availability?.RequireAsync("notifications", false, cancellationToken) ?? Task.CompletedTask);
         ArgumentNullException.ThrowIfNull(request);
         ValidateUserId(userId);
 
@@ -130,6 +140,7 @@ public sealed class NotificationAccountService(
         Guid userId,
         CancellationToken cancellationToken = default)
     {
+        await (availability?.RequireAsync("notifications", false, cancellationToken) ?? Task.CompletedTask);
         ValidateUserId(userId);
 
         var devices = await context.Query<PushDevice>()
@@ -148,6 +159,7 @@ public sealed class NotificationAccountService(
     public async Task<AdminNotificationQueueHealthDto> GetQueueHealthAsync(
         CancellationToken cancellationToken = default)
     {
+        await (availability?.RequireAsync("notifications", false, cancellationToken) ?? Task.CompletedTask);
         var countByStatus = await context.Query<QueuedNotification>()
             .Where(notification => notification.Status == QueuedNotificationStatus.Pending
                 || notification.Status == QueuedNotificationStatus.Failed

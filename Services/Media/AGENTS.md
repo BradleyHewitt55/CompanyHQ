@@ -63,3 +63,7 @@ first request. Split read-policy checks and Media-calling behavior into separate
 
 There is no R2 Worker, API image-byte **read** proxy (the `/content` redirect never touches the bytes; `PUT /api/media/{id}/upload` is the write side and deliberately does), local filesystem adapter, public bucket outside `user/` and `content/`, arbitrary remote-media URL, thumbnail pipeline, or media administration UI.
 
+
+## Runtime catalog constraints
+
+Explicit unavailable storage registrations return typed unavailability and pause cleanup without consuming attempts. Original strict registrations/public constructors remain intact. Provider selection changes are rejected because historical objects have no provider affinity; migrating bytes and references must precede any future relaxation. Already-issued signed URLs and accepted external deletes cannot be recalled.

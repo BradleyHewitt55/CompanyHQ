@@ -15,7 +15,8 @@ internal sealed class FirebaseCredentialProvider
 
     public FirebaseCredentialProvider(
         FirebaseOptions options,
-        ILogger<FirebaseCredentialProvider> logger)
+        ILogger<FirebaseCredentialProvider> logger,
+        FirebaseRegistrationPolicy policy)
     {
         ArgumentNullException.ThrowIfNull(options);
         ArgumentNullException.ThrowIfNull(logger);
@@ -33,6 +34,7 @@ internal sealed class FirebaseCredentialProvider
             var json = ReadCredentialJson(options.ServiceAccountJson);
             if (json is null || !MatchesProject(json, options.ProjectId))
             {
+                if (policy.StrictCredentials) throw new InvalidOperationException("Configured Firebase credentials are invalid.");
                 logger.LogWarning(
                     "Firebase push delivery is disabled because the FCM credentials are invalid.");
                 return;
@@ -47,6 +49,7 @@ internal sealed class FirebaseCredentialProvider
         }
         catch (Exception)
         {
+            if (policy.StrictCredentials) throw new InvalidOperationException("Configured Firebase credentials are invalid.");
             // Credential contents and paths stay out of logs; the startup warning says enough for
             // an operator to inspect configuration without leaking a private key.
             logger.LogWarning(
@@ -57,6 +60,21 @@ internal sealed class FirebaseCredentialProvider
     public bool IsConfigured => App is not null;
 
     public FirebaseApp? App { get; }
+
+    internal static void ValidateConfigured(FirebaseOptions options)
+    {
+        try
+        {
+            var json = ReadCredentialJson(options.ServiceAccountJson);
+            if (json is null || !MatchesProject(json, options.ProjectId))
+                throw new InvalidOperationException();
+            _ = CredentialFactory.FromJson<ServiceAccountCredential>(json).ToGoogleCredential();
+        }
+        catch (Exception)
+        {
+            throw new InvalidOperationException("Configured Firebase credentials are invalid.");
+        }
+    }
 
     private static FirebaseApp? GetExistingApp()
     {
@@ -110,3 +128,5 @@ internal sealed class FirebaseCredentialProvider
             && string.Equals(keyProject.GetString(), projectId, StringComparison.Ordinal);
     }
 }
+
+internal sealed record FirebaseRegistrationPolicy(bool StrictCredentials);

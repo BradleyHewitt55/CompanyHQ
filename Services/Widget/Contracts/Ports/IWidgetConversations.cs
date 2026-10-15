@@ -17,6 +17,8 @@ public sealed record WidgetConversationStart(
 /// </summary>
 public interface IWidgetConversations
 {
+    /// <summary>Hosts report current destination readiness. Existing standalone bridges keep their behavior.</summary>
+    Task<bool> IsAvailableAsync(CancellationToken cancellationToken = default) => Task.FromResult(true);
     Task<ClientWidgetConversationAccessDto> StartAsync(
         WidgetConversationStart start,
         CancellationToken cancellationToken = default);
