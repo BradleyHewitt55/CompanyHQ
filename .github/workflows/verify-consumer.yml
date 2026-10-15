@@ -52,8 +52,9 @@ jobs:
         run: |
           dotnet restore Apps/Api/Company.Api.csproj
           dotnet list Apps/Api/Company.Api.csproj package --include-transitive --format json > packages.json
-          # Exactly the two generic Rss packages, both resolved to the version under test: no host
-          # package, no other CompanyHQ package, direct or transitive.
+          # Exactly the two generic Rss packages plus the shared ServiceCatalog foundation every feature's
+          # catalog descriptor builds on, all at the version under test: no host package and no other
+          # feature, direct or transitive.
           node -e '
             const version = process.env.VERSION;
             const listed = JSON.parse(require("fs").readFileSync("packages.json", "utf8"));
@@ -62,7 +63,7 @@ jobs:
               for (const framework of project.frameworks ?? [])
                 for (const p of [...(framework.topLevelPackages ?? []), ...(framework.transitivePackages ?? [])])
                   if (/^CompanyHQ\./i.test(p.id)) resolved.set(p.id, p.resolvedVersion);
-            const expected = ["CompanyHQ.Rss", "CompanyHQ.Rss.Contracts"];
+            const expected = ["CompanyHQ.Rss", "CompanyHQ.Rss.Contracts", "CompanyHQ.ServiceCatalog", "CompanyHQ.ServiceCatalog.Contracts"];
             const actual = [...resolved.keys()].sort();
             console.log(JSON.stringify(Object.fromEntries(resolved)));
             if (JSON.stringify(actual) !== JSON.stringify(expected) || [...resolved.values()].some(v => v !== version)) {
